@@ -1,9 +1,14 @@
 "use strict";
 /* Selah — ASV Study Bible prototype */
 let BIBLE=null, XREFS={}, STUDY=null, TYPES=[];
+const TRANSLATIONS={
+  asv:{name:"ASV", full:"American Standard Version (1901)", short:"ASV 1901", file:"data/bible.json"},
+  web:{name:"WEB", full:"World English Bible", short:"WEB", file:"data/web.json"}
+};
+const BIBLES={}; // id -> parsed translation json
 const VINDEX={}; // "Book C:V" -> text
 const BOOKS=[];  // {name, chapters}
-const state={view:"read", book:"John", ch:1, sheetRef:null, sheetTab:"xrefs", wordScope:"john"};
+const state={view:"read", book:"John", ch:1, sheetRef:null, sheetTab:"xrefs", wordScope:"john", trans:"asv"};
 
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
@@ -55,20 +60,45 @@ function textOf(ref){ return VINDEX[ref]||""; }
 async function boot(){
   applyTheme(store.get("theme","light"));
   $("#view").innerHTML='<div class="loading">Loading the Scriptures…</div>';
-  const [b,x,s,m]=await Promise.all([
+  const [b,w,x,s,m]=await Promise.all([
     fetch("data/bible.json").then(r=>r.json()),
+    fetch("data/web.json").then(r=>r.json()),
     fetch("data/xrefs_john.json").then(r=>r.json()),
     fetch("data/study_john.json").then(r=>r.json()),
     fetch("data/typology.json").then(r=>r.json())
   ]);
-  BIBLE=b; XREFS=x; STUDY=s; TYPES=m.types||[];
-  b.books.forEach(bk=>{ BOOKS.push(bk);
-    bk.chapters.forEach((ch,ci)=>ch.forEach((t,vi)=>{ VINDEX[`${bk.name} ${ci+1}:${vi+1}`]=t; }));
-  });
+  BIBLES.asv=b; BIBLES.web=w; BIBLE=b; XREFS=x; STUDY=s; TYPES=m.types||[];
+  state.trans=store.get("trans","asv");
+  if(!BIBLES[state.trans]) state.trans="asv";
+  buildIndex();
+  updateTransUI();
   const pos=store.get("pos",null);
   if(pos&&BOOKS.some(b=>b.name===pos.book)){ state.book=pos.book; state.ch=pos.ch; }
-  bindTabs(); bindTheme(); bindFontSize(); bindSheet();
+  bindTabs(); bindTheme(); bindFontSize(); bindSheet(); bindTrans();
   showView("home");
+}
+function buildIndex(){
+  BOOKS.length=0;
+  for(const k in VINDEX) delete VINDEX[k];
+  BIBLES[state.trans].books.forEach(bk=>{ BOOKS.push(bk);
+    bk.chapters.forEach((ch,ci)=>ch.forEach((t,vi)=>{ VINDEX[`${bk.name} ${ci+1}:${vi+1}`]=t; }));
+  });
+}
+function updateTransUI(){
+  const btn=$("#transBtn");
+  if(btn) btn.textContent=TRANSLATIONS[state.trans].short;
+}
+function bindTrans(){
+  $("#transBtn").onclick=()=>{
+    setTrans(state.trans==="asv"?"web":"asv");
+    toast("Switched to "+TRANSLATIONS[state.trans].short);
+  };
+}
+function setTrans(id){
+  if(!BIBLES[id]||id===state.trans) return;
+  state.trans=id; store.set("trans",id);
+  buildIndex(); updateTransUI();
+  showView(state.view);
 }
 function applyTheme(t){ document.documentElement.setAttribute("data-theme",t); store.set("theme",t); }
 function bindTheme(){ $("#themeBtn").onclick=()=>applyTheme(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark"); }
@@ -107,12 +137,12 @@ function renderHome(){
   +`<button class="home-votd" id="hcVotd"><div class="hlab">Verse of the day</div><div class="votd-ref">${esc(votd)}</div><div class="votd-text">${esc(textOf(votd))}</div></button>`
   +(typ&&typFirst?`<button class="home-typ" id="hcTyp"><div class="hlab">Typology of the day</div><div class="ty-t">${esc(typ.title)}</div><div class="ty-s">${esc(typ.nt)} &nbsp;↔&nbsp; ${esc(typ.ot)}</div></button>`:"")
   +`<div class="home-grid">
-    <button class="home-card" data-go="read"><div class="hc-t">Read</div><div class="hc-s">The Bible · ASV 1901</div></button>
+    <button class="home-card" data-go="read"><div class="hc-t">Read</div><div class="hc-s">The Bible · ${esc(TRANSLATIONS[state.trans].short)}</div></button>
     <button class="home-card" data-go="search"><div class="hc-t">Search</div><div class="hc-s">Any word or phrase</div></button>
     <button class="home-card" data-go="christ"><div class="hc-t">Trace Christ</div><div class="hc-s">Study trails in John</div></button>
     <button class="home-card" data-go="saved"><div class="hc-t">Saved</div><div class="hc-s">${hlN} highlight${hlN===1?"":"s"} · ${noteN} note${noteN===1?"":"s"}</div></button>
   </div>
-  <div class="home-foot">Selah · American Standard Version (1901), public domain</div>`;
+  <div class="home-foot">Selah · ${esc(TRANSLATIONS[state.trans].full)}, public domain</div>`;
   const go=g=>showView(g);
   v.querySelectorAll(".home-card").forEach(b=>b.onclick=()=>go(b.dataset.go));
   const hc=v.querySelector("#hcCont"); if(hc) hc.onclick=()=>go("read");
@@ -176,7 +206,7 @@ function openSheet(ref,tab){
 function closeSheet(){ $("#sheetWrap").classList.add("hidden"); state.sheetRef=null; }
 function paintSheet(){
   const ref=state.sheetRef; if(!ref) return;
-  $("#sheetRef").textContent=ref+" · ASV";
+  $("#sheetRef").textContent=ref+" · "+TRANSLATIONS[state.trans].name;
   document.querySelectorAll("#sheetTabs button").forEach(b=>b.classList.toggle("active",b.dataset.tab===state.sheetTab));
   const body=$("#sheetBody");
   ({xrefs:paintXrefs,parallels:paintParallels,typology:paintTypes,words:paintWords,mark:paintMark})[state.sheetTab](body,ref);
@@ -313,7 +343,7 @@ function renderSearch(){
 function renderChrist(){
   const v=$("#view");
   v.innerHTML=`<h2 class="section-title">Trace Christ through John</h2>
-  <div class="section-sub">Curated study trails: every item jumps straight to the verse in the American Standard Version.</div>
+  <div class="section-sub">Curated study trails: every item jumps straight to the verse in the ${esc(TRANSLATIONS[state.trans].name)}.</div>
   <div id="traces">`+STUDY.traces.map(t=>`
     <div class="trace-card" data-id="${t.id}">
       <div class="trace-head"><h3>${esc(t.title)}</h3><span class="cnt">${t.items.length} ▾</span></div>
@@ -346,7 +376,7 @@ function renderSaved(){
       ${NOTES[k]?`<div class="sn">“${esc(NOTES[k])}”</div>`:""}
     </button>`).join(""):'<div class="empty" style="padding:6px 16px">Nothing saved yet. Tap any verse while reading, then use the Mark tab to highlight it or add a note.</div>')+`</div>
   <div class="about"><b>Selah</b> prototype · Gospel of John study edition<br>
-  Text: American Standard Version (1901) — public domain.<br>
+  Text: ${esc(TRANSLATIONS[state.trans].full)} — public domain.<br>
   Cross-references: OpenBible.info (CC-BY), derived primarily from the Treasury of Scripture Knowledge.<br>
   Parallel passages, Christology trails and signs curated for this edition.</div>`;
   v.querySelectorAll(".saved-item").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r));

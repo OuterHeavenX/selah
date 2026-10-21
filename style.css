@@ -25,7 +25,7 @@ body{
 .brand-name{font-family:Georgia,"Times New Roman",serif; font-size:22px; font-weight:bold; letter-spacing:1px;}
 .brand-sub{font-size:11px; color:var(--ink-soft); letter-spacing:2px; text-transform:uppercase;}
 .top-actions{display:flex; align-items:center; gap:10px;}
-.trans-badge{font-size:11px; border:1px solid var(--line); border-radius:20px; padding:3px 10px; color:var(--ink-soft);}
+.trans-badge{font-size:11px; border:1px solid var(--line); border-radius:20px; padding:3px 10px; color:var(--ink-soft); background:none; font:inherit; cursor:pointer;}
 .icon-btn{background:none; border:1px solid var(--line); border-radius:50%; width:34px; height:34px; font-size:16px; color:var(--ink); cursor:pointer;}
 #view{padding:8px 0 24px;}
 #tabbar{
