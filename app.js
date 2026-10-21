@@ -1,6 +1,6 @@
 "use strict";
 /* Selah — ASV Study Bible prototype */
-let BIBLE=null, XREFS={}, STUDY=null, MIRRORS=[];
+let BIBLE=null, XREFS={}, STUDY=null, TYPES=[];
 const VINDEX={}; // "Book C:V" -> text
 const BOOKS=[];  // {name, chapters}
 const state={view:"read", book:"John", ch:1, sheetRef:null, sheetTab:"xrefs", wordScope:"john"};
@@ -53,9 +53,9 @@ async function boot(){
     fetch("data/bible.json").then(r=>r.json()),
     fetch("data/xrefs_john.json").then(r=>r.json()),
     fetch("data/study_john.json").then(r=>r.json()),
-    fetch("data/mirrors.json").then(r=>r.json())
+    fetch("data/typology.json").then(r=>r.json())
   ]);
-  BIBLE=b; XREFS=x; STUDY=s; MIRRORS=m.mirrors||[];
+  BIBLE=b; XREFS=x; STUDY=s; TYPES=m.types||[];
   b.books.forEach(bk=>{ BOOKS.push(bk);
     bk.chapters.forEach((ch,ci)=>ch.forEach((t,vi)=>{ VINDEX[`${bk.name} ${ci+1}:${vi+1}`]=t; }));
   });
@@ -93,13 +93,13 @@ function renderHome(){
   const pos=store.get("pos",null);
   const hlN=Object.keys(HL).length, noteN=Object.keys(NOTES).length;
   const votd=VOTD[dayIndex(VOTD.length)];
-  const mir=MIRRORS.length?MIRRORS[dayIndex(MIRRORS.length)]:null;
-  let mirFirst=null;
-  if(mir){ const pp=parsePassage(mir.nt); if(pp) mirFirst=`${pp.book} ${pp.ch}:${pp.v1}`; }
+  const typ=TYPES.length?TYPES[dayIndex(TYPES.length)]:null;
+  let typFirst=null;
+  if(typ){ const pp=parsePassage(typ.nt); if(pp) typFirst=`${pp.book} ${pp.ch}:${pp.v1}`; }
   v.innerHTML=`<div class="home-brand"><div class="home-name">Selah</div><div class="home-tag">Pause and reflect.</div></div>`
   +(pos&&BOOKS.some(b=>b.name===pos.book)?`<button class="home-continue" id="hcCont"><span>Continue reading</span><b>${esc(pos.book)} ${pos.ch} →</b></button>`:"")
   +`<button class="home-votd" id="hcVotd"><div class="hlab">Verse of the day</div><div class="votd-ref">${esc(votd)}</div><div class="votd-text">${esc(textOf(votd))}</div></button>`
-  +(mir&&mirFirst?`<button class="home-mir" id="hcMir"><div class="hlab">Mirror of the day</div><div class="hm-t">${esc(mir.title)}</div><div class="hm-s">${esc(mir.nt)} &nbsp;↔&nbsp; ${esc(mir.ot)}</div></button>`:"")
+  +(typ&&typFirst?`<button class="home-typ" id="hcTyp"><div class="hlab">Typology of the day</div><div class="ty-t">${esc(typ.title)}</div><div class="ty-s">${esc(typ.nt)} &nbsp;↔&nbsp; ${esc(typ.ot)}</div></button>`:"")
   +`<div class="home-grid">
     <button class="home-card" data-go="read"><div class="hc-t">Read</div><div class="hc-s">The Bible · ASV 1901</div></button>
     <button class="home-card" data-go="search"><div class="hc-t">Search</div><div class="hc-s">Any word or phrase</div></button>
@@ -111,7 +111,7 @@ function renderHome(){
   v.querySelectorAll(".home-card").forEach(b=>b.onclick=()=>go(b.dataset.go));
   const hc=v.querySelector("#hcCont"); if(hc) hc.onclick=()=>go("read");
   v.querySelector("#hcVotd").onclick=()=>gotoVerse(votd);
-  const hm=v.querySelector("#hcMir"); if(hm) hm.onclick=()=>{ gotoVerse(mirFirst); setTimeout(()=>openSheet(mirFirst,"mirrors"),80); };
+  const ht=v.querySelector("#hcTyp"); if(ht) ht.onclick=()=>{ gotoVerse(typFirst); setTimeout(()=>openSheet(typFirst,"typology"),80); };
 }
 
 /* ---------- READ ---------- */
@@ -126,10 +126,10 @@ function renderRead(){
   book.chapters[state.ch-1].forEach((t,i)=>{
     const ref=`${state.book} ${state.ch}:${i+1}`;
     const xc=(XREFS[ref]||[]).length;
-    const mc=mirrorsFor(state.book,state.ch,i+1).length;
+    const tc=typesFor(state.book,state.ch,i+1).length;
     const hl=HL[ref]?` hl-${HL[ref]}`:"";
     const nn=NOTES[ref]?" has-note":"";
-    h+=`<div class="verse${hl}${nn}" data-ref="${esc(ref)}"><span class="vn">${i+1}</span>${esc(t)}${xc?`<span class="xcount">↔ ${xc}</span>`:""}${mc?`<span class="mcount">◈ mirror</span>`:""}</div>`;
+    h+=`<div class="verse${hl}${nn}" data-ref="${esc(ref)}"><span class="vn">${i+1}</span>${esc(t)}${xc?`<span class="xcount">↔ ${xc}</span>`:""}${tc?`<span class="tcount">◈ type</span>`:""}</div>`;
   });
   v.innerHTML=h+"</div>";
   v.querySelectorAll(".verse").forEach(el=>{ el.onclick=()=>openSheet(el.dataset.ref,"xrefs"); });
@@ -173,7 +173,7 @@ function paintSheet(){
   $("#sheetRef").textContent=ref+" · ASV";
   document.querySelectorAll("#sheetTabs button").forEach(b=>b.classList.toggle("active",b.dataset.tab===state.sheetTab));
   const body=$("#sheetBody");
-  ({xrefs:paintXrefs,parallels:paintParallels,mirrors:paintMirrors,words:paintWords,mark:paintMark})[state.sheetTab](body,ref);
+  ({xrefs:paintXrefs,parallels:paintParallels,typology:paintTypes,words:paintWords,mark:paintMark})[state.sheetTab](body,ref);
 }
 function paintXrefs(body,ref){
   const list=XREFS[ref]||[];
@@ -196,29 +196,29 @@ function paintParallels(body,ref){
     }</div></div>`;
   }).join("")+"</div>").join("");
 }
-function mirrorsFor(book,ch,v){
-  return MIRRORS.filter(s=>{
+function typesFor(book,ch,v){
+  return TYPES.filter(s=>{
     const nt=parsePassage(s.nt), ot=parsePassage(s.ot);
     return (nt&&verseInPassage(book,ch,v,nt))||(ot&&verseInPassage(book,ch,v,ot));
   });
 }
-function paintMirrors(body,ref){
+function paintTypes(body,ref){
   const p=parseRef(ref); if(!p){body.innerHTML='<div class="empty">—</div>';return;}
-  const sets=mirrorsFor(p.book,p.ch,p.v);
-  if(!sets.length){ body.innerHTML='<div class="empty">No mirror recorded for this verse yet. Mirrors trace where Jesus relives Israel\u2019s story — the set is growing.</div>'; return; }
+  const sets=typesFor(p.book,p.ch,p.v);
+  if(!sets.length){ body.innerHTML='<div class="empty">No type recorded for this verse yet. Types trace where Jesus relives Israel\u2019s story — the set is growing.</div>'; return; }
   const side=(pp,label,cur)=>{ const vs=passageVerses(pp);
     return `<div class="par-pass${cur?" current":""}"><div class="pr">${esc(label)}</div><div class="pv">${
       vs.map(x=>`<span class="vn">${x.ref.split(":")[1]}</span>${esc(x.text)} `).join("")}</div></div>`; };
-  body.innerHTML=`<div class="lbl">${sets.length} mirror${sets.length===1?"":"s"} · the New Testament reading the Old</div>`+sets.map(s=>{
+  body.innerHTML=`<div class="lbl">${sets.length} type${sets.length===1?"":"s"} · the New Testament reading the Old</div>`+sets.map(s=>{
     const nt=parsePassage(s.nt), ot=parsePassage(s.ot);
     const onNT=nt&&verseInPassage(p.book,p.ch,p.v,nt);
     return `<div class="par-card"><h4>${esc(s.title)}</h4>`
       +side(ot,"The shadow · "+s.ot,!onNT)
       +side(nt,"The fulfillment in Christ · "+s.nt,onNT)
-      +`<div class="mir-note">${esc(s.note)}</div>`
-      +`<button class="mir-link" data-r="${esc(s.link)}">The New Testament draws it here: ${esc(s.link)} →</button></div>`;
+      +`<div class="typ-note">${esc(s.note)}</div>`
+      +`<button class="typ-link" data-r="${esc(s.link)}">The New Testament draws it here: ${esc(s.link)} →</button></div>`;
   }).join("");
-  body.querySelectorAll(".mir-link").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r));
+  body.querySelectorAll(".typ-link").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r));
 }
 function tokenize(t){ const out=[]; const re=/[A-Za-z']+/g; let m; while((m=re.exec(t))) out.push(m[0]); return out; }
 function paintWords(body,ref){
