@@ -62,7 +62,7 @@ async function boot(){
   const pos=store.get("pos",null);
   if(pos&&BOOKS.some(b=>b.name===pos.book)){ state.book=pos.book; state.ch=pos.ch; }
   bindTabs(); bindTheme(); bindFontSize(); bindSheet();
-  showView("read");
+  showView("home");
 }
 function applyTheme(t){ document.documentElement.setAttribute("data-theme",t); store.set("theme",t); }
 function bindTheme(){ $("#themeBtn").onclick=()=>applyTheme(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark"); }
@@ -81,8 +81,37 @@ function showView(v){
   state.view=v;
   document.querySelectorAll("#tabbar button").forEach(b=>b.classList.toggle("active",b.dataset.view===v));
   closeSheet();
-  ({read:renderRead,search:renderSearch,christ:renderChrist,saved:renderSaved})[v]();
+  ({home:renderHome,read:renderRead,search:renderSearch,christ:renderChrist,saved:renderSaved})[v]();
   window.scrollTo(0,0);
+}
+
+/* ---------- HOME ---------- */
+const VOTD=["John 1:1","Psalms 23:1","John 3:16","Romans 8:28","Philippians 4:13","Proverbs 3:5","Isaiah 40:31","Matthew 11:28","Psalms 46:1","Jeremiah 29:11","John 14:6","Micah 6:8","Psalms 19:14","Lamentations 3:22"];
+function dayIndex(n){ const d=new Date(), s=new Date(d.getFullYear(),0,0); return Math.floor((d-s)/864e5)%n; }
+function renderHome(){
+  const v=$("#view");
+  const pos=store.get("pos",null);
+  const hlN=Object.keys(HL).length, noteN=Object.keys(NOTES).length;
+  const votd=VOTD[dayIndex(VOTD.length)];
+  const mir=MIRRORS.length?MIRRORS[dayIndex(MIRRORS.length)]:null;
+  let mirFirst=null;
+  if(mir){ const pp=parsePassage(mir.nt); if(pp) mirFirst=`${pp.book} ${pp.ch}:${pp.v1}`; }
+  v.innerHTML=`<div class="home-brand"><div class="home-name">Selah</div><div class="home-tag">Pause and reflect.</div></div>`
+  +(pos&&BOOKS.some(b=>b.name===pos.book)?`<button class="home-continue" id="hcCont"><span>Continue reading</span><b>${esc(pos.book)} ${pos.ch} →</b></button>`:"")
+  +`<button class="home-votd" id="hcVotd"><div class="hlab">Verse of the day</div><div class="votd-ref">${esc(votd)}</div><div class="votd-text">${esc(textOf(votd))}</div></button>`
+  +(mir&&mirFirst?`<button class="home-mir" id="hcMir"><div class="hlab">Mirror of the day</div><div class="hm-t">${esc(mir.title)}</div><div class="hm-s">${esc(mir.nt)} &nbsp;↔&nbsp; ${esc(mir.ot)}</div></button>`:"")
+  +`<div class="home-grid">
+    <button class="home-card" data-go="read"><div class="hc-t">Read</div><div class="hc-s">The Bible · ASV 1901</div></button>
+    <button class="home-card" data-go="search"><div class="hc-t">Search</div><div class="hc-s">Any word or phrase</div></button>
+    <button class="home-card" data-go="christ"><div class="hc-t">Trace Christ</div><div class="hc-s">Study trails in John</div></button>
+    <button class="home-card" data-go="saved"><div class="hc-t">Saved</div><div class="hc-s">${hlN} highlight${hlN===1?"":"s"} · ${noteN} note${noteN===1?"":"s"}</div></button>
+  </div>
+  <div class="home-foot">Selah · American Standard Version (1901), public domain</div>`;
+  const go=g=>showView(g);
+  v.querySelectorAll(".home-card").forEach(b=>b.onclick=()=>go(b.dataset.go));
+  const hc=v.querySelector("#hcCont"); if(hc) hc.onclick=()=>go("read");
+  v.querySelector("#hcVotd").onclick=()=>gotoVerse(votd);
+  const hm=v.querySelector("#hcMir"); if(hm) hm.onclick=()=>{ gotoVerse(mirFirst); setTimeout(()=>openSheet(mirFirst,"mirrors"),80); };
 }
 
 /* ---------- READ ---------- */

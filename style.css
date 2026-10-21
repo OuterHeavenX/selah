@@ -136,3 +136,21 @@ body{
 .mir-note{font-size:13px; color:var(--ink-soft); margin:10px 0 8px; line-height:1.5;}
 .mir-link{display:block; width:100%; text-align:left; border:1px solid var(--line); background:var(--paper); color:var(--accent); border-radius:10px; padding:9px 12px; font-size:13px; font-weight:600; cursor:pointer;}
 .fs-btn{font-size:12px; font-weight:700;}
+/* home */
+.home-brand{text-align:center; padding:34px 16px 6px;}
+.home-name{font-family:Georgia,"Times New Roman",serif; font-size:44px; font-weight:bold; letter-spacing:2px;}
+.home-tag{font-family:Georgia,serif; font-style:italic; font-size:16px; color:var(--ink-soft); margin-top:4px;}
+.home-continue{display:flex; justify-content:space-between; align-items:center; width:calc(100% - 32px); margin:18px 16px 0; padding:15px 18px; border:none; border-radius:14px; background:var(--accent); color:#fff; font-size:15px; cursor:pointer;}
+.home-continue b{font-size:16px;}
+.home-votd{display:block; width:calc(100% - 32px); margin:14px 16px 0; padding:16px 18px; text-align:left; border:1px solid var(--line); border-radius:14px; background:var(--sheet); cursor:pointer;}
+.hlab{font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:var(--ink-soft); margin-bottom:8px;}
+.votd-ref{font-weight:700; color:var(--accent); font-size:14px; margin-bottom:4px;}
+.votd-text{font-family:Georgia,serif; font-size:16px; line-height:1.55;}
+.home-mir{display:block; width:calc(100% - 32px); margin:14px 16px 0; padding:16px 18px; text-align:left; border:1px solid var(--line); border-radius:14px; background:var(--paper); cursor:pointer;}
+.hm-t{font-weight:700; font-size:15px; margin-bottom:4px;}
+.hm-s{font-size:13px; color:var(--ink-soft);}
+.home-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:14px 16px 0;}
+.home-card{border:1px solid var(--line); border-radius:14px; background:var(--sheet); padding:16px 14px; text-align:left; cursor:pointer;}
+.home-card .hc-t{font-weight:700; font-size:15px; margin-bottom:3px;}
+.home-card .hc-s{font-size:12px; color:var(--ink-soft);}
+.home-foot{text-align:center; font-size:11px; color:var(--ink-soft); padding:26px 16px 10px;}
