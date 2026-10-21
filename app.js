@@ -61,11 +61,17 @@ async function boot(){
   });
   const pos=store.get("pos",null);
   if(pos&&BOOKS.some(b=>b.name===pos.book)){ state.book=pos.book; state.ch=pos.ch; }
-  bindTabs(); bindTheme(); bindSheet();
+  bindTabs(); bindTheme(); bindFontSize(); bindSheet();
   showView("read");
 }
 function applyTheme(t){ document.documentElement.setAttribute("data-theme",t); store.set("theme",t); }
 function bindTheme(){ $("#themeBtn").onclick=()=>applyTheme(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark"); }
+function applyFontSize(px){ document.documentElement.style.setProperty("--fs-verse",px+"px"); store.set("fs",px); }
+function bindFontSize(){
+  applyFontSize(store.get("fs",18));
+  $("#fsDec").onclick=()=>applyFontSize(Math.max(14,store.get("fs",18)-2));
+  $("#fsInc").onclick=()=>applyFontSize(Math.min(26,store.get("fs",18)+2));
+}
 function bindTabs(){
   document.querySelectorAll("#tabbar button").forEach(b=>{
     b.onclick=()=>showView(b.dataset.view);
