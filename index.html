@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Selah — ASV Study Bible</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header id="topbar">
+  <div class="brand">
+    <div class="brand-name">Selah</div>
+    <div class="brand-sub">ASV Study Bible</div>
+  </div>
+  <div class="top-actions">
+    <span class="trans-badge">ASV 1901</span>
+    <button id="themeBtn" class="icon-btn" aria-label="Toggle theme">◐</button>
+  </div>
+</header>
+
+<main id="view"></main>
+
+<nav id="tabbar">
+  <button data-view="read" class="active">Read</button>
+  <button data-view="search">Search</button>
+  <button data-view="christ">Christ</button>
+  <button data-view="saved">Saved</button>
+</nav>
+
+<div id="sheetWrap" class="hidden">
+  <div id="sheetScrim"></div>
+  <div id="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div id="sheetRef" class="sheet-ref"></div>
+      <button id="sheetClose" class="icon-btn" aria-label="Close">✕</button>
+    </div>
+    <div id="sheetTabs" class="sheet-tabs">
+      <button data-tab="xrefs" class="active">Cross-refs</button>
+      <button data-tab="parallels">Parallels</button>
+      <button data-tab="words">Words</button>
+      <button data-tab="mark">Mark</button>
+    </div>
+    <div id="sheetBody" class="sheet-body"></div>
+  </div>
+</div>
+
+<div id="toast" class="hidden"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
