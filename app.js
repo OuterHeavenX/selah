@@ -1,17 +1,18 @@
 "use strict";
 /* Selah — ASV Study Bible prototype */
-let BIBLE=null, XREFS={}, STUDY=null, TYPES=[];
+const DATA_V="2"; // bump when data/*.json changes so phones drop cached copies
+let XREFS={}, STUDY=null, TYPES=[];
 const TRANSLATIONS={
   asv:{name:"ASV", full:"American Standard Version (1901)", short:"ASV 1901", file:"data/bible.json"},
   web:{name:"WEB", full:"World English Bible", short:"WEB", file:"data/web.json"}
 };
-const BIBLES={}; // id -> parsed translation json
+const BIBLES={}; // id -> parsed translation json (loaded on demand)
 const VINDEX={}; // "Book C:V" -> text
-const BOOKS=[];  // {name, chapters}
-const state={view:"read", book:"John", ch:1, sheetRef:null, sheetTab:"xrefs", wordScope:"john", trans:"asv"};
+const BOOKS=[];  // {name, chapters, headings?}
+const state={view:"read", book:"John", ch:1, sheetRef:null, sheetTab:"xrefs", wordScope:"book", trans:"asv"};
 
 const $=s=>document.querySelector(s);
-const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const store={
   get(k,d){ try{const v=localStorage.getItem("selah_"+k); return v==null?d:JSON.parse(v);}catch(e){return d;} },
   set(k,v){ try{localStorage.setItem("selah_"+k, JSON.stringify(v));}catch(e){} }
@@ -21,13 +22,13 @@ let HL=store.get("hl",{}), NOTES=store.get("notes",{});
 /* ---------- reference parsing ---------- */
 function parseRef(s){
   // "John 3:16" (book names may contain spaces / digits)
-  const m=s.match(/^(.+?)\s+(\d+):(\d+)$/);
+  const m=String(s).match(/^(.+?)\s+(\d+):(\d+)$/);
   if(!m) return null;
   return {book:m[1], ch:+m[2], v:+m[3]};
 }
 function parsePassage(s){
   // "John 6:1-14", "John 3:16", cross-chapter "John 18:28-19:16", or chapter range "Genesis 6-8"
-  let m=s.match(/^(.+?)\s+(\d+):(\d+)(?:-(\d+)(?::(\d+))?)?$/);
+  let m=String(s).match(/^(.+?)\s+(\d+):(\d+)(?:-(\d+)(?::(\d+))?)?$/);
   if(m){
     const ch2=m[5]?+m[4]:+m[2];
     const v2=m[5]?+m[5]:(m[4]?+m[4]:+m[3]);
@@ -40,12 +41,13 @@ function parsePassage(s){
   return null;
 }
 function passageVerses(p){
+  if(!p) return [];
   const b=BOOKS.find(b=>b.name===p.book); if(!b) return [];
   const out=[];
   for(let c=p.ch;c<=p.ch2;c++){
     const ch=b.chapters[c-1]; if(!ch) continue;
     const from=(c===p.ch)?p.v1:1, to=(c===p.ch2)?p.v2:ch.length;
-    for(let v=from;v<=to&&v<=ch.length;v++) out.push({ref:`${p.book} ${c}:${v}`, text:ch[v-1]});
+    for(let v=from;v<=to&&v<=ch.length;v++) if(ch[v-1]) out.push({ref:`${p.book} ${c}:${v}`, text:ch[v-1]});
   }
   return out;
 }
@@ -56,20 +58,63 @@ function verseInPassage(book,ch,v,p){
 }
 function textOf(ref){ return VINDEX[ref]||""; }
 
-/* ---------- boot ---------- */
+/* ---------- text helpers ---------- */
+// Letters in any script (æ, accented, Hebrew, Greek) plus inner apostrophes: "doesn’t", "Judæa".
+const WORD_RE=/[\p{L}\p{M}]+(?:['’][\p{L}\p{M}]+)*/gu;
+function tokenize(t){ return String(t).match(WORD_RE)||[]; }
+function normWord(w){ return w.toLowerCase().replace(/’/g,"'"); }
+const foldQuotes=s=>s.replace(/[’‘]/g,"'");
+// Wrap whole-word matches of nw in <mark>, escaping everything else.
+function markWord(text,nw){
+  let out="", last=0; WORD_RE.lastIndex=0; let m;
+  while((m=WORD_RE.exec(text))){
+    out+=esc(text.slice(last,m.index));
+    out+=normWord(m[0])===nw?`<mark>${esc(m[0])}</mark>`:esc(m[0]);
+    last=m.index+m[0].length;
+  }
+  return out+esc(text.slice(last));
+}
+// Wrap every occurrence of the (already lower-cased, quote-folded) phrase q.
+function markPhrase(text,q){
+  const low=foldQuotes(text.toLowerCase()); let out="", last=0, i;
+  while(q && (i=low.indexOf(q,last))>=0){
+    out+=esc(text.slice(last,i))+`<mark>${esc(text.slice(i,i+q.length))}</mark>`; last=i+q.length;
+  }
+  return out+esc(text.slice(last));
+}
+// ASV prints the liturgical marks as "[Selah" / "[Higgaion. Selah" — show them as a quiet marker instead.
+function verseHTML(t){
+  return esc(t).replace(/\[(Higgaion\. Selah|Selah)\b\.?/g,'<span class="selah">$1</span>');
+}
+
+/* ---------- loading ---------- */
+async function getJSON(url){
+  const r=await fetch(url+"?v="+DATA_V);
+  if(!r.ok) throw new Error(url+" ("+r.status+")");
+  return r.json();
+}
+async function loadTranslation(id){
+  if(!BIBLES[id]) BIBLES[id]=await getJSON(TRANSLATIONS[id].file);
+  return BIBLES[id];
+}
 async function boot(){
-  applyTheme(store.get("theme","light"));
+  applyTheme(store.get("theme",(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light"));
+  bindTopbarHeight();
   $("#view").innerHTML='<div class="loading">Loading the Scriptures…</div>';
-  const [b,w,x,s,m]=await Promise.all([
-    fetch("data/bible.json").then(r=>r.json()),
-    fetch("data/web.json").then(r=>r.json()),
-    fetch("data/xrefs_john.json").then(r=>r.json()),
-    fetch("data/study_john.json").then(r=>r.json()),
-    fetch("data/typology.json").then(r=>r.json())
-  ]);
-  BIBLES.asv=b; BIBLES.web=w; BIBLE=b; XREFS=x; STUDY=s; TYPES=m.types||[];
-  state.trans=store.get("trans","asv");
-  if(!BIBLES[state.trans]) state.trans="asv";
+  let want=store.get("trans","asv"); if(!TRANSLATIONS[want]) want="asv";
+  try{
+    const [x,s,m]=await Promise.all([
+      getJSON("data/xrefs_john.json"), getJSON("data/study_john.json"), getJSON("data/typology.json"),
+      loadTranslation(want)
+    ]);
+    XREFS=x; STUDY=s; TYPES=(m.types||[]).map(t=>({...t, _nt:parsePassage(t.nt), _ot:parsePassage(t.ot)}));
+  }catch(e){
+    console.error(e);
+    $("#view").innerHTML=`<div class="loading">Couldn’t load the Scriptures.<br><small>${esc(e.message)}</small><br><button class="btn-primary" id="retry" style="width:auto;margin-top:16px">Try again</button></div>`;
+    $("#retry").onclick=()=>location.reload();
+    return;
+  }
+  state.trans=want;
   buildIndex();
   updateTransUI();
   const pos=store.get("pos",null);
@@ -81,7 +126,7 @@ function buildIndex(){
   BOOKS.length=0;
   for(const k in VINDEX) delete VINDEX[k];
   BIBLES[state.trans].books.forEach(bk=>{ BOOKS.push(bk);
-    bk.chapters.forEach((ch,ci)=>ch.forEach((t,vi)=>{ VINDEX[`${bk.name} ${ci+1}:${vi+1}`]=t; }));
+    bk.chapters.forEach((ch,ci)=>ch.forEach((t,vi)=>{ if(t) VINDEX[`${bk.name} ${ci+1}:${vi+1}`]=t; }));
   });
 }
 function updateTransUI(){
@@ -89,16 +134,21 @@ function updateTransUI(){
   if(btn) btn.textContent=TRANSLATIONS[state.trans].short;
 }
 function bindTrans(){
-  $("#transBtn").onclick=()=>{
-    setTrans(state.trans==="asv"?"web":"asv");
-    toast("Switched to "+TRANSLATIONS[state.trans].short);
-  };
+  $("#transBtn").onclick=()=>setTrans(state.trans==="asv"?"web":"asv");
 }
-function setTrans(id){
-  if(!BIBLES[id]||id===state.trans) return;
+async function setTrans(id){
+  if(!TRANSLATIONS[id]||id===state.trans) return;
+  const btn=$("#transBtn");
+  if(!BIBLES[id]){
+    btn.disabled=true; btn.textContent="Loading…";
+    try{ await loadTranslation(id); }
+    catch(e){ console.error(e); toast("Couldn’t load "+TRANSLATIONS[id].short); updateTransUI(); btn.disabled=false; return; }
+    btn.disabled=false;
+  }
   state.trans=id; store.set("trans",id);
   buildIndex(); updateTransUI();
   showView(state.view);
+  toast("Switched to "+TRANSLATIONS[id].short);
 }
 function applyTheme(t){ document.documentElement.setAttribute("data-theme",t); store.set("theme",t); }
 function bindTheme(){ $("#themeBtn").onclick=()=>applyTheme(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark"); }
@@ -108,6 +158,13 @@ function bindFontSize(){
   $("#fsDec").onclick=()=>applyFontSize(Math.max(14,store.get("fs",18)-2));
   $("#fsInc").onclick=()=>applyFontSize(Math.min(26,store.get("fs",18)+2));
 }
+// Sticky sub-bars sit under the header; track its real height instead of a hard-coded 57px.
+function bindTopbarHeight(){
+  const bar=$("#topbar");
+  const set=()=>document.documentElement.style.setProperty("--topbar-h",bar.offsetHeight+"px");
+  set();
+  if(window.ResizeObserver) new ResizeObserver(set).observe(bar); else addEventListener("resize",set);
+}
 function bindTabs(){
   document.querySelectorAll("#tabbar button").forEach(b=>{
     b.onclick=()=>showView(b.dataset.view);
@@ -115,7 +172,10 @@ function bindTabs(){
 }
 function showView(v){
   state.view=v;
-  document.querySelectorAll("#tabbar button").forEach(b=>b.classList.toggle("active",b.dataset.view===v));
+  document.querySelectorAll("#tabbar button").forEach(b=>{
+    const on=b.dataset.view===v; b.classList.toggle("active",on);
+    if(on) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current");
+  });
   closeSheet();
   ({home:renderHome,read:renderRead,search:renderSearch,christ:renderChrist,saved:renderSaved})[v]();
   window.scrollTo(0,0);
@@ -130,11 +190,13 @@ function renderHome(){
   const hlN=Object.keys(HL).length, noteN=Object.keys(NOTES).length;
   const votd=VOTD[dayIndex(VOTD.length)];
   const typ=TYPES.length?TYPES[dayIndex(TYPES.length)]:null;
-  let typFirst=null;
-  if(typ){ const pp=parsePassage(typ.nt); if(pp) typFirst=`${pp.book} ${pp.ch}:${pp.v1}`; }
-  v.innerHTML=`<div class="home-brand"><div class="home-name">Selah</div><div class="home-tag">Pause and reflect.</div></div>`
+  const typFirst=typ&&typ._nt?`${typ._nt.book} ${typ._nt.ch}:${typ._nt.v1}`:null;
+  v.innerHTML=`<div class="home-hero">
+      <img src="img/hero.jpg?v=${DATA_V}" alt="An old prophet in ink, poring over scrolls, with the temple sketched behind him" width="900" height="1125" decoding="async">
+      <div class="home-brand"><div class="home-name">Selah</div><div class="home-tag">Pause and reflect.</div></div>
+    </div>`
   +(pos&&BOOKS.some(b=>b.name===pos.book)?`<button class="home-continue" id="hcCont"><span>Continue reading</span><b>${esc(pos.book)} ${pos.ch} →</b></button>`:"")
-  +`<button class="home-votd" id="hcVotd"><div class="hlab">Verse of the day</div><div class="votd-ref">${esc(votd)}</div><div class="votd-text">${esc(textOf(votd))}</div></button>`
+  +`<button class="home-votd" id="hcVotd"><div class="hlab">Verse of the day</div><div class="votd-ref">${esc(votd)}</div><div class="votd-text">${verseHTML(textOf(votd))}</div></button>`
   +(typ&&typFirst?`<button class="home-typ" id="hcTyp"><div class="hlab">Typology of the day</div><div class="ty-t">${esc(typ.title)}</div><div class="ty-s">${esc(typ.nt)} &nbsp;↔&nbsp; ${esc(typ.ot)}</div></button>`:"")
   +`<div class="home-grid">
     <button class="home-card" data-go="read"><div class="hc-t">Read</div><div class="hc-s">The Bible · ${esc(TRANSLATIONS[state.trans].short)}</div></button>
@@ -151,26 +213,41 @@ function renderHome(){
 }
 
 /* ---------- READ ---------- */
+function typesFor(book,ch,v){
+  return TYPES.filter(s=>(s._nt&&verseInPassage(book,ch,v,s._nt))||(s._ot&&verseInPassage(book,ch,v,s._ot)));
+}
 function renderRead(){
   const book=BOOKS.find(b=>b.name===state.book);
+  if(!book.chapters[state.ch-1]) state.ch=1;
   const v=$("#view");
+  const heads=book.headings||{};
   let h=`<div class="reader-nav">
-    <button class="nav-btn" id="prevCh">‹</button>
-    <select id="bookSel">${BOOKS.map(b=>`<option ${b.name===state.book?"selected":""}>${esc(b.name)}</option>`).join("")}</select>
-    <select id="chSel">${book.chapters.map((_,i)=>`<option value="${i+1}" ${i+1===state.ch?"selected":""}>Ch ${i+1}</option>`).join("")}</select>
-    <button class="nav-btn" id="nextCh">›</button></div><div class="verses">`;
+    <button class="nav-btn" id="prevCh" aria-label="Previous chapter">‹</button>
+    <select id="bookSel" aria-label="Book">${BOOKS.map(b=>`<option ${b.name===state.book?"selected":""}>${esc(b.name)}</option>`).join("")}</select>
+    <select id="chSel" aria-label="Chapter">${book.chapters.map((_,i)=>`<option value="${i+1}" ${i+1===state.ch?"selected":""}>Ch ${i+1}</option>`).join("")}</select>
+    <button class="nav-btn" id="nextCh" aria-label="Next chapter">›</button></div><div class="verses">`;
   book.chapters[state.ch-1].forEach((t,i)=>{
     const ref=`${state.book} ${state.ch}:${i+1}`;
+    const hd=heads[`${state.ch}:${i+1}`];
+    if(hd) h+=`<div class="vhead">${esc(hd)}</div>`;
+    if(!t){
+      // Verse number kept for standard versification; the translation leaves it out.
+      h+=`<div class="verse omitted"><span class="vn">${i+1}</span>Not in the ${esc(TRANSLATIONS[state.trans].name)} text — this verse is absent from the oldest manuscripts.</div>`;
+      return;
+    }
     const xc=(XREFS[ref]||[]).length;
     const tc=typesFor(state.book,state.ch,i+1).length;
     const hl=HL[ref]?` hl-${HL[ref]}`:"";
     const nn=NOTES[ref]?" has-note":"";
-    h+=`<div class="verse${hl}${nn}" data-ref="${esc(ref)}"><span class="vn">${i+1}</span>${esc(t)}${xc?`<span class="xcount">↔ ${xc}</span>`:""}${tc?`<span class="tcount">◈ type</span>`:""}</div>`;
+    h+=`<div class="verse${hl}${nn}" data-ref="${esc(ref)}" role="button" tabindex="0"><span class="vn">${i+1}</span>${verseHTML(t)}${xc?`<span class="xcount">↔ ${xc}</span>`:""}${tc?`<span class="tcount">◈ type</span>`:""}</div>`;
   });
   v.innerHTML=h+"</div>";
-  v.querySelectorAll(".verse").forEach(el=>{ el.onclick=()=>openSheet(el.dataset.ref,"xrefs"); });
-  $("#bookSel").onchange=e=>{ state.book=e.target.value; state.ch=1; savePos(); renderRead(); };
-  $("#chSel").onchange=e=>{ state.ch=+e.target.value; savePos(); renderRead(); };
+  v.querySelectorAll(".verse[data-ref]").forEach(el=>{
+    el.onclick=()=>openSheet(el.dataset.ref,"xrefs");
+    el.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openSheet(el.dataset.ref,"xrefs"); } };
+  });
+  $("#bookSel").onchange=e=>{ state.book=e.target.value; state.ch=1; savePos(); renderRead(); window.scrollTo(0,0); };
+  $("#chSel").onchange=e=>{ state.ch=+e.target.value; savePos(); renderRead(); window.scrollTo(0,0); };
   $("#prevCh").onclick=()=>stepChapter(-1); $("#nextCh").onclick=()=>stepChapter(1);
 }
 function savePos(){ store.set("pos",{book:state.book,ch:state.ch}); }
@@ -181,158 +258,187 @@ function stepChapter(d){
   if(nc>BOOKS[bi].chapters.length){ if(bi<BOOKS.length-1){nb=bi+1; nc=1;} else return; }
   state.book=BOOKS[nb].name; state.ch=nc; savePos(); renderRead(); window.scrollTo(0,0);
 }
+// Accepts a single verse ("John 3:16") or a passage ("John 2:1-11"); scrolls to it and briefly marks the range.
 function gotoVerse(ref){
-  const p=parseRef(ref); if(!p) return;
+  const p=parsePassage(ref); if(!p||!BOOKS.some(b=>b.name===p.book)) return;
   state.book=p.book; state.ch=p.ch; savePos(); showView("read");
   requestAnimationFrame(()=>{
-    const el=document.querySelector(`.verse[data-ref="${CSS.escape(ref)}"]`);
-    if(el) el.scrollIntoView({block:"center"});
+    const els=[...document.querySelectorAll(".verse[data-ref]")].filter(el=>{
+      const r=parseRef(el.dataset.ref); return r&&verseInPassage(r.book,r.ch,r.v,p);
+    });
+    if(!els.length) return;
+    if(els.length>1){
+      // Put the first verse of the passage just below the sticky header + chapter bar.
+      const cover=$("#topbar").offsetHeight+(document.querySelector(".reader-nav")?.offsetHeight||0)+8;
+      window.scrollTo(0,els[0].getBoundingClientRect().top+window.scrollY-cover);
+    } else els[0].scrollIntoView({block:"center"});
+    els.forEach(el=>el.classList.add("flash"));
+    setTimeout(()=>els.forEach(el=>el.classList.remove("flash")),1800);
   });
 }
 
 /* ---------- SHEET ---------- */
+let sheetReturnFocus=null;
 function bindSheet(){
   $("#sheetClose").onclick=closeSheet;
   $("#sheetScrim").onclick=closeSheet;
+  document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&state.sheetRef) closeSheet(); });
   document.querySelectorAll("#sheetTabs button").forEach(b=>{
     b.onclick=()=>{ state.sheetTab=b.dataset.tab; paintSheet(); };
   });
 }
 function openSheet(ref,tab){
+  sheetReturnFocus=document.activeElement;
   state.sheetRef=ref; state.sheetTab=tab||"xrefs";
   $("#sheetWrap").classList.remove("hidden");
+  document.body.classList.add("sheet-open");
   paintSheet();
+  $("#sheetClose").focus({preventScroll:true});
 }
-function closeSheet(){ $("#sheetWrap").classList.add("hidden"); state.sheetRef=null; }
+function closeSheet(){
+  const wasOpen=!!state.sheetRef;
+  $("#sheetWrap").classList.add("hidden"); state.sheetRef=null;
+  document.body.classList.remove("sheet-open");
+  if(wasOpen&&sheetReturnFocus&&document.contains(sheetReturnFocus)) sheetReturnFocus.focus({preventScroll:true});
+}
 function paintSheet(){
   const ref=state.sheetRef; if(!ref) return;
   $("#sheetRef").textContent=ref+" · "+TRANSLATIONS[state.trans].name;
-  document.querySelectorAll("#sheetTabs button").forEach(b=>b.classList.toggle("active",b.dataset.tab===state.sheetTab));
-  const body=$("#sheetBody");
+  document.querySelectorAll("#sheetTabs button").forEach(b=>{
+    const on=b.dataset.tab===state.sheetTab; b.classList.toggle("active",on); b.setAttribute("aria-selected",on);
+  });
+  const body=$("#sheetBody"); body.scrollTop=0;
   ({xrefs:paintXrefs,parallels:paintParallels,typology:paintTypes,words:paintWords,mark:paintMark})[state.sheetTab](body,ref);
 }
 function paintXrefs(body,ref){
-  const list=XREFS[ref]||[];
+  const list=(XREFS[ref]||[]).filter(e=>textOf(e.r));
   if(!list.length){ body.innerHTML='<div class="empty">No cross-references recorded for this verse yet. The curated cross-reference set covers the Gospel of John; the rest of the canon is coming.</div>'; return; }
   body.innerHTML=`<div class="lbl">${list.length} cross-references · ranked by relevance</div>`+list.map(e=>{
     const t=textOf(e.r); const prev=t.length>110?t.slice(0,110)+"…":t;
-    return `<button class="xref-row" data-r="${esc(e.r)}"><span class="xr">${esc(e.d)}</span><span class="xv">${esc(prev)}</span><span class="xvotes">relevance ${e.v}</span></button>`;
+    return `<button class="xref-row" data-r="${esc(e.r)}"><span class="xr">${esc(e.d)}</span><span class="xv">${verseHTML(prev)}</span><span class="xvotes">relevance ${e.v}</span></button>`;
   }).join("");
   body.querySelectorAll(".xref-row").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r));
+}
+function passageHTML(vs){
+  return vs.map(x=>`<span class="vn">${x.ref.split(":")[1]}</span>${verseHTML(x.text)} `).join("");
 }
 function paintParallels(body,ref){
   const p=parseRef(ref); if(!p){body.innerHTML='<div class="empty">—</div>';return;}
   const sets=STUDY.parallels.filter(s=>s.verses.some(v=>{const pp=parsePassage(v);return pp&&verseInPassage(p.book,p.ch,p.v,pp);}));
   if(!sets.length){ body.innerHTML='<div class="empty">No parallel passages recorded for this verse. Parallel sets currently cover the Gospels material in John.</div>'; return; }
   body.innerHTML=sets.map(s=>`<div class="par-card"><h4>${esc(s.title)}</h4>`+s.verses.map(v=>{
-    const pp=parsePassage(v); const vs=passageVerses(pp);
+    const pp=parsePassage(v);
     const cur=pp&&verseInPassage(p.book,p.ch,p.v,pp);
-    return `<div class="par-pass${cur?" current":""}"><div class="pr">${esc(v)}</div><div class="pv">${
-      vs.map(x=>`<span class="vn">${x.ref.split(":")[1]}</span>${esc(x.text)} `).join("")
-    }</div></div>`;
+    return `<div class="par-pass${cur?" current":""}"><div class="pr">${esc(v)}</div><div class="pv">${passageHTML(passageVerses(pp))}</div></div>`;
   }).join("")+"</div>").join("");
-}
-function typesFor(book,ch,v){
-  return TYPES.filter(s=>{
-    const nt=parsePassage(s.nt), ot=parsePassage(s.ot);
-    return (nt&&verseInPassage(book,ch,v,nt))||(ot&&verseInPassage(book,ch,v,ot));
-  });
 }
 function paintTypes(body,ref){
   const p=parseRef(ref); if(!p){body.innerHTML='<div class="empty">—</div>';return;}
   const sets=typesFor(p.book,p.ch,p.v);
-  if(!sets.length){ body.innerHTML='<div class="empty">No type recorded for this verse yet. Types trace where Jesus relives Israel\u2019s story — the set is growing.</div>'; return; }
-  const side=(pp,label,cur)=>{ const vs=passageVerses(pp);
-    return `<div class="par-pass${cur?" current":""}"><div class="pr">${esc(label)}</div><div class="pv">${
-      vs.map(x=>`<span class="vn">${x.ref.split(":")[1]}</span>${esc(x.text)} `).join("")}</div></div>`; };
+  if(!sets.length){ body.innerHTML='<div class="empty">No type recorded for this verse yet. Types trace where Jesus relives Israel’s story — the set is growing.</div>'; return; }
+  const side=(pp,label,cur)=>`<div class="par-pass${cur?" current":""}"><div class="pr">${esc(label)}</div><div class="pv">${passageHTML(passageVerses(pp))}</div></div>`;
   body.innerHTML=`<div class="lbl">${sets.length} type${sets.length===1?"":"s"} · the New Testament reading the Old</div>`+sets.map(s=>{
-    const nt=parsePassage(s.nt), ot=parsePassage(s.ot);
-    const onNT=nt&&verseInPassage(p.book,p.ch,p.v,nt);
+    const onNT=s._nt&&verseInPassage(p.book,p.ch,p.v,s._nt);
     return `<div class="par-card"><h4>${esc(s.title)}</h4>`
-      +side(ot,"The shadow · "+s.ot,!onNT)
-      +side(nt,"The fulfillment in Christ · "+s.nt,onNT)
+      +side(s._ot,"The shadow · "+s.ot,!onNT)
+      +side(s._nt,"The fulfillment in Christ · "+s.nt,onNT)
       +`<div class="typ-note">${esc(s.note)}</div>`
       +`<button class="typ-link" data-r="${esc(s.link)}">The New Testament draws it here: ${esc(s.link)} →</button>`
       +(s.src?`<div class="typ-src">Sourced from ${esc(s.src)}</div>`:"")+`</div>`;
   }).join("");
   body.querySelectorAll(".typ-link").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r));
 }
-function tokenize(t){ const out=[]; const re=/[A-Za-z']+/g; let m; while((m=re.exec(t))) out.push(m[0]); return out; }
 function paintWords(body,ref){
-  const t=textOf(ref);
-  const words=tokenize(t);
+  const p=parseRef(ref);
+  const words=tokenize(textOf(ref));
   body.innerHTML=`<div class="lbl">Tap a word to trace it</div>
-    <div class="word-line">${words.map((w,i)=>`<span class="w" data-i="${i}">${esc(w)}</span>`).join(" ")}</div>
-    <div class="scope-toggle"><button data-s="john" class="${state.wordScope==="john"?"active":""}">Gospel of John</button><button data-s="bible" class="${state.wordScope==="bible"?"active":""}">Whole Bible</button></div>
+    <div class="word-line">${words.map((w,i)=>`<button class="w" data-i="${i}">${esc(w)}</button>`).join(" ")}</div>
+    <div class="scope-toggle"><button data-s="book" class="${state.wordScope==="book"?"active":""}">${esc(p.book)}</button><button data-s="bible" class="${state.wordScope==="bible"?"active":""}">Whole Bible</button></div>
     <div id="occList"></div>`;
-  body.querySelectorAll(".scope-toggle button").forEach(b=>b.onclick=()=>{state.wordScope=b.dataset.s; paintWords(body,ref);});
-  body.querySelectorAll(".w").forEach(el=>el.onclick=()=>showOccurrences(body,ref,words[+el.dataset.i]));
+  let current=null;
+  body.querySelectorAll(".scope-toggle button").forEach(b=>b.onclick=()=>{
+    state.wordScope=b.dataset.s;
+    body.querySelectorAll(".scope-toggle button").forEach(x=>x.classList.toggle("active",x===b));
+    if(current) showOccurrences(body,p.book,current);
+  });
+  body.querySelectorAll(".w").forEach(el=>el.onclick=()=>{
+    current=words[+el.dataset.i];
+    body.querySelectorAll(".w").forEach(x=>x.classList.toggle("on",x===el));
+    showOccurrences(body,p.book,current);
+  });
 }
-function normWord(w){ return w.toLowerCase().replace(/^'+|'+$/g,""); }
-function showOccurrences(body,ref,word){
+const OCC_CAP=200;
+function showOccurrences(body,book,word){
   const nw=normWord(word); const list=body.querySelector("#occList");
-  const scopeBooks=state.wordScope==="john"?BOOKS.filter(b=>b.name==="John"):BOOKS;
-  const out=[];
-  for(const b of scopeBooks) for(let ci=0;ci<b.chapters.length;ci++) for(let vi=0;vi<b.chapters[ci].length;vi++){
+  const scopeBooks=state.wordScope==="book"?BOOKS.filter(b=>b.name===book):BOOKS;
+  const out=[]; let more=false;
+  scan: for(const b of scopeBooks) for(let ci=0;ci<b.chapters.length;ci++) for(let vi=0;vi<b.chapters[ci].length;vi++){
     const t=b.chapters[ci][vi];
-    if(tokenize(t).some(w=>normWord(w)===nw)){
+    if(t&&tokenize(t).some(w=>normWord(w)===nw)){
+      if(out.length>=OCC_CAP){ more=true; break scan; }
       out.push({ref:`${b.name} ${ci+1}:${vi+1}`, text:t});
-      if(out.length>=200) break;
     }
-    if(out.length>=200) break;
   }
-  const hi=t=>esc(t).replace(new RegExp(`(${nw.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")})`,"gi"),"<mark>$1</mark>");
-  list.innerHTML=`<div class="lbl">“${esc(word)}” — ${out.length}${out.length>=200?"+":""} occurrence${out.length===1?"":"s"}</div>`+
-    out.map(o=>`<button class="occ-row" data-r="${esc(o.ref)}"><span class="or">${esc(o.ref)}</span><span class="ov">${hi(o.text)}</span></button>`).join("");
+  list.innerHTML=`<div class="lbl">“${esc(word)}” — ${out.length}${more?"+":""} verse${out.length===1?"":"s"}${more?" (showing first "+OCC_CAP+")":""}</div>`+
+    out.map(o=>`<button class="occ-row" data-r="${esc(o.ref)}"><span class="or">${esc(o.ref)}</span><span class="ov">${markWord(o.text,nw)}</span></button>`).join("");
   list.querySelectorAll(".occ-row").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r));
 }
-const HL_COLORS=[["y","#f5d90a"],["g","#7bc47f"],["b","#6aa9e8"],["p","#e88bb8"]];
+const HL_COLORS=[["y","#f5d90a","Yellow"],["g","#7bc47f","Green"],["b","#6aa9e8","Blue"],["p","#e88bb8","Pink"]];
 function paintMark(body,ref){
   const cur=HL[ref]||null, note=NOTES[ref]||"";
-  body.innerHTML=`<div class="lbl">Highlight</div><div class="hl-row">`+
-    HL_COLORS.map(([k,c])=>`<div class="hl-dot${cur===k?" sel":""}" data-c="${k}" style="background:${c}"></div>`).join("")+
+  body.innerHTML=`<div class="lbl">Highlight</div><div class="hl-row" role="group" aria-label="Highlight colour">`+
+    HL_COLORS.map(([k,c,n])=>`<button class="hl-dot${cur===k?" sel":""}" data-c="${k}" style="background:${c}" aria-label="${n}" aria-pressed="${cur===k}"></button>`).join("")+
     `</div><div class="lbl">Study note</div>
-    <textarea id="noteArea" placeholder="What do you see in this verse?">${esc(note)}</textarea>
+    <textarea id="noteArea" placeholder="What do you see in this verse?" aria-label="Study note">${esc(note)}</textarea>
     <button class="btn-primary" id="saveMark">Save</button>
     ${(cur||note)?'<button class="btn-ghost" id="clearMark">Clear highlight & note</button>':""}`;
   let sel=cur;
   body.querySelectorAll(".hl-dot").forEach(d=>d.onclick=()=>{
     sel=d.dataset.c===sel?null:d.dataset.c;
-    body.querySelectorAll(".hl-dot").forEach(x=>x.classList.toggle("sel",x.dataset.c===sel));
+    body.querySelectorAll(".hl-dot").forEach(x=>{ const on=x.dataset.c===sel; x.classList.toggle("sel",on); x.setAttribute("aria-pressed",on); });
   });
+  const refresh=()=>{ if(state.view==="read") refreshVerse(ref); paintMark(body,ref); };
   $("#saveMark").onclick=()=>{
     const nv=$("#noteArea").value.trim();
     if(sel) HL[ref]=sel; else delete HL[ref];
     if(nv) NOTES[ref]=nv; else delete NOTES[ref];
     store.set("hl",HL); store.set("notes",NOTES);
-    toast("Saved"); renderRead(); paintMark(body,ref);
+    toast("Saved"); refresh();
   };
   const cm=$("#clearMark");
-  if(cm) cm.onclick=()=>{ delete HL[ref]; delete NOTES[ref]; store.set("hl",HL); store.set("notes",NOTES); toast("Cleared"); renderRead(); paintMark(body,ref); };
+  if(cm) cm.onclick=()=>{ delete HL[ref]; delete NOTES[ref]; store.set("hl",HL); store.set("notes",NOTES); toast("Cleared"); refresh(); };
+}
+// Update one verse's highlight/note styling in place (no full re-render, so the page doesn't jump).
+function refreshVerse(ref){
+  const el=document.querySelector(`.verse[data-ref="${CSS.escape(ref)}"]`); if(!el) return;
+  HL_COLORS.forEach(([k])=>el.classList.toggle("hl-"+k,HL[ref]===k));
+  el.classList.toggle("has-note",!!NOTES[ref]);
 }
 
 /* ---------- SEARCH ---------- */
+const SEARCH_CAP=300;
 function renderSearch(){
   const v=$("#view");
-  v.innerHTML=`<div class="search-bar"><input id="q" placeholder="Search the Bible…" enterkeyhint="search"><button class="nav-btn" id="go">Go</button></div><div id="results"></div>`;
+  v.innerHTML=`<div class="search-bar"><input id="q" type="search" placeholder="Search the Bible…" enterkeyhint="search" aria-label="Search the Bible"><button class="nav-btn" id="go">Go</button></div><div id="results"></div>`;
   const run=()=>{
-    const q=$("#q").value.trim().toLowerCase(); const box=$("#results");
+    const q=foldQuotes($("#q").value.trim().toLowerCase()).replace(/\s+/g," "); const box=$("#results");
     if(q.length<2){ box.innerHTML='<div class="empty" style="padding:14px 16px">Type at least 2 characters.</div>'; return; }
-    const out=[];
-    for(const b of BOOKS) for(let ci=0;ci<b.chapters.length;ci++) for(let vi=0;vi<b.chapters[ci].length;vi++){
-      const t=b.chapters[ci][vi];
-      const ix=t.toLowerCase().indexOf(q);
+    const out=[]; let more=false;
+    scan: for(const b of BOOKS) for(let ci=0;ci<b.chapters.length;ci++) for(let vi=0;vi<b.chapters[ci].length;vi++){
+      const t=b.chapters[ci][vi]; if(!t) continue;
+      const ix=foldQuotes(t.toLowerCase()).indexOf(q);
       if(ix>=0){
-        const a=Math.max(0,ix-45), z=Math.min(t.length,ix+q.length+45);
-        out.push({ref:`${b.name} ${ci+1}:${vi+1}`, sn:"…"+t.slice(a,z)+"…", q});
-        if(out.length>=300) break;
+        if(out.length>=SEARCH_CAP){ more=true; break scan; }
+        // Trim the snippet to whole words around the match.
+        let a=Math.max(0,ix-45), z=Math.min(t.length,ix+q.length+45);
+        if(a>0){ const s=t.indexOf(" ",a); if(s>=0&&s<ix) a=s+1; }
+        if(z<t.length){ const s=t.lastIndexOf(" ",z); if(s>ix+q.length) z=s; }
+        out.push({ref:`${b.name} ${ci+1}:${vi+1}`, sn:t.slice(a,z), pre:a>0, post:z<t.length});
       }
-      if(out.length>=300) break;
     }
-    box.innerHTML=`<div class="lbl" style="padding:0 16px">${out.length}${out.length>=300?"+":""} results</div>`+out.map(o=>{
-      const sn=esc(o.sn).replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")})`,"gi"),"<mark>$1</mark>");
-      return `<button class="sr" data-r="${esc(o.ref)}"><span class="srr">${esc(o.ref)}</span><span class="srv">${sn}</span></button>`;
-    }).join("");
+    box.innerHTML=`<div class="lbl" style="padding:0 16px">${out.length}${more?"+":""} result${out.length===1?"":"s"}${more?" — showing the first "+SEARCH_CAP:""}</div>`+out.map(o=>
+      `<button class="sr" data-r="${esc(o.ref)}"><span class="srr">${esc(o.ref)}</span><span class="srv">${o.pre?"…":""}${markPhrase(o.sn,q)}${o.post?"…":""}</span></button>`
+    ).join("");
     box.querySelectorAll(".sr").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r));
   };
   $("#go").onclick=run;
@@ -345,8 +451,8 @@ function renderChrist(){
   v.innerHTML=`<h2 class="section-title">Trace Christ through John</h2>
   <div class="section-sub">Curated study trails: every item jumps straight to the verse in the ${esc(TRANSLATIONS[state.trans].name)}.</div>
   <div id="traces">`+STUDY.traces.map(t=>`
-    <div class="trace-card" data-id="${t.id}">
-      <div class="trace-head"><h3>${esc(t.title)}</h3><span class="cnt">${t.items.length} ▾</span></div>
+    <div class="trace-card" data-id="${esc(t.id)}">
+      <button class="trace-head" aria-expanded="false"><h3>${esc(t.title)}</h3><span class="cnt">${t.items.length} ▾</span></button>
       <div class="trace-intro">${esc(t.intro)}</div>
       <div class="trace-items">${t.items.map(it=>`
         <button class="trace-item" data-r="${esc(it.ref)}">
@@ -355,7 +461,8 @@ function renderChrist(){
         </button>`).join("")}</div>
     </div>`).join("")+`</div>`;
   v.querySelectorAll(".trace-card").forEach(c=>{
-    c.querySelector(".trace-head").onclick=()=>c.classList.toggle("open");
+    const head=c.querySelector(".trace-head");
+    head.onclick=()=>{ const open=c.classList.toggle("open"); head.setAttribute("aria-expanded",open); };
   });
   v.querySelectorAll(".trace-item").forEach(b=>b.onclick=e=>{ e.stopPropagation(); gotoVerse(b.dataset.r); });
 }
@@ -363,16 +470,15 @@ function renderChrist(){
 /* ---------- SAVED ---------- */
 function renderSaved(){
   const v=$("#view");
+  const order=k=>{ const p=parseRef(k)||{book:"",ch:0,v:0}; return [BOOKS.findIndex(x=>x.name===p.book),p.ch,p.v]; };
   const keys=[...new Set([...Object.keys(HL),...Object.keys(NOTES)])].sort((a,b)=>{
-    const pa=parseRef(a),pb=parseRef(b);
-    const ia=BOOKS.findIndex(x=>x.name===pa.book), ib=BOOKS.findIndex(x=>x.name===pb.book);
-    return ia-ib||pa.ch-pb.ch||pa.v-pb.v;
+    const pa=order(a),pb=order(b); return pa[0]-pb[0]||pa[1]-pb[1]||pa[2]-pb[2];
   });
   v.innerHTML=`<h2 class="section-title">Saved</h2>
   <div class="section-sub">Your highlights and study notes live on this device.</div>
   <div id="savedList">`+(keys.length?keys.map(k=>`
-    <button class="saved-item" data-r="${esc(k)}">
-      <span class="sr2">${esc(k)}</span><div class="sv2">${esc(textOf(k))}</div>
+    <button class="saved-item${HL[k]?" hl-"+HL[k]:""}" data-r="${esc(k)}">
+      <span class="sr2">${esc(k)}</span><div class="sv2">${verseHTML(textOf(k))}</div>
       ${NOTES[k]?`<div class="sn">“${esc(NOTES[k])}”</div>`:""}
     </button>`).join(""):'<div class="empty" style="padding:6px 16px">Nothing saved yet. Tap any verse while reading, then use the Mark tab to highlight it or add a note.</div>')+`</div>
   <div class="about"><b>Selah</b> prototype · Gospel of John study edition<br>
