@@ -11,6 +11,9 @@ Protestant canon ships as readable text.
   **Parallels** (14 Gospel parallel sets, side-by-side),
   **Words** (tap a word → every occurrence in John or the whole Bible),
   **Mark** (4 highlight colors + study notes, saved on-device).
+- Hebrew / Greek tab: every verse's original words in order — original script,
+  transliteration, English gloss, Strong's number. Tap a word for its lexicon
+  entry (definition, parsing of that form, every verse that uses it).
 - Search: whole-Bible text search with highlighted snippets.
 - Christ: curated trails through John — the seven "I AM" sayings,
   titles of Christ, prophecies fulfilled, the seven signs,
@@ -34,6 +37,11 @@ Protestant canon ships as readable text.
   31,102-verse numbering (Romans doxology moved from 14:24-26 to 16:25-27;
   Luke 17:36, Acts 8:37, 15:34, 24:7 kept as empty slots), leaked "(Elohim)"
   footnotes removed and curly-quote spacing repaired.
+- `data/orig/NN.json` (one per book, 01 = Genesis … 66 = Revelation) and
+  `data/lex/XNN.json` (lexicon + concordance, bucketed by Strong's number) —
+  built by `tools/build_lexicon.py` from STEPBible Data (Tyndale House,
+  Cambridge, CC BY 4.0): TAHOT/TAGNT tagged texts and the TBESH/TBESG brief
+  lexicons. Loaded only when a verse's Hebrew/Greek tab is opened.
 - Both translations share one verse grid, so highlights, notes and
   cross-refs (keyed "Book C:V") stay on the same verse when switching.
 - `data/xrefs_john.json` — OpenBible.info cross-reference data (CC-BY),
@@ -59,7 +67,6 @@ entry (title, passage, caption, alt text) at its place in the story.
 
 ## Roadmap
 - Cross-refs for the whole canon (currently John only).
-- Strong's word studies (needs a tagged text decision: KJV+Strong's vs ASV).
 - "Mirroring verses": parallel view is built; chiasmus marking is open.
 - NASB text: copyrighted by the Lockman Foundation — needs a license;
   the app is translation-agnostic, so licensed text drops into bible.json.

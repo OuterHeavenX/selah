@@ -313,3 +313,37 @@ html.book-on .book-toggle{margin-left:12px;}
   #traces{columns:3;}
   .sr-list{grid-template-columns:repeat(3,minmax(0,1fr));}
 }
+
+/* ---------- original language + lexicon ---------- */
+:root{--font-heb:"SBL Hebrew","Ezra SIL","Taamey Frank CLM","Times New Roman","Arial Hebrew",serif; --font-grk:"SBL Greek","Gentium Plus","Times New Roman",Georgia,serif;}
+[lang="he"]{font-family:var(--font-heb);} [lang="grc"]{font-family:var(--font-grk);}
+.orig-line{font-size:24px; line-height:1.7; padding:4px 2px 2px; color:var(--ink);}
+.orig-line[lang="grc"]{font-size:20px;}
+.orig-sub{font-size:12px; color:var(--accent); font-weight:700; margin:10px 0 2px;}
+.ow-list{display:flex; flex-direction:column;}
+.ow{display:grid; grid-template-columns:minmax(84px,auto) 1fr auto; align-items:center; gap:12px; width:100%; text-align:left;
+  background:none; border:none; border-bottom:1px solid var(--line); padding:10px 2px; cursor:pointer;}
+.ow:active{background:var(--accent-soft);}
+.ow-o{font-size:22px; line-height:1.3; text-align:right; white-space:nowrap;}
+.ow-o[lang="grc"]{font-size:19px; text-align:left;}
+.ow-m{display:flex; flex-direction:column; min-width:0;}
+.ow-t{font-style:italic; font-size:13px; color:var(--ink-soft);}
+.ow-g{font-size:14.5px;}
+.ow-s{font-size:11px; font-weight:700; color:var(--accent); border:1px solid var(--line); border-radius:10px; padding:2px 7px; white-space:nowrap;}
+.ow.var{opacity:.55;}
+.orig-note{font-size:12.5px; color:var(--ink-soft); line-height:1.5; margin-top:12px;}
+.orig-credit{font-size:11px; color:var(--ink-soft); margin-top:18px; line-height:1.5;}
+.orig-credit a{color:var(--accent);}
+.lex-back{background:none; border:none; color:var(--accent); font-weight:700; font-size:14px; padding:2px 0 10px; cursor:pointer;}
+.lex-head{text-align:center; padding:4px 0 12px; border-bottom:1px solid var(--line);}
+.lex-lemma{font-size:34px; line-height:1.4;}
+.lex-tr{font-style:italic; color:var(--ink-soft); font-size:15px;}
+.lex-gloss{font-family:Georgia,serif; font-size:19px; font-weight:bold; margin-top:4px;}
+.lex-meta{display:flex; justify-content:center; align-items:center; gap:10px; margin-top:8px; font-size:12.5px; color:var(--ink-soft);}
+.lex-form{margin:4px 0 6px; font-size:14.5px; line-height:1.6;}
+.lex-formword{font-size:20px;}
+.lex-parse{font-size:13px; color:var(--ink-soft);}
+.lex-def{font-size:14.5px; line-height:1.65; color:var(--ink); overflow-wrap:anywhere;}
+.lex-def a{color:var(--accent); text-decoration:none; border-bottom:1px dotted var(--accent);}
+.lex-occ .occ-row.here .or::after{content:" · this verse"; font-weight:400; color:var(--ink-soft);}
+.lex-more{color:var(--accent);}
