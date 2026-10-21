@@ -1,6 +1,6 @@
 "use strict";
 /* Selah — ASV Study Bible prototype */
-let BIBLE=null, XREFS={}, STUDY=null;
+let BIBLE=null, XREFS={}, STUDY=null, MIRRORS=[];
 const VINDEX={}; // "Book C:V" -> text
 const BOOKS=[];  // {name, chapters}
 const state={view:"read", book:"John", ch:1, sheetRef:null, sheetTab:"xrefs", wordScope:"john"};
@@ -49,12 +49,13 @@ function textOf(ref){ return VINDEX[ref]||""; }
 async function boot(){
   applyTheme(store.get("theme","light"));
   $("#view").innerHTML='<div class="loading">Loading the Scriptures…</div>';
-  const [b,x,s]=await Promise.all([
+  const [b,x,s,m]=await Promise.all([
     fetch("data/bible.json").then(r=>r.json()),
     fetch("data/xrefs_john.json").then(r=>r.json()),
-    fetch("data/study_john.json").then(r=>r.json())
+    fetch("data/study_john.json").then(r=>r.json()),
+    fetch("data/mirrors.json").then(r=>r.json())
   ]);
-  BIBLE=b; XREFS=x; STUDY=s;
+  BIBLE=b; XREFS=x; STUDY=s; MIRRORS=m.mirrors||[];
   b.books.forEach(bk=>{ BOOKS.push(bk);
     bk.chapters.forEach((ch,ci)=>ch.forEach((t,vi)=>{ VINDEX[`${bk.name} ${ci+1}:${vi+1}`]=t; }));
   });
@@ -90,9 +91,10 @@ function renderRead(){
   book.chapters[state.ch-1].forEach((t,i)=>{
     const ref=`${state.book} ${state.ch}:${i+1}`;
     const xc=(XREFS[ref]||[]).length;
+    const mc=mirrorsFor(state.book,state.ch,i+1).length;
     const hl=HL[ref]?` hl-${HL[ref]}`:"";
     const nn=NOTES[ref]?" has-note":"";
-    h+=`<div class="verse${hl}${nn}" data-ref="${esc(ref)}"><span class="vn">${i+1}</span>${esc(t)}${xc?`<span class="xcount">↔ ${xc}</span>`:""}</div>`;
+    h+=`<div class="verse${hl}${nn}" data-ref="${esc(ref)}"><span class="vn">${i+1}</span>${esc(t)}${xc?`<span class="xcount">↔ ${xc}</span>`:""}${mc?`<span class="mcount">◈ mirror</span>`:""}</div>`;
   });
   v.innerHTML=h+"</div>";
   v.querySelectorAll(".verse").forEach(el=>{ el.onclick=()=>openSheet(el.dataset.ref,"xrefs"); });
@@ -136,7 +138,7 @@ function paintSheet(){
   $("#sheetRef").textContent=ref+" · ASV";
   document.querySelectorAll("#sheetTabs button").forEach(b=>b.classList.toggle("active",b.dataset.tab===state.sheetTab));
   const body=$("#sheetBody");
-  ({xrefs:paintXrefs,parallels:paintParallels,words:paintWords,mark:paintMark})[state.sheetTab](body,ref);
+  ({xrefs:paintXrefs,parallels:paintParallels,mirrors:paintMirrors,words:paintWords,mark:paintMark})[state.sheetTab](body,ref);
 }
 function paintXrefs(body,ref){
   const list=XREFS[ref]||[];
@@ -158,6 +160,30 @@ function paintParallels(body,ref){
       vs.map(x=>`<span class="vn">${x.ref.split(":")[1]}</span>${esc(x.text)} `).join("")
     }</div></div>`;
   }).join("")+"</div>").join("");
+}
+function mirrorsFor(book,ch,v){
+  return MIRRORS.filter(s=>{
+    const nt=parsePassage(s.nt), ot=parsePassage(s.ot);
+    return (nt&&verseInPassage(book,ch,v,nt))||(ot&&verseInPassage(book,ch,v,ot));
+  });
+}
+function paintMirrors(body,ref){
+  const p=parseRef(ref); if(!p){body.innerHTML='<div class="empty">—</div>';return;}
+  const sets=mirrorsFor(p.book,p.ch,p.v);
+  if(!sets.length){ body.innerHTML='<div class="empty">No mirror recorded for this verse yet. Mirrors trace where Jesus relives Israel\u2019s story — the set is growing.</div>'; return; }
+  const side=(pp,label,cur)=>{ const vs=passageVerses(pp);
+    return `<div class="par-pass${cur?" current":""}"><div class="pr">${esc(label)}</div><div class="pv">${
+      vs.map(x=>`<span class="vn">${x.ref.split(":")[1]}</span>${esc(x.text)} `).join("")}</div></div>`; };
+  body.innerHTML=`<div class="lbl">${sets.length} mirror${sets.length===1?"":"s"} · the New Testament reading the Old</div>`+sets.map(s=>{
+    const nt=parsePassage(s.nt), ot=parsePassage(s.ot);
+    const onNT=nt&&verseInPassage(p.book,p.ch,p.v,nt);
+    return `<div class="par-card"><h4>${esc(s.title)}</h4>`
+      +side(ot,"The shadow · "+s.ot,!onNT)
+      +side(nt,"The fulfillment in Christ · "+s.nt,onNT)
+      +`<div class="mir-note">${esc(s.note)}</div>`
+      +`<button class="mir-link" data-r="${esc(s.link)}">The New Testament draws it here: ${esc(s.link)} →</button></div>`;
+  }).join("");
+  body.querySelectorAll(".mir-link").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r));
 }
 function tokenize(t){ const out=[]; const re=/[A-Za-z']+/g; let m; while((m=re.exec(t))) out.push(m[0]); return out; }
 function paintWords(body,ref){

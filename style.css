@@ -132,3 +132,6 @@ body{
 }
 #toast.hidden{display:none;}
 .loading{padding:60px 20px; text-align:center; color:var(--ink-soft); font-size:15px;}
+.verse .mcount{font-family:-apple-system,sans-serif; font-size:10px; color:var(--accent); border:1px solid var(--accent); border-radius:10px; padding:1px 7px; margin-left:6px; vertical-align:2px; white-space:nowrap;}
+.mir-note{font-size:13px; color:var(--ink-soft); margin:10px 0 8px; line-height:1.5;}
+.mir-link{display:block; width:100%; text-align:left; border:1px solid var(--line); background:var(--paper); color:var(--accent); border-radius:10px; padding:9px 12px; font-size:13px; font-weight:600; cursor:pointer;}
