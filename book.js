@@ -1,8 +1,9 @@
 "use strict";
 /* Selah — book view for wide screens (iPad landscape, desktop).
    Each chapter is laid out in CSS columns sized to one page; a page is a window onto
-   that column flow. Two pages make a spread, and the leaf turns with a 3D flip that can
-   be dragged by finger, swiped, tapped at the page edge, or driven by the arrow keys. */
+   that column flow. Pages run on continuously from chapter to chapter (a page is
+   {b,c,i}), two consecutive pages make a spread, and the leaf turns with a 3D flip that
+   can be dragged by finger, swiped, tapped at the page edge, or driven by the arrow keys. */
 
 const BOOK_MIN_W=900;
 const BOOK={sp:null, dims:null, cache:new Map(), flip:null};
@@ -58,31 +59,36 @@ function adjChapter(b,c,dir){
   else if(nc>BOOKS[bi].chapters.length){ if(bi===BOOKS.length-1) return null; nb=bi+1; nc=1; }
   return {b:BOOKS[nb].name, c:nc};
 }
-const lastSpread=n=>(n-1)-((n-1)%2);
-function nextSpread(sp){
-  const r=measureChapter(sp.b,sp.c);
-  if(sp.s+2<r.n) return {b:sp.b,c:sp.c,s:sp.s+2};
-  const nx=adjChapter(sp.b,sp.c,1); return nx&&{b:nx.b,c:nx.c,s:0};
+// Pages are {b,c,i}; the page after a chapter's last is the next chapter's first — no blank pages between.
+function nextPage(pg){
+  if(!pg) return null;
+  if(pg.i+1<measureChapter(pg.b,pg.c).n) return {b:pg.b,c:pg.c,i:pg.i+1};
+  const nx=adjChapter(pg.b,pg.c,1); return nx&&{b:nx.b,c:nx.c,i:0};
 }
+function prevPage(pg){
+  if(!pg) return null;
+  if(pg.i>0) return {b:pg.b,c:pg.c,i:pg.i-1};
+  const pv=adjChapter(pg.b,pg.c,-1); return pv&&{b:pv.b,c:pv.c,i:measureChapter(pv.b,pv.c).n-1};
+}
+const spreadAt=L=>({L, R:nextPage(L)});
+function nextSpread(sp){ const L=nextPage(sp.R); return L&&spreadAt(L); }
 function prevSpread(sp){
-  if(sp.s>=2) return {b:sp.b,c:sp.c,s:sp.s-2};
-  const pv=adjChapter(sp.b,sp.c,-1); if(!pv) return null;
-  return {b:pv.b,c:pv.c,s:lastSpread(measureChapter(pv.b,pv.c).n)};
+  const R=prevPage(sp.L); if(!R) return null;
+  const L=prevPage(R); return L?{L,R}:spreadAt(R);
 }
+const samePage=(a,b)=>a&&b&&a.b===b.b&&a.c===b.c&&a.i===b.i;
 
 /* ---------- pages ---------- */
-function pageHTML(sp,side){
-  const d=BOOK.dims, r=measureChapter(sp.b,sp.c), idx=sp.s+(side==="right"?1:0);
-  if(idx>=r.n){
-    const nx=adjChapter(sp.b,sp.c,1);
-    return `<div class="bpage ${side} blank"><div class="bend"><div class="bend-orn">❦</div>${nx?`<div class="bend-next">${esc(nx.b)} ${nx.c} follows</div>`:""}</div></div>`;
-  }
-  return `<div class="bpage ${side}"><div class="bclip"><div class="bflow" style="transform:translateX(${-idx*d.step}px)">${r.html}</div></div>`
-    +`<div class="bfoot">${esc(sp.b)} ${sp.c}<span>·</span>${idx+1} / ${r.n}</div></div>`;
+function pageHTML(pg,side){
+  // Only the very last page of Revelation can face an empty page.
+  if(!pg) return `<div class="bpage ${side} blank"><div class="bend"><div class="bend-orn">❦</div></div></div>`;
+  const d=BOOK.dims, r=measureChapter(pg.b,pg.c);
+  return `<div class="bpage ${side}"><div class="bclip"><div class="bflow" style="transform:translateX(${-pg.i*d.step}px)">${r.html}</div></div>`
+    +`<div class="bfoot">${esc(pg.b)} ${pg.c}<span>·</span>${pg.i+1} / ${r.n}</div></div>`;
 }
 function paintSpread(){
   const spread=$("#bookSpread"); if(!spread) return;
-  spread.innerHTML=`<div class="bslot left">${pageHTML(BOOK.sp,"left")}</div><div class="bslot right">${pageHTML(BOOK.sp,"right")}</div><div class="bspine"></div>`;
+  spread.innerHTML=`<div class="bslot left">${pageHTML(BOOK.sp.L,"left")}</div><div class="bslot right">${pageHTML(BOOK.sp.R,"right")}</div><div class="bspine"></div>`;
   // Each page holds the whole chapter flow; only verses inside its window may take focus or be read out.
   spread.querySelectorAll(".bclip").forEach(clip=>{
     const cr=clip.getBoundingClientRect();
@@ -96,8 +102,9 @@ function paintSpread(){
   const prev=prevSpread(BOOK.sp), next=nextSpread(BOOK.sp);
   $("#bookPrev").disabled=!prev; $("#bookNext").disabled=!next;
   // Moving into another chapter keeps the chapter picker and "continue reading" in step.
-  if(state.book!==BOOK.sp.b||state.ch!==BOOK.sp.c){
-    state.book=BOOK.sp.b; state.ch=BOOK.sp.c; savePos();
+  const L=BOOK.sp.L;
+  if(state.book!==L.b||state.ch!==L.c){
+    state.book=L.b; state.ch=L.c; savePos();
     const nav=document.querySelector(".reader-nav");
     if(nav){ nav.outerHTML=readerNavHTML(); bindReaderNav(); }
   }
@@ -111,9 +118,10 @@ function renderBook(){
     <button class="bturn next" id="bookNext" aria-label="Next page">›</button>
     <div class="bmeasure" id="bookMeasure" aria-hidden="true"></div>`;
   BOOK.dims=bookMeasureDims(host); applyDims(host,BOOK.dims);
-  const keep=BOOK.sp&&BOOK.sp.b===state.book&&BOOK.sp.c===state.ch;
-  const r=measureChapter(state.book,state.ch);
-  BOOK.sp={b:state.book, c:state.ch, s:keep?Math.min(BOOK.sp.s,lastSpread(r.n)):0};
+  // Coming back to the same chapter keeps your page; otherwise open at the chapter's first page.
+  const keep=BOOK.sp&&BOOK.sp.L.b===state.book&&BOOK.sp.L.c===state.ch;
+  const n=measureChapter(state.book,state.ch).n;
+  BOOK.sp=spreadAt({b:state.book, c:state.ch, i:keep?Math.min(BOOK.sp.L.i,n-1):0});
   paintSpread();
   $("#bookPrev").onclick=()=>turnPage(-1);
   $("#bookNext").onclick=()=>turnPage(1);
@@ -123,32 +131,37 @@ function renderBook(){
 // First verse visible on the current spread — used to keep your place when the layout changes.
 function spreadAnchor(){
   if(!BOOK.sp) return null;
-  const r=measureChapter(BOOK.sp.b,BOOK.sp.c);
-  let best=null;
-  for(const [ref,pg] of Object.entries(r.pages)) if(pg>=BOOK.sp.s&&pg<=BOOK.sp.s+1){ best=ref; break; }
-  return best;
+  const L=BOOK.sp.L, r=measureChapter(L.b,L.c);
+  for(const [ref,pg] of Object.entries(r.pages)) if(pg===L.i) return ref;
+  for(const [ref,pg] of Object.entries(r.pages)) if(pg>L.i) return ref;
+  return null;
 }
 function bookRelayout(){
   const host=$("#book"); if(!host||BOOK.flip) return;
-  const anchor=spreadAnchor();
+  const anchor=spreadAnchor(), L=BOOK.sp.L;
   BOOK.dims=bookMeasureDims(host); applyDims(host,BOOK.dims);
-  if(anchor){ const r=measureChapter(BOOK.sp.b,BOOK.sp.c); const pg=r.pages[anchor]??0; BOOK.sp.s=pg-pg%2; }
+  const r=measureChapter(L.b,L.c);
+  BOOK.sp=spreadAt({b:L.b,c:L.c,i:anchor?(r.pages[anchor]??0):Math.min(L.i,r.n-1)});
   paintSpread();
 }
 // Highlights and notes are baked into the cached chapter HTML; drop it and repaint in place.
 function bookRefreshChapter(){
   if(!BOOK.sp) return;
-  for(const k of [...BOOK.cache.keys()]) if(k.startsWith(`${BOOK.sp.b}|${BOOK.sp.c}|`)) BOOK.cache.delete(k);
-  const r=measureChapter(BOOK.sp.b,BOOK.sp.c); BOOK.sp.s=Math.min(BOOK.sp.s,lastSpread(r.n));
+  const chs=[BOOK.sp.L,BOOK.sp.R].filter(Boolean).map(p=>`${p.b}|${p.c}|`);
+  for(const k of [...BOOK.cache.keys()]) if(chs.some(c=>k.startsWith(c))) BOOK.cache.delete(k);
+  const L=BOOK.sp.L, n=measureChapter(L.b,L.c).n;
+  BOOK.sp=spreadAt({b:L.b,c:L.c,i:Math.min(L.i,n-1)});
   paintSpread();
 }
-// Jump to the spread holding a verse or passage and flash it (book-mode gotoVerse).
+// Jump to the spread holding a verse or passage — its page opens on the left — and flash it.
 function bookReveal(p){
   showView("read");
   const first=`${p.book} ${p.ch}:${p.v1}`;
   const r=measureChapter(p.book,p.ch);
-  const pg=r.pages[first]??0;
-  BOOK.sp={b:p.book,c:p.ch,s:pg-pg%2}; paintSpread();
+  const i=r.pages[first]??0;
+  const onScreen=BOOK.sp&&(samePage(BOOK.sp.L,{b:p.book,c:p.ch,i})||samePage(BOOK.sp.R,{b:p.book,c:p.ch,i}));
+  if(!onScreen) BOOK.sp=spreadAt({b:p.book,c:p.ch,i});
+  paintSpread();
   const els=[...document.querySelectorAll("#bookSpread .verse[data-ref]")].filter(el=>{
     const q=parseRef(el.dataset.ref); return q&&verseInPassage(q.book,q.ch,q.v,p);
   });
@@ -168,11 +181,11 @@ function beginFlip(dir){
   leaf.className="bleaf "+(dir>0?"fwd":"bwd");
   if(dir>0){
     // The right page lifts off the stack; the next spread's right page lies beneath it.
-    leaf.innerHTML=`<div class="bface front">${pageHTML(from,"right")}<div class="bshade"></div></div><div class="bface back">${pageHTML(to,"left")}<div class="bshade"></div></div>`;
-    slotR.innerHTML=pageHTML(to,"right")+`<div class="bcast"></div>`;
+    leaf.innerHTML=`<div class="bface front">${pageHTML(from.R,"right")}<div class="bshade"></div></div><div class="bface back">${pageHTML(to.L,"left")}<div class="bshade"></div></div>`;
+    slotR.innerHTML=pageHTML(to.R,"right")+`<div class="bcast"></div>`;
   }else{
-    leaf.innerHTML=`<div class="bface front">${pageHTML(from,"left")}<div class="bshade"></div></div><div class="bface back">${pageHTML(to,"right")}<div class="bshade"></div></div>`;
-    slotL.innerHTML=pageHTML(to,"left")+`<div class="bcast"></div>`;
+    leaf.innerHTML=`<div class="bface front">${pageHTML(from.L,"left")}<div class="bshade"></div></div><div class="bface back">${pageHTML(to.R,"right")}<div class="bshade"></div></div>`;
+    slotL.innerHTML=pageHTML(to.L,"left")+`<div class="bcast"></div>`;
   }
   spread.appendChild(leaf);
   const shades=leaf.querySelectorAll(".bshade"), cast=spread.querySelector(".bcast");
@@ -282,3 +295,13 @@ window.addEventListener("resize",()=>{
     else { const nav=document.querySelector(".reader-nav"); if(nav){ nav.outerHTML=readerNavHTML(); bindReaderNav(); } }
   },180);
 });
+
+/* ---------- keep the page still while the book is open ----------
+   Safari lets a swipe move the whole page (and bounce past its ends). In book view the
+   screen is a fixed spread, so swallow page-level scrolling — except inside the study
+   sheet and the image viewer, which still need to scroll. */
+document.addEventListener("touchmove",e=>{
+  if(!document.documentElement.classList.contains("book-on")) return;
+  if(e.target.closest&&e.target.closest("#sheet, #lightbox")) return;
+  if(e.cancelable) e.preventDefault();
+},{passive:false});
