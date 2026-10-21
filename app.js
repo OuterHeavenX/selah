@@ -1,6 +1,6 @@
 "use strict";
 /* Selah — ASV Study Bible prototype */
-const DATA_V="6"; // bump when data/*.json changes so phones drop cached copies
+const DATA_V="7"; // bump when data/*.json changes so phones drop cached copies
 let XREFS={}, STUDY=null, TYPES=[];
 const TRANSLATIONS={
   asv:{name:"ASV", full:"American Standard Version (1901)", short:"ASV 1901", file:"data/bible.json"},
@@ -413,6 +413,7 @@ function bindSheet(){
 function openSheet(ref,tab){
   sheetReturnFocus=document.activeElement;
   state.sheetRef=ref; state.sheetTab=tab||"xrefs";
+  if(typeof lexState!=="undefined"){ lexState.ref=null; lexState.strong=null; }
   $("#sheetWrap").classList.remove("hidden");
   document.body.classList.add("sheet-open");
   paintSheet();
@@ -427,11 +428,18 @@ function closeSheet(){
 function paintSheet(){
   const ref=state.sheetRef; if(!ref) return;
   $("#sheetRef").textContent=ref+" · "+TRANSLATIONS[state.trans].name;
-  document.querySelectorAll("#sheetTabs button").forEach(b=>{
+  const pr=parseRef(ref);
+  const ob=document.querySelector('#sheetTabs [data-tab="original"]');
+  if(ob&&pr) ob.textContent=isOT(pr.book)?"Hebrew":"Greek";
+  const tabs=$("#sheetTabs");
+  tabs.querySelectorAll("button").forEach(b=>{
     const on=b.dataset.tab===state.sheetTab; b.classList.toggle("active",on); b.setAttribute("aria-selected",on);
+    // keep the active tab visible when the row scrolls sideways on narrow phones
+    if(on){ const l=b.offsetLeft-12, r=b.offsetLeft+b.offsetWidth+12;
+      if(l<tabs.scrollLeft) tabs.scrollLeft=l; else if(r>tabs.scrollLeft+tabs.clientWidth) tabs.scrollLeft=r-tabs.clientWidth; }
   });
   const body=$("#sheetBody"); body.scrollTop=0;
-  ({xrefs:paintXrefs,parallels:paintParallels,typology:paintTypes,words:paintWords,mark:paintMark})[state.sheetTab](body,ref);
+  ({xrefs:paintXrefs,original:paintOriginal,parallels:paintParallels,typology:paintTypes,words:paintWords,mark:paintMark})[state.sheetTab](body,ref);
 }
 function paintXrefs(body,ref){
   const list=(XREFS[ref]||[]).filter(e=>textOf(e.r));
@@ -609,6 +617,7 @@ function renderSaved(){
   <div class="about"><b>Selah</b> prototype · Gospel of John study edition<br>
   Text: ${esc(TRANSLATIONS[state.trans].full)} — public domain.<br>
   Cross-references: OpenBible.info (CC-BY), derived primarily from the Treasury of Scripture Knowledge.<br>
+  Hebrew and Greek text, glosses and lexicons: STEPBible.org (Tyndale House, Cambridge), CC BY 4.0.<br>
   Parallel passages, Christology trails and signs curated for this edition.</div>`;
   v.querySelectorAll(".saved-item").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r));
 }
