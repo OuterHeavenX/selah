@@ -1,6 +1,6 @@
 "use strict";
 /* Selah — ASV Study Bible prototype */
-const DATA_V="5"; // bump when data/*.json changes so phones drop cached copies
+const DATA_V="6"; // bump when data/*.json changes so phones drop cached copies
 let XREFS={}, STUDY=null, TYPES=[];
 const TRANSLATIONS={
   asv:{name:"ASV", full:"American Standard Version (1901)", short:"ASV 1901", file:"data/bible.json"},
@@ -219,12 +219,12 @@ function renderHome(){
   const typ=TYPES.length?TYPES[dayIndex(TYPES.length)]:null;
   const typFirst=typ&&typ._nt?`${typ._nt.book} ${typ._nt.ch}:${typ._nt.v1}`:null;
   const start=dayIndex(ART.length);
-  v.innerHTML=`<div class="home-hero">
+  v.innerHTML=`<div class="home"><div class="home-art"><div class="home-hero">
       <button class="hero-slides" id="heroSlides" aria-label="Open this picture">${ART.map((a,i)=>
         `<img src="${artSrc(a)}" alt="${esc(a.alt)}" width="${a.w}" height="${a.h}" decoding="async" style="object-position:${a.focus}" class="${i===start?"on":""}" ${i===start?"":'loading="lazy"'}>`).join("")}</button>
       <div class="home-brand"><div class="home-name">Selah</div><div class="home-tag">Pause and reflect.</div>
         <div class="hero-dots" role="group" aria-label="Choose picture">${ART.map((a,i)=>`<button data-i="${i}" class="${i===start?"on":""}" aria-label="${esc(a.title)}"></button>`).join("")}</div></div>
-    </div>`
+    </div></div><div class="home-main">`
   +(pos&&BOOKS.some(b=>b.name===pos.book)?`<button class="home-continue" id="hcCont"><span>Continue reading</span><b>${esc(pos.book)} ${pos.ch} →</b></button>`:"")
   +`<button class="home-votd" id="hcVotd"><div class="hlab">Verse of the day</div><div class="votd-ref">${esc(votd)}</div><div class="votd-text">${verseHTML(textOf(votd))}</div></button>`
   +(typ&&typFirst?`<button class="home-typ" id="hcTyp"><div class="hlab">Typology of the day</div><div class="ty-t">${esc(typ.title)}</div><div class="ty-s">${esc(typ.nt)} &nbsp;↔&nbsp; ${esc(typ.ot)}</div></button>`:"")
@@ -235,7 +235,7 @@ function renderHome(){
     <button class="home-card" data-go="images"><div class="hc-t">Images</div><div class="hc-s">${ART.length} pieces of art</div></button>
     <button class="home-card" data-go="saved"><div class="hc-t">Saved</div><div class="hc-s">${hlN} highlight${hlN===1?"":"s"} · ${noteN} note${noteN===1?"":"s"}</div></button>
   </div>
-  <div class="home-foot">Selah · ${esc(TRANSLATIONS[state.trans].full)}, public domain</div>`;
+  <div class="home-foot">Selah · ${esc(TRANSLATIONS[state.trans].full)}, public domain</div></div></div>`;
   const go=g=>showView(g);
   v.querySelectorAll(".home-card").forEach(b=>b.onclick=()=>go(b.dataset.go));
   const hc=v.querySelector("#hcCont"); if(hc) hc.onclick=()=>go("read");
@@ -561,9 +561,9 @@ function renderSearch(){
         out.push({ref:`${b.name} ${ci+1}:${vi+1}`, sn:t.slice(a,z), pre:a>0, post:z<t.length});
       }
     }
-    box.innerHTML=`<div class="lbl" style="padding:0 16px">${out.length}${more?"+":""} result${out.length===1?"":"s"}${more?" — showing the first "+SEARCH_CAP:""}</div>`+out.map(o=>
+    box.innerHTML=`<div class="lbl" style="padding:0 16px">${out.length}${more?"+":""} result${out.length===1?"":"s"}${more?" — showing the first "+SEARCH_CAP:""}</div><div class="sr-list">`+out.map(o=>
       `<button class="sr" data-r="${esc(o.ref)}"><span class="srr">${esc(o.ref)}</span><span class="srv">${o.pre?"…":""}${markPhrase(o.sn,q)}${o.post?"…":""}</span></button>`
-    ).join("");
+    ).join("")+`</div>`;
     box.querySelectorAll(".sr").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r));
   };
   $("#go").onclick=run;
