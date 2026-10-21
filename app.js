@@ -21,12 +21,18 @@ function parseRef(s){
   return {book:m[1], ch:+m[2], v:+m[3]};
 }
 function parsePassage(s){
-  // "John 6:1-14", "John 3:16", or cross-chapter "John 18:28-19:16"
-  const m=s.match(/^(.+?)\s+(\d+):(\d+)(?:-(\d+)(?::(\d+))?)?$/);
-  if(!m) return null;
-  const ch2=m[5]?+m[4]:+m[2];
-  const v2=m[5]?+m[5]:(m[4]?+m[4]:+m[3]);
-  return {book:m[1], ch:+m[2], v1:+m[3], ch2, v2};
+  // "John 6:1-14", "John 3:16", cross-chapter "John 18:28-19:16", or chapter range "Genesis 6-8"
+  let m=s.match(/^(.+?)\s+(\d+):(\d+)(?:-(\d+)(?::(\d+))?)?$/);
+  if(m){
+    const ch2=m[5]?+m[4]:+m[2];
+    const v2=m[5]?+m[5]:(m[4]?+m[4]:+m[3]);
+    return {book:m[1], ch:+m[2], v1:+m[3], ch2, v2};
+  }
+  m=s.match(/^(.+?)\s+(\d+)-(\d+)$/);
+  if(m) return {book:m[1], ch:+m[2], v1:1, ch2:+m[3], v2:9999};
+  m=s.match(/^(.+?)\s+(\d+)$/);
+  if(m) return {book:m[1], ch:+m[2], v1:1, ch2:+m[2], v2:9999};
+  return null;
 }
 function passageVerses(p){
   const b=BOOKS.find(b=>b.name===p.book); if(!b) return [];
@@ -216,7 +222,8 @@ function paintTypes(body,ref){
       +side(ot,"The shadow · "+s.ot,!onNT)
       +side(nt,"The fulfillment in Christ · "+s.nt,onNT)
       +`<div class="typ-note">${esc(s.note)}</div>`
-      +`<button class="typ-link" data-r="${esc(s.link)}">The New Testament draws it here: ${esc(s.link)} →</button></div>`;
+      +`<button class="typ-link" data-r="${esc(s.link)}">The New Testament draws it here: ${esc(s.link)} →</button>`
+      +(s.src?`<div class="typ-src">Sourced from ${esc(s.src)}</div>`:"")+`</div>`;
   }).join("");
   body.querySelectorAll(".typ-link").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r));
 }

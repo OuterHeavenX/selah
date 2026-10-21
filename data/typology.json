@@ -1,1 +1,636 @@
-{"types":[{"link":"Matthew 4:4","note":"Answering Satan, Jesus quotes Deuteronomy 8:3 — Israel's wilderness lesson: man lives by every word that proceedeth out of the mouth of God.","nt":"Matthew 4:1-11","ot":"Deuteronomy 8:2-3","title":"Forty days in the wilderness"},{"link":"John 3:14","note":"As Moses lifted up the serpent in the wilderness, so must the Son of Man be lifted up — looking brings life.","nt":"John 3:14-15","ot":"Numbers 21:8-9","title":"The serpent lifted up"},{"link":"Matthew 12:40","note":"As Jonah was three days and three nights in the belly of the fish, so the Son of Man three days in the heart of the earth.","nt":"Matthew 12:40","ot":"Jonah 1:17","title":"The sign of Jonah"},{"link":"1 Corinthians 5:7","note":"Paul names it outright: our passover also hath been sacrificed, even Christ.","nt":"1 Corinthians 5:7","ot":"Exodus 12:3-7","title":"Christ our passover"},{"link":"John 6:31","note":"The crowd cites the manna; Jesus answers: I am the bread of life.","nt":"John 6:31-35","ot":"Exodus 16:14-15","title":"Bread from heaven"},{"link":"1 Corinthians 10:4","note":"They drank of a spiritual rock that followed them: and the rock was Christ.","nt":"1 Corinthians 10:4","ot":"Exodus 17:5-6","title":"The spiritual Rock"},{"link":"1 Corinthians 10:1","note":"Israel's passage through the sea was a baptism unto Moses in the cloud and in the sea.","nt":"1 Corinthians 10:1-2","ot":"Exodus 14:21-22","title":"Baptized unto Moses"},{"link":"1 Corinthians 15:45","note":"The first man Adam became a living soul. The last Adam became a life-giving spirit.","nt":"1 Corinthians 15:45","ot":"Genesis 2:7","title":"The last Adam"},{"link":"John 2:21","note":"He spake of the temple of his body — God's dwelling place among men is now Christ himself.","nt":"John 2:19-21","ot":"Exodus 25:8","title":"The temple of his body"},{"link":"Acts 8:32","note":"Philip opens Isaiah 53 at the eunuch's question — of whom speaketh the prophet this? — and preaches Jesus.","nt":"Acts 8:32-35","ot":"Isaiah 53:7-8","title":"The suffering servant"},{"link":"Galatians 3:16","note":"The promise was spoken to Abraham's seed — singular — which is Christ.","nt":"Galatians 3:16","ot":"Genesis 22:18","title":"The promised Seed"},{"link":"Hebrews 7:1","note":"Melchizedek, king of Salem and priest of God Most High, becomes the pattern of Christ's priesthood.","nt":"Hebrews 7:1-3","ot":"Genesis 14:18-20","title":"A priest like Melchizedek"},{"link":"Hebrews 10:20","note":"The way into the holy place runs through the veil, that is to say, his flesh.","nt":"Hebrews 10:19-20","ot":"Exodus 26:31-33","title":"Through the veil"},{"link":"Hebrews 13:12","note":"As the sin offering was burned without the camp, Jesus suffered without the gate.","nt":"Hebrews 13:11-12","ot":"Leviticus 16:27","title":"Outside the camp"},{"link":"Acts 3:22","note":"Peter quotes Moses — God would raise up a prophet like him — and names Jesus.","nt":"Acts 3:22","ot":"Deuteronomy 18:15","title":"The prophet like Moses"},{"link":"Matthew 21:42","note":"Jesus turns the psalm on the builders who rejected him: the stone became the head of the corner.","nt":"Matthew 21:42","ot":"Psalms 118:22","title":"The rejected stone"},{"link":"John 2:17","note":"Seeing the temple cleansed, the disciples remembered: zeal for thy house shall eat me up.","nt":"John 2:17","ot":"Psalms 69:9","title":"Zeal for thy house"},{"link":"Matthew 27:9","note":"Matthew sees Judas's thirty pieces of silver fulfilling Zechariah's wages.","nt":"Matthew 27:9-10","ot":"Zechariah 11:12-13","title":"Thirty pieces of silver"},{"link":"John 19:37","note":"John quotes Zechariah at the cross: they shall look on him whom they pierced.","nt":"John 19:37","ot":"Zechariah 12:10","title":"Him whom they pierced"},{"link":"John 19:36","note":"The Passover regulation — neither shall ye break a bone thereof — kept in the crucifixion.","nt":"John 19:36","ot":"Exodus 12:46","title":"Not a bone broken"},{"link":"Matthew 2:15","note":"Hosea's 'out of Egypt did I call my son' is fulfilled in the flight to Egypt.","nt":"Matthew 2:15","ot":"Hosea 11:1","title":"Out of Egypt"},{"link":"Matthew 22:44","note":"David calls the Messiah 'my Lord' — the Christ is greater than David's own son.","nt":"Matthew 22:43-44","ot":"Psalms 110:1","title":"David's Lord"}]}
+{
+ "types": [
+  {
+   "title": "Adam, the first man",
+   "nt": "Romans 5:12-21",
+   "ot": "Genesis 1:26-27",
+   "link": "Romans 5:14",
+   "note": "As the one man's disobedience brought condemnation to all, so the one man's obedience brings righteousness and life to all.",
+   "src": "Ligonier, \"What Is Typology?\""
+  },
+  {
+   "title": "The marriage of Adam and Eve",
+   "nt": "Ephesians 5:25-32",
+   "ot": "Genesis 2:21-25",
+   "link": "Ephesians 5:31",
+   "note": "As Eve was taken from Adam's side and presented as his bride, so the church is drawn from Christ's wounded side and presented as His bride.",
+   "src": "SermonIndex, Habershon \"Study of the Types\" ch. 14"
+  },
+  {
+   "title": "Abel, the righteous murdered brother",
+   "nt": "Matthew 23:35",
+   "ot": "Genesis 4:4",
+   "link": "Hebrews 12:24",
+   "note": "Abel's acceptable sacrifice and innocent blood prefigure Christ, whose own innocent blood speaks forgiveness rather than vengeance.",
+   "src": "SpiritualDirection.com"
+  },
+  {
+   "title": "Melchizedek, king-priest of Salem",
+   "nt": "Hebrews 5:6-11",
+   "ot": "Genesis 14:17-20",
+   "link": "Hebrews 7:15",
+   "note": "A priest-king with no recorded genealogy or end of life prefigures Christ's eternal, non-Levitical priesthood.",
+   "src": "GotQuestions.org"
+  },
+  {
+   "title": "Abraham, the father who offered his son",
+   "nt": "John 3:16",
+   "ot": "Genesis 22:1-14",
+   "link": "Romans 8:32",
+   "note": "As Abraham was willing to offer his \"only son\" on Moriah, so God the Father gave His only Son for the world.",
+   "src": "DocBay"
+  },
+  {
+   "title": "Isaac, the promised son on the altar",
+   "nt": "Hebrews 11:17-19",
+   "ot": "Genesis 21:1-7",
+   "link": "Hebrews 11:19",
+   "note": "The beloved promised son, carrying the wood and bound on the altar, then received back alive, prefigures Christ's death and resurrection.",
+   "src": "GotQuestions.org"
+  },
+  {
+   "title": "The ram caught in the thicket",
+   "nt": "John 1:29",
+   "ot": "Genesis 22:8",
+   "link": "John 1:29",
+   "note": "The substitute ram God provided in Isaac's place anticipates the Lamb God provided in our place.",
+   "src": "OrthodoxWiki \"Typology\""
+  },
+  {
+   "title": "The seed/offspring of Abraham",
+   "nt": "Galatians 3:8",
+   "ot": "Genesis 22:18",
+   "link": "Galatians 3:16",
+   "note": "God's promise that \"in your offspring shall all the nations of the earth be blessed\" narrows to the single offspring, Christ.",
+   "src": "NT's own explicit identification"
+  },
+  {
+   "title": "Jacob's ladder at Bethel",
+   "nt": "John 1:51",
+   "ot": "Genesis 28:10-17",
+   "link": "John 1:51",
+   "note": "The stairway joining heaven and earth at \"the house of God\" prefigures Christ Himself as the meeting place of God and man.",
+   "src": "DocBay \"Old Testament Pictures of Christ\""
+  },
+  {
+   "title": "Joseph, rejected then exalted",
+   "nt": "Acts 7:9-13",
+   "ot": "Genesis 37-45",
+   "link": "Acts 7:9",
+   "note": "The beloved son betrayed for silver, suffering unjustly, then exalted to save his people from death, mirrors Christ's rejection and glorification.",
+   "src": "GotQuestions.org"
+  },
+  {
+   "title": "Moses, deliverer and prophet",
+   "nt": "Acts 3:22-23",
+   "ot": "Exodus 2-14",
+   "link": "Acts 3:22",
+   "note": "The mediator who delivered Israel from bondage and spoke God's words prefigures the greater Mediator who delivers from sin.",
+   "src": "Ligonier \"What Is Typology?\""
+  },
+  {
+   "title": "Aaron, the high priest",
+   "nt": "Hebrews 5:1-5",
+   "ot": "Exodus 28:1",
+   "link": "Hebrews 5:5",
+   "note": "Aaron, consecrated to offer gifts and sacrifices for sins, foreshadows Christ, the appointed and sympathetic High Priest.",
+   "src": "SermonIndex, Habershon ch. 14"
+  },
+  {
+   "title": "Joshua (Yeshua), successor who gives rest",
+   "nt": "Hebrews 4:8",
+   "ot": "Numbers 27:18-23",
+   "link": "Hebrews 4:8",
+   "note": "The leader named \"The LORD saves\" who brought Israel into the inheritance prefigures Jesus, who brings His people into true rest.",
+   "src": "GotQuestions.org (conquest"
+  },
+  {
+   "title": "David, the shepherd-king",
+   "nt": "Matthew 22:41-45",
+   "ot": "1 Samuel 16-17",
+   "link": "Luke 1:32",
+   "note": "The shepherd boy anointed king, who slew the giant and whose throne was promised forever, prefigures Christ, the Good Shepherd and eternal Son of David.",
+   "src": "GotQuestions.org"
+  },
+  {
+   "title": "David betrayed by a close friend",
+   "nt": "John 13:18",
+   "ot": "Psalms 41:9",
+   "link": "John 13:18",
+   "note": "David's betrayal by a trusted companion prefigures Christ's betrayal by Judas at the table.",
+   "src": "NT's own explicit citation"
+  },
+  {
+   "title": "The righteous sufferer of the Psalms",
+   "nt": "Matthew 27:34",
+   "ot": "Psalms 22",
+   "link": "Matthew 27:46",
+   "note": "David's vivid sufferings — pierced hands and feet, divided garments, gall and vinegar — are taken up in the NT as the script of Christ's passion.",
+   "src": "Living Hope \"Pattern & Fulfillment\""
+  },
+  {
+   "title": "Solomon, the glorious son of David",
+   "nt": "Matthew 12:42",
+   "ot": "1 Kings 3:5-14",
+   "link": "Matthew 12:42",
+   "note": "The wise king of peace who built God's house prefigures the greater Son of David, whose wisdom draws the nations and who builds the true temple.",
+   "src": "Ligonier \"What Is Typology?\""
+  },
+  {
+   "title": "Elijah, the rejected prophet taken up",
+   "nt": "Matthew 11:14",
+   "ot": "1 Kings 17-18",
+   "link": "Matthew 17:11",
+   "note": "The prophet who called Israel to repentance, was rejected, fed in the wilderness, raised the dead, and was taken to heaven, prefigures Christ's ministry and ascension.",
+   "src": "Feeding on Christ"
+  },
+  {
+   "title": "Elisha, the prophet of double-portion grace",
+   "nt": "Luke 4:27",
+   "ot": "2 Kings 2:9",
+   "link": "Luke 4:27",
+   "note": "The miracle-working successor who cleansed a Gentile leper and multiplied bread prefigures Christ's grace extending beyond Israel.",
+   "src": "Feeding on Christ"
+  },
+  {
+   "title": "Jonah, three days in the deep",
+   "nt": "Matthew 12:39-41",
+   "ot": "Jonah 1:17",
+   "link": "Matthew 12:40",
+   "note": "The prophet's descent into death's waters and restoration on the third day prefigures Christ's burial and resurrection.",
+   "src": "GotQuestions.org"
+  },
+  {
+   "title": "Jonah's preaching to Gentile Nineveh",
+   "nt": "Matthew 12:41",
+   "ot": "Jonah 3:5-10",
+   "link": "Matthew 12:41",
+   "note": "The prophet whose message brought a pagan city to repentance prefigures the greater Prophet whose gospel gathers the nations.",
+   "src": "Ligonier \"What Is Typology?\""
+  },
+  {
+   "title": "Israel, God's firstborn son",
+   "nt": "Matthew 2:15",
+   "ot": "Exodus 4:22",
+   "link": "Matthew 2:15",
+   "note": "The nation called God's \"firstborn son,\" brought out of Egypt, is recapitulated in Jesus, the true Son, brought out of Egypt.",
+   "src": "Ligonier/Ferguson Q&A"
+  },
+  {
+   "title": "The Son of Man in glory",
+   "nt": "Matthew 26:64",
+   "ot": "Daniel 7:13-14",
+   "link": "Matthew 26:64",
+   "note": "Daniel's heavenly figure receiving everlasting dominion is claimed by Jesus as His own identity and destiny.",
+   "src": "The Witness"
+  },
+  {
+   "title": "The tabernacle",
+   "nt": "Hebrews 8:5",
+   "ot": "Exodus 25-40",
+   "link": "Hebrews 9:8",
+   "note": "God's portable dwelling among Israel prefigures Christ, in whom God dwells among men, and the heavenly sanctuary He entered.",
+   "src": "GotQuestions.org"
+  },
+  {
+   "title": "The temple",
+   "nt": "John 2:19-22",
+   "ot": "1 Kings 6-8",
+   "link": "John 2:19",
+   "note": "The house where God's glory dwelt prefigures Christ's body, the true meeting place of God and man, raised on the third day.",
+   "src": "Ligonier \"What Is Typology?\""
+  },
+  {
+   "title": "The Aaronic/Levitical priesthood",
+   "nt": "Hebrews 5:1-5",
+   "ot": "Exodus 28-29",
+   "link": "Hebrews 7:11",
+   "note": "The hereditary priesthood offering repeated sacrifices for sin prefigures Christ's superior, permanent priesthood and once-for-all offering.",
+   "src": "Ligonier \"What Is Typology?\""
+  },
+  {
+   "title": "The sacrifices of the Law",
+   "nt": "Hebrews 9:11-14",
+   "ot": "Leviticus 1-7",
+   "link": "Hebrews 10:1",
+   "note": "Every animal sacrifice, showing that guilt deserves death and only blood atones, prefigures the one sacrifice of Christ that truly takes away sin.",
+   "src": "Ligonier \"What Is Typology?\""
+  },
+  {
+   "title": "The burnt offering (wholly consumed)",
+   "nt": "Ephesians 5:2",
+   "ot": "Leviticus 1:3-17",
+   "link": "Ephesians 5:2",
+   "note": "The offering wholly consumed on the altar, ascending as a pleasing aroma, prefigures Christ's total self-giving to God.",
+   "src": "Standard typology of the offerings"
+  },
+  {
+   "title": "The sin offering",
+   "nt": "Romans 8:3",
+   "ot": "Leviticus 4",
+   "link": "2 Corinthians 5:21",
+   "note": "The bull or goat slain outside as the bearer of the people's sin prefigures Christ made sin for us.",
+   "src": "Standard typology of the offerings"
+  },
+  {
+   "title": "The guilt (trespass) offering",
+   "nt": "1 Peter 2:24",
+   "ot": "Leviticus 5:14-6:7",
+   "link": "1 Peter 2:24",
+   "note": "The ram offered to make restitution for specific guilt prefigures Christ, whose soul was made the guilt offering for His people.",
+   "src": "Standard typology of the offerings"
+  },
+  {
+   "title": "The peace (fellowship) offering",
+   "nt": "Ephesians 2:14",
+   "ot": "Leviticus 3",
+   "link": "Ephesians 2:14",
+   "note": "The shared sacrificial meal celebrating restored fellowship with God prefigures the peace Christ's blood makes between God and man.",
+   "src": "Standard typology of the offerings"
+  },
+  {
+   "title": "The grain offering",
+   "nt": "John 12:24",
+   "ot": "Leviticus 2:1-16",
+   "link": "John 12:24",
+   "note": "The crushed fine flour and frankincense offered to God prefigures Christ, the bruised grain whose death bears much fruit.",
+   "src": "Standard typology of the offerings"
+  },
+  {
+   "title": "The Passover lamb",
+   "nt": "1 Corinthians 5:7",
+   "ot": "Exodus 12:1-14",
+   "link": "1 Corinthians 5:7",
+   "note": "The unblemished lamb whose blood on the doorposts turned away God's judgment prefigures Christ, whose blood shields believers from wrath.",
+   "src": "GotQuestions.org"
+  },
+  {
+   "title": "The Feast of Unleavened Bread",
+   "nt": "1 Corinthians 5:6-8",
+   "ot": "Leviticus 23:6-8",
+   "link": "1 Corinthians 5:8",
+   "note": "The week of bread without leaven (sin) following Passover prefigures the sinless life of Christ and the believer's call to holiness.",
+   "src": "GotQuestions.org"
+  },
+  {
+   "title": "The Feast of Firstfruits",
+   "nt": "1 Corinthians 15:20",
+   "ot": "Leviticus 23:9-14",
+   "link": "1 Corinthians 15:20",
+   "note": "The first sheaf of the harvest offered to God prefigures Christ's resurrection as the first of the great harvest of the righteous.",
+   "src": "GotQuestions.org"
+  },
+  {
+   "title": "The Feast of Weeks (Pentecost)",
+   "nt": "Acts 2:1-4",
+   "ot": "Leviticus 23:15-22",
+   "link": "Acts 2:1",
+   "note": "The harvest feast fifty days after Passover prefigures the Spirit's outpouring and the great harvest of three thousand souls at the church's birth.",
+   "src": "GotQuestions.org"
+  },
+  {
+   "title": "The Day of Atonement (Yom Kippur)",
+   "nt": "Hebrews 9:11-14",
+   "ot": "Leviticus 16",
+   "link": "Hebrews 9:12",
+   "note": "The high priest's yearly entry with blood into the Most Holy Place prefigures Christ's once-for-all entry into heaven with His own blood.",
+   "src": "GotQuestions.org"
+  },
+  {
+   "title": "The Sabbath day",
+   "nt": "Hebrews 4:9-11",
+   "ot": "Exodus 20:8-11",
+   "link": "Hebrews 4:9",
+   "note": "The weekly rest from labor prefigures the spiritual rest Christ gives through His finished work.",
+   "src": "GotQuestions.org"
+  },
+  {
+   "title": "Circumcision",
+   "nt": "Colossians 2:11-12",
+   "ot": "Genesis 17:10-14",
+   "link": "Colossians 2:11",
+   "note": "The cutting away of flesh marking covenant membership prefigures the spiritual circumcision of the heart accomplished in Christ.",
+   "src": "universal-spirituality.net"
+  },
+  {
+   "title": "The (new) covenant sealed with blood",
+   "nt": "Luke 22:20",
+   "ot": "Exodus 24:8",
+   "link": "Luke 22:20",
+   "note": "As Moses sealed the old covenant with sacrificial blood, so Christ's blood seals the promised new covenant of forgiven sins.",
+   "src": "Standard covenant theology"
+  },
+  {
+   "title": "The Law as guardian and shadow",
+   "nt": "Galatians 3:23-25",
+   "ot": "Exodus 19-20",
+   "link": "Galatians 3:24",
+   "note": "The whole Mosaic system, guarding and foreshadowing, was designed to lead sinners to Christ, its substance.",
+   "src": "Ligonier \"What Is Typology?\""
+  },
+  {
+   "title": "The Davidic covenant and kingship",
+   "nt": "Luke 1:32-33",
+   "ot": "2 Samuel 7:12-16",
+   "link": "Luke 1:32",
+   "note": "The everlasting throne promised to David's seed is fulfilled in Jesus, the Son of David who reigns forever.",
+   "src": "GotQuestions.org"
+  },
+  {
+   "title": "The prophetic office (\"a prophet like Moses\")",
+   "nt": "Acts 3:22-23",
+   "ot": "Deuteronomy 18:15-19",
+   "link": "Acts 3:22",
+   "note": "The office of God's spokesman, culminating in the promised Prophet, is fulfilled in Christ, God's final Word.",
+   "src": "Easton's"
+  },
+  {
+   "title": "The cities of refuge",
+   "nt": "Hebrews 6:18",
+   "ot": "Numbers 35:9-15",
+   "link": "Hebrews 6:18",
+   "note": "The cities where the manslayer fled from the avenger prefigure Christ, the refuge to whom guilty sinners flee for safety.",
+   "src": "Easton's"
+  },
+  {
+   "title": "The kinsman-redeemer law",
+   "nt": "Galatians 3:13",
+   "ot": "Leviticus 25:25",
+   "link": "Galatians 3:13",
+   "note": "The near kinsman legally qualified to buy back what was lost prefigures Christ, who became our Kinsman to redeem us.",
+   "src": "DocBay"
+  },
+  {
+   "title": "The anointing (Messiah = \"Anointed One\")",
+   "nt": "Luke 4:18",
+   "ot": "Exodus 30:30",
+   "link": "Acts 10:38",
+   "note": "Priests and kings consecrated with oil prefigure Jesus, the Anointed One consecrated by the Spirit for His threefold office.",
+   "src": "Standard messianic typology"
+  },
+  {
+   "title": "The continual (daily) burnt offering",
+   "nt": "Hebrews 7:27",
+   "ot": "Exodus 29:38-42",
+   "link": "Hebrews 7:27",
+   "note": "The lamb offered every morning and evening prefigures Christ's single offering, which needs no repetition.",
+   "src": "Hebrews' explicit contrast"
+  },
+  {
+   "title": "The bronze serpent on the pole",
+   "nt": "John 3:14-15",
+   "ot": "Numbers 21:8-9",
+   "link": "John 3:14",
+   "note": "Dying Israelites healed by looking at the lifted serpent prefigure sinners saved by looking in faith to the lifted-up Christ.",
+   "src": "GotQuestions.org"
+  },
+  {
+   "title": "Manna, bread from heaven",
+   "nt": "John 6:31-35",
+   "ot": "Exodus 16:4-31",
+   "link": "John 6:48",
+   "note": "The heaven-sent bread that sustained Israel daily prefigures Christ, the true bread from heaven who gives eternal life.",
+   "src": "GotQuestions.org"
+  },
+  {
+   "title": "The smitten rock that gave water",
+   "nt": "1 Corinthians 10:3-4",
+   "ot": "Exodus 17:1-7",
+   "link": "1 Corinthians 10:4",
+   "note": "The rock struck so that water flowed for a thirsty people prefigures Christ, struck in judgment, from whom living water flows.",
+   "src": "GotQuestions.org"
+  },
+  {
+   "title": "Noah's ark",
+   "nt": "1 Peter 3:20-21",
+   "ot": "Genesis 6:14-16",
+   "link": "1 Peter 3:20",
+   "note": "The one vessel of wood in which all who entered were saved from judgment prefigures Christ, the one refuge from God's wrath.",
+   "src": "GotQuestions.org"
+  },
+  {
+   "title": "The ark of the covenant",
+   "nt": "Hebrews 9:4-5",
+   "ot": "Exodus 25:10-22",
+   "link": "Hebrews 9:4",
+   "note": "The gold-covered chest bearing God's presence and the tablets of the Law prefigures Christ, in whom God's presence and perfect obedience dwell.",
+   "src": "SermonIndex, Pollock"
+  },
+  {
+   "title": "The mercy seat (atonement cover)",
+   "nt": "Romans 3:25",
+   "ot": "Exodus 25:17-22",
+   "link": "Romans 3:25",
+   "note": "The golden lid where sacrificial blood was sprinkled before God's glory prefigures Christ, the place where God's justice and mercy meet.",
+   "src": "SermonIndex, Pollock"
+  },
+  {
+   "title": "The veil of the tabernacle/temple",
+   "nt": "Hebrews 10:19-20",
+   "ot": "Exodus 26:31-33",
+   "link": "Hebrews 10:20",
+   "note": "The curtain barring access to God's presence prefigures Christ's flesh, torn in death to open the way into the Holy of Holies.",
+   "src": "GotQuestions.org"
+  },
+  {
+   "title": "The altar of burnt offering",
+   "nt": "Hebrews 13:10",
+   "ot": "Exodus 27:1-8",
+   "link": "Hebrews 13:10",
+   "note": "The bronze altar where substitutionary sacrifices burned prefigures the cross, the altar of Christ's once-for-all sacrifice.",
+   "src": "Hebrews' explicit \"altar\" language"
+  },
+  {
+   "title": "The pillar of cloud and fire",
+   "nt": "1 Corinthians 10:1-2",
+   "ot": "Exodus 13:21-22",
+   "link": "1 Corinthians 10:1",
+   "note": "God's guiding, sheltering presence leading Israel through the wilderness prefigures Christ's presence guiding His people.",
+   "src": "Adoremus"
+  },
+  {
+   "title": "The red heifer's ashes",
+   "nt": "Hebrews 9:13-14",
+   "ot": "Numbers 19:1-10",
+   "link": "Hebrews 9:13",
+   "note": "The unblemished red heifer burned outside the camp, whose ashes cleansed from death's defilement, prefigures Christ sacrificed outside the gate to cleanse the conscience.",
+   "src": "Hallel Fellowship"
+  },
+  {
+   "title": "The scapegoat (for Azazel)",
+   "nt": "Hebrews 13:11-13",
+   "ot": "Leviticus 16:20-22",
+   "link": "Hebrews 13:12",
+   "note": "The live goat bearing the people's sins into the wilderness prefigures Christ carrying our sins away, \"as far as the east is from the west.\"",
+   "src": "soh.church"
+  },
+  {
+   "title": "The tree of life",
+   "nt": "Revelation 2:7",
+   "ot": "Genesis 2:9",
+   "link": "Revelation 2:7",
+   "note": "The life-giving tree barred after the fall is restored in Christ, through whom access to eternal life is reopened.",
+   "src": "NT's explicit restoration imagery"
+  },
+  {
+   "title": "The table of showbread (bread of the Presence)",
+   "nt": "John 6:35",
+   "ot": "Exodus 25:23-30",
+   "link": "John 6:35",
+   "note": "The twelve loaves continually before God's face prefigure Christ, the Bread of God's presence sustaining His people.",
+   "src": "GotQuestions.org"
+  },
+  {
+   "title": "The golden lampstand",
+   "nt": "John 8:12",
+   "ot": "Exodus 25:31-40",
+   "link": "John 8:12",
+   "note": "The seven-branched lamp giving light in the Holy Place prefigures Christ, the true Light shining in God's house.",
+   "src": "GotQuestions.org"
+  },
+  {
+   "title": "The altar of incense",
+   "nt": "Romans 8:34",
+   "ot": "Exodus 30:1-10",
+   "link": "Romans 8:34",
+   "note": "The perpetual incense ascending before God's throne prefigures Christ's unceasing intercession for His people.",
+   "src": "GotQuestions.org"
+  },
+  {
+   "title": "The door of the tabernacle",
+   "nt": "John 10:9",
+   "ot": "Exodus 26:36",
+   "link": "John 10:9",
+   "note": "The single curtained entrance into God's dwelling prefigures Christ as the only way into God's presence.",
+   "src": "Traditional tabernacle typology"
+  },
+  {
+   "title": "The cornerstone",
+   "nt": "Matthew 21:42",
+   "ot": "Psalms 118:22",
+   "link": "Matthew 21:42",
+   "note": "The rejected stone made the chief foundation stone prefigures Christ, rejected by men but made the foundation of God's building.",
+   "src": "NT's own explicit citation"
+  },
+  {
+   "title": "The foundation stone",
+   "nt": "Romans 9:33",
+   "ot": "Isaiah 28:16",
+   "link": "1 Peter 2:6",
+   "note": "God's promised sure foundation in Zion prefigures Christ, the tested stone on which faith rests securely.",
+   "src": "NT's own explicit citation"
+  },
+  {
+   "title": "The key of David",
+   "nt": "Revelation 3:7",
+   "ot": "Isaiah 22:22",
+   "link": "Revelation 3:7",
+   "note": "The steward's key of supreme household authority prefigures Christ's absolute authority over God's house and the kingdom.",
+   "src": "NT's own explicit citation. Note: prophecy applied rather than type proper"
+  },
+  {
+   "title": "The Flood",
+   "nt": "1 Peter 3:20-21",
+   "ot": "Genesis 6-8",
+   "link": "1 Peter 3:21",
+   "note": "The waters that judged the world while lifting the ark prefigure baptism, in which believers pass through judgment into new life.",
+   "src": "GotQuestions.org \"biblical typology\""
+  },
+  {
+   "title": "The Exodus from Egypt",
+   "nt": "Luke 9:31",
+   "ot": "Exodus 12-14",
+   "link": "Luke 9:31",
+   "note": "God's redemption of Israel from slavery through blood and water prefigures Christ's greater redemption of His people from sin and death.",
+   "src": "Ligonier \"Typology Versus Allegory\""
+  },
+  {
+   "title": "The Red Sea crossing",
+   "nt": "1 Corinthians 10:1-2",
+   "ot": "Exodus 14:21-31",
+   "link": "1 Corinthians 10:2",
+   "note": "Israel's passage through the waters, buried to Egypt and raised to freedom, prefigures Christian baptism into Christ.",
+   "src": "BibleTools.org"
+  },
+  {
+   "title": "The wilderness wanderings and testings",
+   "nt": "Matthew 4:1-11",
+   "ot": "Numbers 14",
+   "link": "Matthew 4:4",
+   "note": "Israel's forty years of testing, which they failed, are recapitulated in Christ's forty days of testing, which He passed as the faithful Son.",
+   "src": "Ligonier/Ferguson Q&A"
+  },
+  {
+   "title": "The conquest of Canaan",
+   "nt": "Hebrews 4:8",
+   "ot": "Joshua 1-11",
+   "link": "Hebrews 4:8",
+   "note": "Under Joshua, Israel's victories over its enemies and entry into the inheritance prefigure Christ's victory over spiritual enemies, leading His people into the heavenly inheritance.",
+   "src": "GotQuestions.org"
+  },
+  {
+   "title": "Sinai and the giving of the Law",
+   "nt": "Hebrews 12:18-24",
+   "ot": "Exodus 19-20",
+   "link": "Hebrews 12:18",
+   "note": "The terrifying mountain of law and its mediator Moses prefigure, by contrast, the greater mountain of grace and its Mediator, Christ.",
+   "src": "Hebrews' explicit Sinai/Zion contrast"
+  },
+  {
+   "title": "Bethlehem",
+   "nt": "Matthew 2:5-6",
+   "ot": "Micah 5:2",
+   "link": "Matthew 2:6",
+   "note": "The little town of David's birth becomes the birthplace of David's greater Son, the promised Ruler.",
+   "src": "NT's own explicit citation. Note: direct prophecy-fulfillment"
+  },
+  {
+   "title": "Egypt (the sojourn and return)",
+   "nt": "Matthew 2:13-15",
+   "ot": "Hosea 11:1",
+   "link": "Matthew 2:15",
+   "note": "As Israel, God's son, was called out of Egypt, so Jesus, the true Son, recapitulates the exodus in His own infancy.",
+   "src": "Ligonier/Ferguson Q&A"
+  },
+  {
+   "title": "Jerusalem / Mount Zion",
+   "nt": "Hebrews 12:22",
+   "ot": "Psalms 2:6",
+   "link": "Hebrews 12:22",
+   "note": "The earthly city where God put His name prefigures the heavenly Jerusalem, the eternal dwelling of God with His redeemed people in Christ.",
+   "src": "Aquila Report"
+  },
+  {
+   "title": "Canaan, the promised land",
+   "nt": "Hebrews 11:9-10",
+   "ot": "Genesis 12:7",
+   "link": "Hebrews 11:16",
+   "note": "The earthly inheritance flowing with milk and honey prefigures the heavenly country and the Sabbath rest Christ secures.",
+   "src": "Easton's"
+  },
+  {
+   "title": "Thirty pieces of silver",
+   "nt": "Matthew 27:3-10",
+   "ot": "Zechariah 11:12-13",
+   "link": "Matthew 27:9",
+   "note": "The price paid to betray Jesus — thirty pieces of silver thrown into the temple — fulfills Zechariah's wages, cast to the potter in the house of the LORD.",
+   "src": "the New Testament itself"
+  },
+  {
+   "title": "Pierced for our transgressions",
+   "nt": "John 19:34-37",
+   "ot": "Zechariah 12:10",
+   "link": "John 19:37",
+   "note": "The soldier's spear in Jesus' side fulfills Zechariah: 'they shall look on me whom they have pierced.'",
+   "src": "the New Testament itself"
+  },
+  {
+   "title": "David's Lord at God's right hand",
+   "nt": "Matthew 22:41-46",
+   "ot": "Psalms 110:1",
+   "link": "Matthew 22:44",
+   "note": "Jesus turns David's own psalm — 'The LORD said unto my Lord, Sit thou at my right hand' — into proof that the Christ is more than David's son.",
+   "src": "the New Testament itself"
+  }
+ ]
+}
