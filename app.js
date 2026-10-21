@@ -1,6 +1,6 @@
 "use strict";
 /* Selah — ASV Study Bible prototype */
-const DATA_V="3"; // bump when data/*.json changes so phones drop cached copies
+const DATA_V="4"; // bump when data/*.json changes so phones drop cached copies
 let XREFS={}, STUDY=null, TYPES=[];
 const TRANSLATIONS={
   asv:{name:"ASV", full:"American Standard Version (1901)", short:"ASV 1901", file:"data/bible.json"},
@@ -152,7 +152,10 @@ async function setTrans(id){
 }
 function applyTheme(t){ document.documentElement.setAttribute("data-theme",t); store.set("theme",t); }
 function bindTheme(){ $("#themeBtn").onclick=()=>applyTheme(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark"); }
-function applyFontSize(px){ document.documentElement.style.setProperty("--fs-verse",px+"px"); store.set("fs",px); }
+function applyFontSize(px){
+  document.documentElement.style.setProperty("--fs-verse",px+"px"); store.set("fs",px);
+  if(state.view==="read"&&document.getElementById("book")) bookRelayout();
+}
 function bindFontSize(){
   applyFontSize(store.get("fs",18));
   $("#fsDec").onclick=()=>applyFontSize(Math.max(14,store.get("fs",18)-2));
@@ -177,6 +180,7 @@ function showView(v){
     if(on) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current");
   });
   closeSheet(); closeLightbox(); stopHeroRotation();
+  if(v!=="read") document.documentElement.classList.remove("book-on");
   ({home:renderHome,read:renderRead,search:renderSearch,christ:renderChrist,images:renderImages,saved:renderSaved})[v]();
   window.scrollTo(0,0);
 }
@@ -308,19 +312,13 @@ function closeLightbox(){
 function typesFor(book,ch,v){
   return TYPES.filter(s=>(s._nt&&verseInPassage(book,ch,v,s._nt))||(s._ot&&verseInPassage(book,ch,v,s._ot)));
 }
-function renderRead(){
-  const book=BOOKS.find(b=>b.name===state.book);
-  if(!book.chapters[state.ch-1]) state.ch=1;
-  const v=$("#view");
-  const heads=book.headings||{};
-  let h=`<div class="reader-nav">
-    <button class="nav-btn" id="prevCh" aria-label="Previous chapter">‹</button>
-    <select id="bookSel" aria-label="Book">${BOOKS.map(b=>`<option ${b.name===state.book?"selected":""}>${esc(b.name)}</option>`).join("")}</select>
-    <select id="chSel" aria-label="Chapter">${book.chapters.map((_,i)=>`<option value="${i+1}" ${i+1===state.ch?"selected":""}>Ch ${i+1}</option>`).join("")}</select>
-    <button class="nav-btn" id="nextCh" aria-label="Next chapter">›</button></div><div class="verses">`;
-  book.chapters[state.ch-1].forEach((t,i)=>{
-    const ref=`${state.book} ${state.ch}:${i+1}`;
-    const hd=heads[`${state.ch}:${i+1}`];
+// Verses (and any headings) of one chapter as HTML — shared by the scrolling reader and the book view.
+function chapterVersesHTML(bookName,chNum){
+  const book=BOOKS.find(b=>b.name===bookName); const heads=book.headings||{};
+  let h="";
+  book.chapters[chNum-1].forEach((t,i)=>{
+    const ref=`${bookName} ${chNum}:${i+1}`;
+    const hd=heads[`${chNum}:${i+1}`];
     if(hd) h+=`<div class="vhead">${esc(hd)}</div>`;
     if(!t){
       // Verse number kept for standard versification; the translation leaves it out.
@@ -328,19 +326,46 @@ function renderRead(){
       return;
     }
     const xc=(XREFS[ref]||[]).length;
-    const tc=typesFor(state.book,state.ch,i+1).length;
+    const tc=typesFor(bookName,chNum,i+1).length;
     const hl=HL[ref]?` hl-${HL[ref]}`:"";
     const nn=NOTES[ref]?" has-note":"";
     h+=`<div class="verse${hl}${nn}" data-ref="${esc(ref)}" role="button" tabindex="0"><span class="vn">${i+1}</span>${verseHTML(t)}${xc?`<span class="xcount">↔ ${xc}</span>`:""}${tc?`<span class="tcount">◈ type</span>`:""}</div>`;
   });
-  v.innerHTML=h+"</div>";
-  v.querySelectorAll(".verse[data-ref]").forEach(el=>{
-    el.onclick=()=>openSheet(el.dataset.ref,"xrefs");
-    el.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openSheet(el.dataset.ref,"xrefs"); } };
-  });
+  return h;
+}
+function readerNavHTML(){
+  const book=BOOKS.find(b=>b.name===state.book);
+  const toggle=bookCapable()?`<button class="nav-btn book-toggle" id="bookToggle" aria-pressed="${isBookMode()}">${isBookMode()?"Scroll view":"Book view"}</button>`:"";
+  return `<div class="reader-nav">
+    <button class="nav-btn" id="prevCh" aria-label="Previous chapter">‹</button>
+    <select id="bookSel" aria-label="Book">${BOOKS.map(b=>`<option ${b.name===state.book?"selected":""}>${esc(b.name)}</option>`).join("")}</select>
+    <select id="chSel" aria-label="Chapter">${book.chapters.map((_,i)=>`<option value="${i+1}" ${i+1===state.ch?"selected":""}>Ch ${i+1}</option>`).join("")}</select>
+    <button class="nav-btn" id="nextCh" aria-label="Next chapter">›</button>${toggle}</div>`;
+}
+function bindReaderNav(){
   $("#bookSel").onchange=e=>{ state.book=e.target.value; state.ch=1; savePos(); renderRead(); window.scrollTo(0,0); };
   $("#chSel").onchange=e=>{ state.ch=+e.target.value; savePos(); renderRead(); window.scrollTo(0,0); };
   $("#prevCh").onclick=()=>stepChapter(-1); $("#nextCh").onclick=()=>stepChapter(1);
+  const bt=$("#bookToggle"); if(bt) bt.onclick=()=>{ store.set("bookMode",!isBookMode()); renderRead(); window.scrollTo(0,0); };
+}
+// Verse taps / Enter open the study sheet (delegated, so it also works inside book pages).
+function bindVerseOpen(root){
+  root.addEventListener("keydown",e=>{
+    const el=e.target.closest&&e.target.closest(".verse[data-ref]");
+    if(el&&(e.key==="Enter"||e.key===" ")){ e.preventDefault(); openSheet(el.dataset.ref,"xrefs"); }
+  });
+}
+function renderRead(){
+  const book=BOOKS.find(b=>b.name===state.book);
+  if(!book.chapters[state.ch-1]) state.ch=1;
+  const v=$("#view");
+  if(isBookMode()){ document.documentElement.classList.add("book-on"); v.innerHTML=readerNavHTML()+`<div id="book"></div>`; bindReaderNav(); renderBook(); return; }
+  document.documentElement.classList.remove("book-on");
+  v.innerHTML=readerNavHTML()+`<div class="verses">${chapterVersesHTML(state.book,state.ch)}</div>`;
+  const list=v.querySelector(".verses");
+  list.onclick=e=>{ const el=e.target.closest(".verse[data-ref]"); if(el) openSheet(el.dataset.ref,"xrefs"); };
+  bindVerseOpen(list);
+  bindReaderNav();
 }
 function savePos(){ store.set("pos",{book:state.book,ch:state.ch}); }
 function stepChapter(d){
@@ -353,7 +378,9 @@ function stepChapter(d){
 // Accepts a single verse ("John 3:16") or a passage ("John 2:1-11"); scrolls to it and briefly marks the range.
 function gotoVerse(ref){
   const p=parsePassage(ref); if(!p||!BOOKS.some(b=>b.name===p.book)) return;
-  state.book=p.book; state.ch=p.ch; savePos(); showView("read");
+  state.book=p.book; state.ch=p.ch; savePos();
+  if(isBookMode()){ bookReveal(p); return; }
+  showView("read");
   requestAnimationFrame(()=>{
     const els=[...document.querySelectorAll(".verse[data-ref]")].filter(el=>{
       const r=parseRef(el.dataset.ref); return r&&verseInPassage(r.book,r.ch,r.v,p);
@@ -506,9 +533,11 @@ function paintMark(body,ref){
 }
 // Update one verse's highlight/note styling in place (no full re-render, so the page doesn't jump).
 function refreshVerse(ref){
-  const el=document.querySelector(`.verse[data-ref="${CSS.escape(ref)}"]`); if(!el) return;
-  HL_COLORS.forEach(([k])=>el.classList.toggle("hl-"+k,HL[ref]===k));
-  el.classList.toggle("has-note",!!NOTES[ref]);
+  if(isBookMode()&&document.getElementById("book")){ bookRefreshChapter(); return; }
+  document.querySelectorAll(`.verse[data-ref="${CSS.escape(ref)}"]`).forEach(el=>{
+    HL_COLORS.forEach(([k])=>el.classList.toggle("hl-"+k,HL[ref]===k));
+    el.classList.toggle("has-note",!!NOTES[ref]);
+  });
 }
 
 /* ---------- SEARCH ---------- */

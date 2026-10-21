@@ -17,6 +17,10 @@ Protestant canon ships as readable text.
   and a 12-verse "spine of John".
 - Images: artwork in Bible order, full-screen viewer, links to the passage;
   the same pieces rotate on the Home screen.
+- Book view (iPad landscape / wide screens ≥900px): two pages side by side
+  with a 3D page turn — drag, swipe, tap the page edge, or use the arrow keys.
+  Chapters flow into each other; a toggle switches back to scrolling.
+  Lives in `book.js`.
 - Saved: highlights + notes list. Light/dark themes.
 
 ## Data
