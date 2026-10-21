@@ -6,7 +6,7 @@
 <title>Selah — Study Bible</title>
 <meta name="description" content="Selah — a phone-first study Bible: ASV and WEB text, cross-references, Gospel parallels and typology.">
 <meta name="theme-color" content="#faf6ec">
-<link rel="stylesheet" href="style.css?v=2">
+<link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
 <header id="topbar">
@@ -29,6 +29,7 @@
   <button data-view="read">Read</button>
   <button data-view="search">Search</button>
   <button data-view="christ">Christ</button>
+  <button data-view="images">Images</button>
   <button data-view="saved">Saved</button>
 </nav>
 
@@ -51,8 +52,14 @@
   </div>
 </div>
 
+<div id="lightbox" class="hidden" role="dialog" aria-modal="true" aria-label="Image viewer">
+  <button class="lb-close icon-btn" aria-label="Close">✕</button>
+  <img alt="">
+  <div class="lb-bar"><button class="lb-prev" aria-label="Previous picture">‹</button><div class="lb-cap"></div><button class="lb-next" aria-label="Next picture">›</button></div>
+</div>
+
 <div id="toast" class="hidden" role="status" aria-live="polite"></div>
 
-<script src="app.js?v=2"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>

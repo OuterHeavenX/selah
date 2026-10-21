@@ -15,6 +15,8 @@ Protestant canon ships as readable text.
 - Christ: curated trails through John — the seven "I AM" sayings,
   titles of Christ, prophecies fulfilled, the seven signs,
   and a 12-verse "spine of John".
+- Images: artwork in Bible order, full-screen viewer, links to the passage;
+  the same pieces rotate on the Home screen.
 - Saved: highlights + notes list. Light/dark themes.
 
 ## Data
@@ -46,7 +48,10 @@ in `app.js` and the `?v=` on `app.js`/`style.css` in `index.html` so phones
 don't keep stale cached copies.
 
 ## Art
-`img/hero.jpg` — Home screen illustration (prophet with scrolls).
+`img/art/*.jpg` (900px wide). Listed in the `ART` array in `app.js` in the
+order the scenes appear in Scripture; the Home slideshow and the Images tab
+both read from it. To add a piece, drop the JPEG in `img/art/` and insert an
+entry (title, passage, caption, alt text) at its place in the story.
 
 ## Roadmap
 - Cross-refs for the whole canon (currently John only).

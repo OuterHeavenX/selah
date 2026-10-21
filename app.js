@@ -1,6 +1,6 @@
 "use strict";
 /* Selah — ASV Study Bible prototype */
-const DATA_V="2"; // bump when data/*.json changes so phones drop cached copies
+const DATA_V="3"; // bump when data/*.json changes so phones drop cached copies
 let XREFS={}, STUDY=null, TYPES=[];
 const TRANSLATIONS={
   asv:{name:"ASV", full:"American Standard Version (1901)", short:"ASV 1901", file:"data/bible.json"},
@@ -176,10 +176,33 @@ function showView(v){
     const on=b.dataset.view===v; b.classList.toggle("active",on);
     if(on) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current");
   });
-  closeSheet();
-  ({home:renderHome,read:renderRead,search:renderSearch,christ:renderChrist,saved:renderSaved})[v]();
+  closeSheet(); closeLightbox(); stopHeroRotation();
+  ({home:renderHome,read:renderRead,search:renderSearch,christ:renderChrist,images:renderImages,saved:renderSaved})[v]();
   window.scrollTo(0,0);
 }
+
+/* ---------- ART ---------- */
+// Listed in the order the scenes appear in Scripture; the Images tab and the Home slideshow both follow it.
+// To add a piece: drop a ~900px-wide JPEG in img/art/ and add an entry in its place in the story.
+const ART=[
+  {file:"img/art/creation.jpg", w:900, h:1349, focus:"50% 24%",
+   title:"Let there be light", ref:"Genesis 1:1-31",
+   alt:"Poster of the six days of creation: a cosmic face over a galaxy, sun and moon, birds and fish, and a hand forming the land",
+   caption:"The six days of creation — light out of darkness, the waters gathered, the earth bringing forth grass, sun and moon, birds and fish, and man."},
+  {file:"img/art/sinai.jpg", w:900, h:1125, focus:"50% 30%",
+   title:"Moses and Aaron at Sinai", ref:"Exodus 32:15-20",
+   alt:"Ink drawing of Moses holding the stone tablets beside Aaron in the high priest's garments, with the tabernacle and the golden calf",
+   caption:"Moses brings the tablets of the testimony down the mountain while Aaron stands in the high priest’s garments; the tabernacle, the ark and the golden calf are sketched around them."},
+  {file:"img/art/bronze-serpent.jpg", w:900, h:1125, focus:"50% 28%",
+   title:"The bronze serpent", ref:"Numbers 21:4-9", also:"John 3:14-15",
+   alt:"Ink drawing of Moses raising the bronze serpent on a pole above the people of Israel, with a technical sketch of the serpent",
+   caption:"Bitten by fiery serpents, Israel looks to the bronze serpent on the pole and lives — the picture Jesus takes for himself: “as Moses lifted up the serpent in the wilderness, even so must the Son of man be lifted up.”"},
+  {file:"img/art/prophet.jpg", w:900, h:1125, focus:"50% 38%",
+   title:"The prophet and the scrolls", ref:null,
+   alt:"Ink drawing of an old prophet poring over scrolls, with the temple sketched behind him",
+   caption:"An old prophet bent over the scrolls of the word of the Lord, the temple sketched behind him."}
+];
+const artSrc=a=>a.file+"?v="+DATA_V;
 
 /* ---------- HOME ---------- */
 const VOTD=["John 1:1","Psalms 23:1","John 3:16","Romans 8:28","Philippians 4:13","Proverbs 3:5","Isaiah 40:31","Matthew 11:28","Psalms 46:1","Jeremiah 29:11","John 14:6","Micah 6:8","Psalms 19:14","Lamentations 3:22"];
@@ -191,9 +214,12 @@ function renderHome(){
   const votd=VOTD[dayIndex(VOTD.length)];
   const typ=TYPES.length?TYPES[dayIndex(TYPES.length)]:null;
   const typFirst=typ&&typ._nt?`${typ._nt.book} ${typ._nt.ch}:${typ._nt.v1}`:null;
+  const start=dayIndex(ART.length);
   v.innerHTML=`<div class="home-hero">
-      <img src="img/hero.jpg?v=${DATA_V}" alt="An old prophet in ink, poring over scrolls, with the temple sketched behind him" width="900" height="1125" decoding="async">
-      <div class="home-brand"><div class="home-name">Selah</div><div class="home-tag">Pause and reflect.</div></div>
+      <button class="hero-slides" id="heroSlides" aria-label="Open this picture">${ART.map((a,i)=>
+        `<img src="${artSrc(a)}" alt="${esc(a.alt)}" width="${a.w}" height="${a.h}" decoding="async" style="object-position:${a.focus}" class="${i===start?"on":""}" ${i===start?"":'loading="lazy"'}>`).join("")}</button>
+      <div class="home-brand"><div class="home-name">Selah</div><div class="home-tag">Pause and reflect.</div>
+        <div class="hero-dots" role="group" aria-label="Choose picture">${ART.map((a,i)=>`<button data-i="${i}" class="${i===start?"on":""}" aria-label="${esc(a.title)}"></button>`).join("")}</div></div>
     </div>`
   +(pos&&BOOKS.some(b=>b.name===pos.book)?`<button class="home-continue" id="hcCont"><span>Continue reading</span><b>${esc(pos.book)} ${pos.ch} →</b></button>`:"")
   +`<button class="home-votd" id="hcVotd"><div class="hlab">Verse of the day</div><div class="votd-ref">${esc(votd)}</div><div class="votd-text">${verseHTML(textOf(votd))}</div></button>`
@@ -202,6 +228,7 @@ function renderHome(){
     <button class="home-card" data-go="read"><div class="hc-t">Read</div><div class="hc-s">The Bible · ${esc(TRANSLATIONS[state.trans].short)}</div></button>
     <button class="home-card" data-go="search"><div class="hc-t">Search</div><div class="hc-s">Any word or phrase</div></button>
     <button class="home-card" data-go="christ"><div class="hc-t">Trace Christ</div><div class="hc-s">Study trails in John</div></button>
+    <button class="home-card" data-go="images"><div class="hc-t">Images</div><div class="hc-s">${ART.length} pieces of art</div></button>
     <button class="home-card" data-go="saved"><div class="hc-t">Saved</div><div class="hc-s">${hlN} highlight${hlN===1?"":"s"} · ${noteN} note${noteN===1?"":"s"}</div></button>
   </div>
   <div class="home-foot">Selah · ${esc(TRANSLATIONS[state.trans].full)}, public domain</div>`;
@@ -210,6 +237,71 @@ function renderHome(){
   const hc=v.querySelector("#hcCont"); if(hc) hc.onclick=()=>go("read");
   v.querySelector("#hcVotd").onclick=()=>gotoVerse(votd);
   const ht=v.querySelector("#hcTyp"); if(ht) ht.onclick=()=>{ gotoVerse(typFirst); setTimeout(()=>openSheet(typFirst,"typology"),80); };
+  startHero(start);
+}
+/* Home slideshow: crossfades through ART; pauses when the tab is hidden or the user prefers reduced motion. */
+const HERO_MS=6500;
+let heroTimer=null, heroIdx=0;
+function startHero(i){
+  heroIdx=i;
+  const slides=document.querySelectorAll("#heroSlides img"), dots=document.querySelectorAll(".hero-dots button");
+  const show=n=>{ heroIdx=(n+ART.length)%ART.length;
+    slides.forEach((im,k)=>im.classList.toggle("on",k===heroIdx));
+    dots.forEach((d,k)=>{ d.classList.toggle("on",k===heroIdx); d.setAttribute("aria-pressed",k===heroIdx); }); };
+  const reduced=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const tick=()=>{ if(!document.hidden) show(heroIdx+1); };
+  const restart=()=>{ clearInterval(heroTimer); heroTimer=reduced?null:setInterval(tick,HERO_MS); };
+  dots.forEach(d=>d.onclick=e=>{ e.stopPropagation(); show(+d.dataset.i); restart(); });
+  $("#heroSlides").onclick=()=>openLightbox(heroIdx);
+  show(heroIdx); restart();
+}
+function stopHeroRotation(){ clearInterval(heroTimer); heroTimer=null; }
+
+/* ---------- IMAGES ---------- */
+function renderImages(){
+  const v=$("#view");
+  v.innerHTML=`<h2 class="section-title">Images</h2>
+  <div class="section-sub">Artwork in the order the scenes appear in Scripture. Tap a picture to see it full size.</div>
+  <div class="art-list">`+ART.map((a,i)=>`
+    <figure class="art-card">
+      <button class="art-img" data-i="${i}" aria-label="View ${esc(a.title)} full size">
+        <img src="${artSrc(a)}" alt="${esc(a.alt)}" width="${a.w}" height="${a.h}" loading="lazy" decoding="async"></button>
+      <figcaption>
+        <div class="art-n">${i+1} of ${ART.length}</div>
+        <h3>${esc(a.title)}</h3>
+        <p>${esc(a.caption)}</p>
+        ${a.ref?`<button class="typ-link art-read" data-r="${esc(a.ref)}">Read ${esc(a.ref)} →</button>`:""}
+        ${a.also?`<button class="typ-link art-read" data-r="${esc(a.also)}">Fulfilled in ${esc(a.also)} →</button>`:""}
+      </figcaption>
+    </figure>`).join("")+`</div>`;
+  v.querySelectorAll(".art-img").forEach(b=>b.onclick=()=>openLightbox(+b.dataset.i));
+  v.querySelectorAll(".art-read").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r));
+}
+let lbIdx=0, lbReturn=null;
+function openLightbox(i){
+  lbReturn=document.activeElement;
+  const lb=$("#lightbox");
+  const paint=()=>{ const a=ART[lbIdx];
+    lb.querySelector("img").src=artSrc(a); lb.querySelector("img").alt=a.alt;
+    lb.querySelector(".lb-cap").textContent=a.title+(a.ref?" · "+a.ref:""); };
+  lbIdx=i; paint();
+  lb.classList.remove("hidden"); document.body.classList.add("sheet-open");
+  lb.querySelector(".lb-prev").onclick=e=>{ e.stopPropagation(); lbIdx=(lbIdx-1+ART.length)%ART.length; paint(); };
+  lb.querySelector(".lb-next").onclick=e=>{ e.stopPropagation(); lbIdx=(lbIdx+1)%ART.length; paint(); };
+  lb.querySelector(".lb-close").onclick=closeLightbox;
+  lb.onclick=e=>{ if(e.target===lb) closeLightbox(); };
+  let x0=null;
+  lb.ontouchstart=e=>{ x0=e.touches[0].clientX; };
+  lb.ontouchend=e=>{ if(x0==null) return; const dx=e.changedTouches[0].clientX-x0; x0=null;
+    if(Math.abs(dx)>50) lb.querySelector(dx<0?".lb-next":".lb-prev").click(); };
+  lb.querySelector(".lb-close").focus({preventScroll:true});
+  stopHeroRotation();
+}
+function closeLightbox(){
+  const lb=$("#lightbox"); if(!lb||lb.classList.contains("hidden")) return;
+  lb.classList.add("hidden"); document.body.classList.remove("sheet-open");
+  if(lbReturn&&document.contains(lbReturn)) lbReturn.focus({preventScroll:true});
+  if(state.view==="home") startHero(heroIdx);
 }
 
 /* ---------- READ ---------- */
@@ -282,7 +374,11 @@ let sheetReturnFocus=null;
 function bindSheet(){
   $("#sheetClose").onclick=closeSheet;
   $("#sheetScrim").onclick=closeSheet;
-  document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&state.sheetRef) closeSheet(); });
+  document.addEventListener("keydown",e=>{
+    const lbOpen=!$("#lightbox").classList.contains("hidden");
+    if(e.key==="Escape"){ if(lbOpen) closeLightbox(); else if(state.sheetRef) closeSheet(); }
+    else if(lbOpen&&(e.key==="ArrowRight"||e.key==="ArrowLeft")) $(e.key==="ArrowRight"?".lb-next":".lb-prev").click();
+  });
   document.querySelectorAll("#sheetTabs button").forEach(b=>{
     b.onclick=()=>{ state.sheetTab=b.dataset.tab; paintSheet(); };
   });
