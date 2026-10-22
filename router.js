@@ -7,7 +7,7 @@
 
 const ROUTER={applying:false, ready:false};
 const slugBook=b=>b.replace(/ /g,"_");
-const unslugBook=s=>decodeURIComponent(s).replace(/_/g," ");
+const unslugBook=s=>{ try{ s=decodeURIComponent(s); }catch(e){} return s.replace(/_/g," "); };
 function readHash(book,ch,v,v2){
   return `#/read/${slugBook(book)}/${ch}`+(v?`/${v}`+(v2&&v2!==v?`-${v2}`:""):"");
 }
@@ -26,8 +26,10 @@ function setRoute(hash,replace){
   const st=history.state||{};
   if(st.overlay) replace=true;                       // never stack pages on top of an open sheet's entry
   if(location.hash===hash&&!st.overlay) return;
-  history[replace?"replaceState":"pushState"]({selah:1},"",hash);
+  // "inner" marks an entry Selah itself added, so in-app Back buttons know history.back() stays inside the app.
+  if(replace) history.replaceState({selah:1,inner:!!st.inner},"",hash); else history.pushState({selah:1,inner:1},"",hash);
 }
+const canGoBackInApp=()=>!!(history.state||{}).inner;
 function routeView(v){ setRoute(routeFor(v),false); }
 function routeChapter(){ if(state.view==="read") setRoute(readHash(state.book,state.ch),true); }
 function routeVerse(p){
@@ -55,8 +57,9 @@ function applyRoute(hash){
     if(view==="read"&&parts.length){
       const book=unslugBook(parts[0]);
       if(!BOOKS.some(b=>b.name===book)){ showView("read"); return; }
-      const ch=Math.max(1,+parts[1]||1);
-      if(parts[2]){ gotoVerse(`${book} ${ch}:${parts[2]}`); return; }
+      const nCh=BOOKS.find(b=>b.name===book).chapters.length, ch=Math.min(nCh,Math.max(1,parseInt(parts[1])||1));
+      // A verse that doesn't parse (a link with a stray "." or junk) just opens the chapter.
+      if(parts[2]&&parsePassage(`${book} ${ch}:${parts[2]}`)){ gotoVerse(`${book} ${ch}:${parts[2]}`); return; }
       state.book=book; state.ch=ch; savePos();
       if(state.view==="read"&&document.querySelector(".reader-nav")) renderRead(); else showView("read");
       return;

@@ -116,6 +116,9 @@ Deno.serve(async (req) => {
   if (action === "subscribe") {
     const { sub, at, tz } = body;
     if (!validSub(sub) || typeof at !== "string" || !/^([01]\d|2[0-3]):[0-5]\d$/.test(at) || !validTz(tz)) return json({ error: "invalid subscription" }, 400);
+    // A ceiling on sign-ups, so a script can't fill the table with junk subscriptions.
+    const { count } = await db.from("selah_push_subs").select("endpoint", { count: "exact", head: true });
+    if ((count ?? 0) >= 20000) return json({ error: "reminders are full right now" }, 503);
     const n = localNow(tz);
     // If today's reminder time has already passed, start tomorrow.
     const last_sent = mins(n.hm) >= mins(at) ? n.date : null;
@@ -144,17 +147,32 @@ Deno.serve(async (req) => {
   if (action === "tick") {
     const { data: secret } = await db.from("selah_private").select("v").eq("k", "cron").single();
     if (!secret || req.headers.get("x-selah-cron") !== secret.v) return json({ error: "forbidden" }, 403);
-    const { data: rows } = await db.from("selah_push_subs").select("*");
-    let sent = 0, due = 0;
-    for (const row of rows ?? []) {
+    // Read every subscriber page by page (a plain select stops at 1000 rows).
+    const rows: any[] = [];
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await db.from("selah_push_subs").select("*").order("endpoint").range(from, from + 999);
+      if (error) return json({ error: error.message }, 500);
+      rows.push(...(data ?? []));
+      if (!data || data.length < 1000) break;
+    }
+    const dueRows = rows.filter((row) => {
       const n = localNow(row.tz), late = mins(n.hm) - mins(row.remind_at);
       // Due: today's time has come, not sent today, and not hours late (e.g. after an outage).
-      if (late < 0 || late > 180 || row.last_sent === n.date) continue;
-      due++;
-      await db.from("selah_push_subs").update({ last_sent: n.date }).eq("endpoint", row.endpoint);
-      if (await send(row, reminder(row.tz)) === "sent") sent++;
+      return late >= 0 && late <= 180 && row.last_sent !== n.date;
+    });
+    let sent = 0;
+    // Send 25 at a time so a large list still finishes within the function's time limit.
+    for (let i = 0; i < dueRows.length; i += 25) {
+      await Promise.all(dueRows.slice(i, i + 25).map(async (row) => {
+        const today = localNow(row.tz).date;
+        await db.from("selah_push_subs").update({ last_sent: today }).eq("endpoint", row.endpoint);
+        const r = await send(row, reminder(row.tz));
+        if (r === "sent") sent++;
+        // A temporary failure: let the next tick (5 minutes later) try again.
+        else if (r === "failed") await db.from("selah_push_subs").update({ last_sent: row.last_sent }).eq("endpoint", row.endpoint);
+      }));
     }
-    return json({ due, sent, subscribers: rows?.length ?? 0 });
+    return json({ due: dueRows.length, sent, subscribers: rows.length });
   }
 
   return json({ error: "unknown action" }, 400);

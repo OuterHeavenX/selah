@@ -161,8 +161,8 @@ async function paintLexEntry(body){
   body.innerHTML='<div class="empty">Loading the lexicon…</div>';
   let e;
   try{ e=await loadLex(strong); }
-  catch(err){ body.innerHTML='<div class="empty">Couldn’t load the lexicon. Check your connection and try again.</div>'; return; }
-  if(state.sheetRef!==ref||lexState.strong!==strong) return;
+  catch(err){ if(state.sheetRef===ref&&state.sheetTab==="original") body.innerHTML='<div class="empty">Couldn’t load the lexicon. Check your connection and try again.</div>'; return; }
+  if(state.sheetRef!==ref||lexState.strong!==strong||state.sheetTab!=="original") return;
   const ot=strong[0]==="H";
   const ids=decodeIds(e&&e.v), refs=vrefs();
   const verses=[...new Set(ids)].map(i=>refs[i]).filter(Boolean);

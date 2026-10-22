@@ -78,7 +78,7 @@ function planHomeCard(){
   const day=s.days[s.next], pct=Math.round(100*s.doneDays/s.days.length);
   return `<div class="home-plan" id="hcPlanBox">
     <div class="plan-top"><div class="hlab">${esc(s.def.title)} · Day ${s.next+1} of ${s.days.length}</div>${streak?`<div class="plan-streak" title="Days in a row">🔥 ${streak}</div>`:""}</div>
-    <div class="plan-chs">${day.map((c,k)=>`<span class="plan-ch${p.done[`${s.next}.${k}`]?" done":""}"><button class="plan-check" data-k="${k}" aria-label="Mark ${esc(chapterLabel(c))} read">${p.done[`${s.next}.${k}`]?"✓":""}</button><button class="plan-go" data-k="${k}">${esc(chapterLabel(c))}</button></span>`).join("")}</div>
+    <div class="plan-chs">${day.map((c,k)=>`<span class="plan-ch${p.done[`${s.next}.${k}`]?" done":""}"><button class="plan-check" data-k="${k}" aria-label="${esc(chapterLabel(c))} read" aria-pressed="${!!p.done[`${s.next}.${k}`]}">${p.done[`${s.next}.${k}`]?"✓":""}</button><button class="plan-go" data-k="${k}">${esc(chapterLabel(c))}</button></span>`).join("")}</div>
     <div class="plan-bar"><div style="width:${pct}%"></div></div>
     <div class="plan-foot"><span>${pct}% complete${s.behind>1?` · ${s.behind-1} day${s.behind-1===1?"":"s"} behind`:""}</span><button class="plan-more" id="hcPlanMore">Plan →</button></div>
   </div>`;
@@ -103,7 +103,7 @@ function renderPlans(){
       <div class="plan-s">${s.doneDays} of ${s.days.length} days done · started ${new Date(p.start+"T12:00").toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"})}${s.behind>1?` · ${s.behind-1} behind schedule`:""}</div>
       <div class="plan-days">${s.days.map((day,i)=>{
         const done=dayDone(p,s.days,i), cur=i===s.next;
-        return `<div class="plan-day${done?" done":""}${cur?" cur":""}" ${cur?'id="planCur"':""}><div class="pd-n">Day ${i+1}</div><div class="pd-chs">${day.map((c,k)=>`<span class="plan-ch${p.done[`${i}.${k}`]?" done":""}"><button class="plan-check" data-d="${i}" data-k="${k}" aria-label="Mark ${esc(chapterLabel(c))} read">${p.done[`${i}.${k}`]?"✓":""}</button><button class="plan-go" data-d="${i}" data-k="${k}">${esc(chapterLabel(c))}</button></span>`).join("")}</div></div>`;
+        return `<div class="plan-day${done?" done":""}${cur?" cur":""}" ${cur?'id="planCur"':""}><div class="pd-n">Day ${i+1}</div><div class="pd-chs">${day.map((c,k)=>`<span class="plan-ch${p.done[`${i}.${k}`]?" done":""}"><button class="plan-check" data-d="${i}" data-k="${k}" aria-label="${esc(chapterLabel(c))} read" aria-pressed="${!!p.done[`${i}.${k}`]}">${p.done[`${i}.${k}`]?"✓":""}</button><button class="plan-go" data-d="${i}" data-k="${k}">${esc(chapterLabel(c))}</button></span>`).join("")}</div></div>`;
       }).join("")}</div>
       <button class="btn-ghost" id="planStop">Stop this plan</button></div>
       <div class="lbl" style="padding:0 16px">Other plans</div>`;
@@ -158,12 +158,15 @@ function importBackup(text){
   for(const s of SYNC_STORES){
     const theirs=(d.stores||{})[s.key]; if(!theirs||typeof theirs!=="object") continue;
     const mine=store.get(s.key,{}); let n2=0;
-    for(const [id,v] of Object.entries(theirs)) if(s.valid(v)&&(!mine[id]||(v.u||0)>(mine[id].u||0))){ mine[id]=v; n2++; }
+    for(const [id,v] of Object.entries(theirs)) if(/^[A-Za-z0-9:_.-]{1,80}$/.test(id)&&s.valid(v)&&(!mine[id]||(v.u||0)>(mine[id].u||0))){ mine[id]=v; n2++; }
     if(n2){ store.set(s.key,mine); extra+=n2; }
   }
   let planMsg="";
-  const mine=store.get("plan",null), theirs=d.plan;
-  if(theirs&&PLAN_DEFS.some(x=>x.id===theirs.id)){
+  const mine=store.get("plan",null), t0=d.plan, isObj=o=>!!o&&typeof o==="object"&&!Array.isArray(o);
+  // Only a well-formed plan is taken: a broken one would stop Home and Plans from opening.
+  const theirs=isObj(t0)&&PLAN_DEFS.some(x=>x.id===t0.id)&&typeof t0.start==="string"&&/^\d{4}-\d\d-\d\d$/.test(t0.start)
+    ?{id:t0.id,start:t0.start,done:isObj(t0.done)?t0.done:{},log:isObj(t0.log)?t0.log:{}}:null;
+  if(theirs){
     if(!mine){ store.set("plan",theirs); planMsg=" and your reading plan"; }
     else if(mine.id===theirs.id){
       mine.done={...theirs.done,...mine.done}; mine.log={...(theirs.log||{}),...(mine.log||{})};

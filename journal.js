@@ -5,7 +5,7 @@
    Stored as store "journal" = {id: {d: created ms, u: updated ms, t: title, b: body, r: [passages]}},
    synced and backed up through SYNC_STORES. Deleting keeps nothing: the entry becomes a sync tombstone. */
 
-SYNC_STORES.push({key:"journal", prefix:"jn:", valid:v=>!!(v&&typeof v.b==="string"&&typeof v.d==="number"), onRemote:()=>{ if(state.view==="journal"&&!JN.open) renderJournal(); }});
+SYNC_STORES.push({key:"journal", prefix:"jn:", valid:v=>!!(v&&typeof v.b==="string"&&typeof v.t==="string"&&typeof v.d==="number"&&Array.isArray(v.r)&&v.r.every(x=>typeof x==="string")), onRemote:()=>{ if(state.view==="journal"&&!JN.open) renderJournal(); }});
 const JN={open:null, q:"", saveT:0};
 const jnAll=()=>store.get("journal",{});
 const jnNewId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -36,7 +36,7 @@ function renderJournal(){
     <div class="jn-head"><h2>Journal</h2><button class="btn-primary" id="jnNew">New entry</button></div>
     ${total>3?`<input id="jnQ" type="search" class="jn-q" placeholder="Search your journal" value="${esc(JN.q)}" aria-label="Search your journal">`:""}
     ${groups.map(g=>`<div class="lbl" style="padding:0 16px">${esc(g.k)}</div><div class="jn-list">${g.items.map(([id,e])=>`
-      <button class="jn-card" data-id="${id}"><span class="jn-date">${esc(jnDate(e.d))}</span><span class="jn-title">${esc(jnTitle(e))}</span>
+      <button class="jn-card" data-id="${esc(id)}"><span class="jn-date">${esc(jnDate(e.d))}</span><span class="jn-title">${esc(jnTitle(e))}</span>
         ${e.b.trim()&&e.t.trim()?`<span class="jn-snip">${esc(e.b.trim().slice(0,140))}${e.b.trim().length>140?"…":""}</span>`:""}
         ${e.r.length?`<span class="jn-refs">${e.r.map(r=>`<i>${esc(r.replace(/-/g,"–"))}</i>`).join("")}</span>`:""}</button>`).join("")}</div>`).join("")
     ||(total?`<div class="empty">No entry mentions “${esc(JN.q)}”.</div>`
@@ -65,7 +65,7 @@ function renderEntry(id){
   const flush=()=>{ if(JN.saveT){ clearTimeout(JN.saveT); JN.saveT=0; save(); } };
   $("#jnB").onblur=flush; $("#jnT").onblur=flush;
   const close=()=>{ flush(); const all=jnAll(); if(all[id]&&!all[id].t.trim()&&!all[id].b.trim()&&!all[id].r.length){ delete all[id]; store.set("journal",all); }
-    if((history.state||{}).selah&&location.hash.startsWith("#/journal/")) history.back(); else { JN.open=null; setRoute("#/journal",true); renderJournal(); } };
+    if(canGoBackInApp()&&location.hash.startsWith("#/journal/")) history.back(); else { JN.open=null; setRoute("#/journal",true); renderJournal(); } };
   $("#jnBack").onclick=close;
   const soap=$("#jnSoap"); if(soap) soap.onclick=()=>{ $("#jnB").value=SOAP; soap.remove(); later(); flush(); $("#jnB").focus(); $("#jnB").setSelectionRange(SOAP.indexOf("\n")+1,SOAP.indexOf("\n")+1); };
   $("#jnRefForm").onsubmit=ev=>{ ev.preventDefault(); const raw=$("#jnRefQ").value; const r=(typeof memParse==="function"&&memParse(raw))||(parsePassage(raw.trim())&&passageVerses(parsePassage(raw.trim())).length?raw.trim():null);
@@ -76,7 +76,7 @@ function renderEntry(id){
   $("#jnDel").onclick=()=>{ const b=$("#jnDel");
     if(!b.dataset.armed){ b.dataset.armed=1; b.textContent="Tap again to delete"; setTimeout(()=>{ if(document.contains(b)){ delete b.dataset.armed; b.textContent="Delete entry"; } },3000); return; }
     clearTimeout(JN.saveT); JN.saveT=0; JN.pending=null; const all=jnAll(); delete all[id]; store.set("journal",all); toast("Entry deleted");
-    if((history.state||{}).selah&&location.hash.startsWith("#/journal/")) history.back(); else { JN.open=null; renderJournal(); } };
+    if(canGoBackInApp()&&location.hash.startsWith("#/journal/")) history.back(); else { JN.open=null; renderJournal(); } };
   if(!e.b&&!e.t) $("#jnB").focus({preventScroll:true});
 }
 // Leaving the screen mid-edit still saves.

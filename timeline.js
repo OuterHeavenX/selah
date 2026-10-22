@@ -162,8 +162,8 @@ function renderTimeline(){
   v.querySelectorAll("[data-art]").forEach(b=>b.onclick=()=>{ const i=ART.findIndex(a=>a.id===b.dataset.art); if(i>=0) openLightbox(i,ART); });
   v.querySelectorAll(".tl-ev").forEach(li=>li.querySelector(".tl-title").onclick=()=>{
     const open=!li.classList.contains("open");
-    v.querySelectorAll(".tl-ev.open").forEach(x=>x.classList.remove("open"));
-    li.classList.toggle("open",open);
+    v.querySelectorAll(".tl-ev.open").forEach(x=>{ x.classList.remove("open"); x.querySelector(".tl-title").setAttribute("aria-expanded","false"); });
+    li.classList.toggle("open",open); li.querySelector(".tl-title").setAttribute("aria-expanded",String(open));
     TL.sel=open?li.dataset.id:null; setRoute(EXTRA_ROUTES.timeline.hash(),true);
   });
   // Era chips follow the scroll.
