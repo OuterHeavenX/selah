@@ -46,7 +46,7 @@ SOURCES = {
   "darby":    ("sm", "Darby.json"),
   "webster":  ("sm", "Webster.json"),
   "bbe":      ("sm", "BBE.json"),
-  "oeb":      ("sm", "OEB.json"),
+  "oeb":      ("sm", "OEB.json", ("ebible", "corpus/eng-engoebus.txt")),
   "noyes":    ("sm", "Noyes.json"),
   "nheb":     ("sm", "NHEB.json"),
   "acv":      ("sm", "ACV.json"),
@@ -55,7 +55,7 @@ SOURCES = {
   "anderson": ("sm", "Anderson.json"),
   "haweis":   ("sm", "Haweis.json"),
   "twenty":   ("sm", "Twenty.json"),
-  "tyndale":  ("sm", "Tyndale.json"),
+  "tyndale":  ("sm", "Tyndale.json", ("ebible", "corpus/eng-engtnt.txt")),
   "wycliffe": ("sm", "Wycliffe.json"),
   # used only to test the pipeline against Selah's own aligned texts
   "_kjv":     ("ebible", "old/eng-eng-kjv.txt"),
@@ -373,7 +373,9 @@ for tid, spec in SOURCES.items():
     out, stat = build(kind, path)
     if len(spec) > 2:
         # Fill verses the base source lost from a complete copy (whose footnotes are run into the text).
-        fill, _ = build("wl", spec[2]); stat["filled"] = 0; feet = []
+        base_books = json.loads(json.dumps(out))
+        fk, fp = spec[2] if isinstance(spec[2], tuple) else ("wl", spec[2])
+        fill, _ = build(fk, fp); stat["filled"] = 0; feet = []
         for bi, book in enumerate(out):
             for ci, ch in enumerate(book["chapters"]):
                 for vi, t in enumerate(ch):
@@ -384,6 +386,14 @@ for tid, spec in SOURCES.items():
             for k, v in fill[bi]["headings"].items():
                 if k not in book["headings"] and not FOOT.search(v): book["headings"][k] = v
         stat["filled-with-footnote"] = len(feet)
+        # A book taken wholly from the fill source must be complete, or it's left out (the reader falls back with a note).
+        for bi, book in enumerate(out):
+            if any(t for ch in base_books[bi]["chapters"] for t in ch): continue
+            have = sum(1 for ch in book["chapters"] for t in ch if t) + len(book["joined"])
+            need = sum(1 for ch in KJV[bi]["chapters"] for t in ch if t)
+            if 0 < have < need * 0.995:
+                book["chapters"] = [[""] * len(c) for c in book["chapters"]]; book["joined"] = {}; book["headings"] = {}
+                stat["fill-books-dropped"] = stat.get("fill-books-dropped", 0) + 1
         for r, f in feet: print("   FOOTNOTE?", r, "|", f[:220])
     if tid == "webbe":
         # Psalm titles (\\d) from the WEB British Edition USFX in seven1m/open-bibles

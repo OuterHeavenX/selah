@@ -133,6 +133,19 @@ Protestant canon ships as readable text.
   rivers (public domain) and OpenBible.info Bible Geocoding Data (CC BY 4.0), the
   best-scored identification per place with a 0–2 confidence, plus the journeys.
   Built by `tools/build_maps.py` (own clipping and simplification, no GIS libraries).
+- `data/tr/<id>.json` — 24 more English translations on the same grid (same shape
+  as `data/bible.json`, plus `joined` — verses whose words a source prints with a
+  neighbouring verse). Listed in `TRANSLATIONS` in `app.js` and chosen in Settings →
+  Translation (the library). All public domain except LSV and FBV (CC BY-SA 4.0,
+  credited in the app). Built by `tools/build_translations.py` from
+  wldeh/bible-api, scrollmapper/bible_databases, HelloAOLab/bible-api (BSB USFM),
+  seven1m/open-bibles (WEB British Psalm titles) and the BibleNLP/ebible corpus,
+  mapping each source's verse numbering (original, Vulgate, Septuagint) onto the
+  English grid with eBible's .vrs files, then checking every chapter against the
+  KJV for slipped verses. Partial translations (JPS, Tyndale, OEB, Noyes and the
+  historic New Testaments) show the ASV, with a note, for chapters they lack.
+  Brenton's Septuagint and the Leeser Tanakh are left out: the only copies
+  reachable were incomplete or misaligned.
 - `data/study.json` — hand-curated: 45 Gospel parallel sets and 11 study
   trails (John; Matthew, Mark & Luke; Old Testament; the letters).
 
