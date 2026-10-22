@@ -50,7 +50,10 @@ body{
 .nav-btn{background:var(--accent-soft); border:1px solid var(--line); color:var(--ink); border-radius:10px; padding:8px 12px; font-size:15px; cursor:pointer;}
 .verses{padding:6px 18px;}
 .verse{font-family:Georgia,"Times New Roman",serif; font-size:var(--fs-verse,18px); line-height:1.65; padding:7px 8px; border-radius:8px; cursor:pointer;}
-.verse:active{background:var(--accent-soft);}
+/* No :active tint on verses: on phones it fired while just scrolling. The verse you
+   actually tapped is marked .picked while its study sheet is open. */
+.verse.picked{box-shadow:inset 3px 0 0 var(--accent);}
+.verse.picked:not([class*="hl-"]){background:var(--accent-soft);}
 .verse .vn{font-family:-apple-system,sans-serif; font-size:11px; color:var(--accent); font-weight:700; margin-right:8px; vertical-align:2px;}
 .verse .xcount{font-family:-apple-system,sans-serif; font-size:10px; color:var(--ink-soft); border:1px solid var(--line); border-radius:10px; padding:1px 7px; margin-left:8px; vertical-align:2px; white-space:nowrap;}
 .verse.hl-y{background:var(--hl-y);} .verse.hl-g{background:var(--hl-g);}
@@ -128,7 +131,6 @@ body{
 .trace-card.open .trace-head h3{color:var(--accent);}
 .trace-card.open .trace-items{border-top-color:color-mix(in srgb, var(--accent) 35%, transparent); background:color-mix(in srgb, var(--accent-soft) 55%, var(--sheet));}
 .trace-card.open .trace-item{border-bottom-color:color-mix(in srgb, var(--accent) 22%, transparent);}
-.trace-card.open .trace-item:active{background:var(--accent-soft);}
 .section-title{font-family:Georgia,serif; font-size:20px; padding:14px 16px 4px; margin:0;}
 .section-sub{padding:0 16px 8px; color:var(--ink-soft); font-size:13.5px; line-height:1.6;}
 /* saved */
