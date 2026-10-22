@@ -557,9 +557,14 @@ function bindSheet(){
     b.onclick=()=>{ state.sheetTab=b.dataset.tab; paintSheet(); };
   });
 }
+function markPicked(ref){
+  document.querySelectorAll(".verse.picked").forEach(el=>el.classList.remove("picked"));
+  if(ref) document.querySelectorAll(".verse[data-ref]").forEach(el=>{ if(el.dataset.ref===ref) el.classList.add("picked"); });
+}
 function openSheet(ref,tab){
   sheetReturnFocus=document.activeElement;
   state.sheetRef=ref; state.sheetTab=tab==="comment"&&!commOn()?"xrefs":(tab||"xrefs");
+  markPicked(ref);
   if(typeof lexState!=="undefined"){ lexState.ref=null; lexState.strong=null; }
   const wasOpen=!$("#sheetWrap").classList.contains("hidden");
   $("#sheetWrap").classList.remove("hidden");
@@ -570,7 +575,7 @@ function openSheet(ref,tab){
 }
 function closeSheet(){
   const wasOpen=!!state.sheetRef;
-  $("#sheetWrap").classList.add("hidden"); state.sheetRef=null;
+  $("#sheetWrap").classList.add("hidden"); state.sheetRef=null; markPicked(null);
   document.body.classList.remove("sheet-open");
   if(wasOpen&&sheetReturnFocus&&document.contains(sheetReturnFocus)) sheetReturnFocus.focus({preventScroll:true});
 }
