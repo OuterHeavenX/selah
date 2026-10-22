@@ -158,7 +158,7 @@ def read_usfm(folder):
         c = 0
         for part in re.split(r"(\\c \d+|\\v \d+[a-z]?(?:-\d+)?)", text):
             mc = re.match(r"\\c (\d+)", part); mv = re.match(r"\\v (\d+)", part)
-            if mc: c = int(mc.group(1)); v = None; continue
+            if mc: c = int(mc.group(1)); v = 1; continue          # some files start verse 1 without a marker
             if mv: v = int(mv.group(1)); continue
             if c and v is not None:
                 t = re.sub(r"\\\+?[a-z]+\d?\*?", " ", part)
@@ -184,6 +184,7 @@ def load_vul(name="vul"):
 # ---------- placing verses on the English grid ----------
 FIXES = [   # footnotes run into the text of a few verses filled from wldeh (WEB family)
   (re.compile(r"cors\d+:\d+ 1 cor is the same as a homer, or about 55\.9 U\. S\. gallons \(liquid\) or 211 lit(?:er|re)s or 6 bushels"), "cors"),
+  (re.compile(r"Amen\.\d+:\d+ TR places verses 24-26 after Romans 16:24 as verses 25-27\."), "Amen."),
   (re.compile(r"Behold,\d+:\d+ “Behold”, from “הִנֵּה”, means look at, take notice, observe, see, or gaze at\. It is often used as an interjection\. "), "Behold, "),
 ]
 def clean(t):
@@ -384,10 +385,26 @@ for tid, spec in SOURCES.items():
                 if k not in book["headings"] and not FOOT.search(v): book["headings"][k] = v
         stat["filled-with-footnote"] = len(feet)
         for r, f in feet: print("   FOOTNOTE?", r, "|", f[:220])
-    if tid in ("webbe", "wmb"):
-        wh = json.load(open(f"{ROOT}/data/web.json"))["books"][NAMES.index("Psalms")].get("headings", {})
-        for k, v in wh.items(): out[NAMES.index("Psalms")]["headings"].setdefault(k, v)
+    if tid == "webbe":
+        # Psalm titles (\\d) from the WEB British Edition USFX in seven1m/open-bibles
+        ux = open(os.environ.get("OPENBIBLES", "/tmp/claude-0/probe/seven1m_open-bibles") + "/eng-gb-webbe.usfx.xml", encoding="utf-8").read()
+        i = ux.find('<book id="PSA"'); ps = ux[i:ux.find("</book>", i)]
+        for m in re.finditer(r'<c id="(\d+)"\s*/>\s*<d>(.*?)</d>', ps, re.S):
+            t = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", m.group(2))).strip()
+            if t: out[NAMES.index("Psalms")]["headings"][f"{m.group(1)}:1"] = t
     split_titles(out, stat)
+    # Empty verses whose words a neighbour plainly carries (the source joined two verses): say so.
+    stat["joined-by-length"] = 0
+    for bi, book in enumerate(out):
+        for ci, ch in enumerate(book["chapters"]):
+            if not any(ch): continue
+            k = KJV[bi]["chapters"][ci]
+            for vi, t in enumerate(ch):
+                key = f"{ci+1}:{vi+1}"
+                if t or not k[vi] or book["joined"].get(key): continue
+                for nb in (vi - 1, vi + 1):
+                    if 0 <= nb < len(ch) and ch[nb] and k[nb] and len(ch[nb]) > 1.6 * len(k[nb]) and len(ch[nb]) > 0.7 * (len(k[nb]) + len(k[vi])):
+                        book["joined"][key] = f"{ci+1}:{nb+1}"; stat["joined-by-length"] += 1; break
     flagged, avg, cov = validate(out)
     # verses the KJV has but this build doesn't, in books the translation covers at all
     missing = []
