@@ -1,6 +1,6 @@
 "use strict";
 /* Selah — ASV Study Bible prototype */
-const DATA_V="7"; // bump when data/*.json changes so phones drop cached copies
+const DATA_V="8"; // bump when data/*.json changes so phones drop cached copies
 let XREFS={}, STUDY=null, TYPES=[];
 const TRANSLATIONS={
   asv:{name:"ASV", full:"American Standard Version (1901)", short:"ASV 1901", file:"data/bible.json"},
@@ -189,10 +189,6 @@ function showView(v){
 // Listed in the order the scenes appear in Scripture; the Images tab and the Home slideshow both follow it.
 // To add a piece: drop a ~900px-wide JPEG in img/art/ and add an entry in its place in the story.
 const ART=[
-  {file:"img/art/creation.jpg", w:900, h:1349, focus:"50% 24%",
-   title:"Let there be light", ref:"Genesis 1:1-31",
-   alt:"Poster of the six days of creation: a cosmic face over a galaxy, sun and moon, birds and fish, and a hand forming the land",
-   caption:"The six days of creation — light out of darkness, the waters gathered, the earth bringing forth grass, sun and moon, birds and fish, and man."},
   {file:"img/art/sinai.jpg", w:900, h:1125, focus:"50% 30%",
    title:"Moses and Aaron at Sinai", ref:"Exodus 32:15-20",
    alt:"Ink drawing of Moses holding the stone tablets beside Aaron in the high priest's garments, with the tabernacle and the golden calf",
