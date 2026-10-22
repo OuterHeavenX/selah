@@ -1,6 +1,6 @@
 "use strict";
 /* Selah — ASV Study Bible prototype */
-const DATA_V="10"; // bump when data/*.json changes so phones drop cached copies
+const DATA_V="11"; // bump when data/*.json changes so phones drop cached copies
 let XREFS={}, STUDY=null, TYPES=[];
 const TRANSLATIONS={
   asv:{name:"ASV", full:"American Standard Version (1901)", short:"ASV 1901", file:"data/bible.json"},
@@ -225,7 +225,7 @@ function showView(v){
     if(on) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current");
   });
   closeSheet(); closeLightbox(); stopHeroRotation();
-  if(v!=="read") document.documentElement.classList.remove("book-on");
+  if(v!=="read"){ document.documentElement.classList.remove("book-on"); stopReading(); }
   ({home:renderHome,read:renderRead,search:renderSearch,christ:renderChrist,images:renderImages,saved:renderSaved,plans:renderPlans})[v]();
   window.scrollTo(0,0);
 }
@@ -385,12 +385,13 @@ function readerNavHTML(){
     <button class="nav-btn" id="prevCh" aria-label="Previous chapter">‹</button>
     <select id="bookSel" aria-label="Book">${BOOKS.map(b=>`<option ${b.name===state.book?"selected":""}>${esc(b.name)}</option>`).join("")}</select>
     <select id="chSel" aria-label="Chapter">${book.chapters.map((_,i)=>`<option value="${i+1}" ${i+1===state.ch?"selected":""}>Ch ${i+1}</option>`).join("")}</select>
-    <button class="nav-btn" id="nextCh" aria-label="Next chapter">›</button>${toggle}</div>`;
+    <button class="nav-btn" id="nextCh" aria-label="Next chapter">›</button>${listenButtonsHTML()}${toggle}</div>`;
 }
 function bindReaderNav(){
   $("#bookSel").onchange=e=>{ state.book=e.target.value; state.ch=1; savePos(); renderRead(); window.scrollTo(0,0); };
   $("#chSel").onchange=e=>{ state.ch=+e.target.value; savePos(); renderRead(); window.scrollTo(0,0); };
   $("#prevCh").onclick=()=>stepChapter(-1); $("#nextCh").onclick=()=>stepChapter(1);
+  bindListen();
   const bt=$("#bookToggle"); if(bt) bt.onclick=()=>{ store.set("bookMode",!isBookMode()); renderRead(); window.scrollTo(0,0); };
 }
 // Verse taps / Enter open the study sheet (delegated, so it also works inside book pages).
@@ -404,6 +405,7 @@ function renderRead(){
   const book=BOOKS.find(b=>b.name===state.book);
   if(!book.chapters[state.ch-1]) state.ch=1;
   const v=$("#view");
+  if(SPEAK.on&&!SPEAK.internal) stopReading();
   ensureXrefs(state.book);
   if(isBookMode()){ document.documentElement.classList.add("book-on"); v.innerHTML=readerNavHTML()+`<div id="book"></div>`; bindReaderNav(); renderBook(); return; }
   document.documentElement.classList.remove("book-on");

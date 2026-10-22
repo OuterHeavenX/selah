@@ -390,3 +390,10 @@ div.home-plan{cursor:default;}
   .backup{margin:22px 28px 0;}
   .backup-row{max-width:520px;}
 }
+
+/* ---------- read aloud ---------- */
+.listen-btn{display:inline-flex; align-items:center; gap:6px; white-space:nowrap; font-size:13px; font-weight:600;}
+.listen-btn.on{background:var(--accent); color:#fff; border-color:var(--accent);}
+.rate-btn{font-size:13px; font-weight:700; min-width:46px;}
+@media (max-width:480px){ .listen-btn span{display:none;} .reader-nav{gap:6px;} .reader-nav select{min-width:0;} }
+.verse.speaking{background:var(--accent-soft); box-shadow:inset 3px 0 0 var(--accent);}

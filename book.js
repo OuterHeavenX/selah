@@ -101,6 +101,7 @@ function paintSpread(){
   });
   const prev=prevSpread(BOOK.sp), next=nextSpread(BOOK.sp);
   $("#bookPrev").disabled=!prev; $("#bookNext").disabled=!next;
+  if(typeof markSpeaking==="function") markSpeaking();
   // Moving into another chapter keeps the chapter picker and "continue reading" in step.
   const L=BOOK.sp.L;
   if(state.book!==L.b||state.ch!==L.c){
