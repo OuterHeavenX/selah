@@ -27,6 +27,11 @@ Protestant canon ships as readable text.
   the chapter you're reading. Pinch/drag/wheel to zoom; the verse sheet's
   Cross-refs tab links the places named in a verse. Feature screens register
   through `EXTRA_VIEWS`, `HOME_TOOLS` and `EXTRA_ROUTES`.
+- Timeline (`timeline.js`, Home → Timeline, `#/timeline/<event>`): 98 events in 11
+  eras from Creation to Patmos, each linked to its passage and, where they exist,
+  its artwork, map place or journey. Conservative study-Bible dates (early Exodus
+  c. 1446 BC); Genesis 1–11 undated; disputed dates carry a note. Events from the
+  book you're reading are marked.
 - Hebrew / Greek tab: every verse's original words in order — original script,
   transliteration, English gloss, Strong's number. Tap a word for its lexicon
   entry (definition, parsing of that form, every verse that uses it).
