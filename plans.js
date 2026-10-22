@@ -128,7 +128,8 @@ function renderPlans(){
 
 /* ---------- backup / restore ---------- */
 function exportBackup(){
-  const data={app:"selah",version:1,exported:new Date().toISOString(),highlights:HL,notes:NOTES,plan:store.get("plan",null)};
+  const data={app:"selah",version:1,exported:new Date().toISOString(),highlights:HL,notes:NOTES,plan:store.get("plan",null),
+    stores:Object.fromEntries(SYNC_STORES.map(s=>[s.key,store.get(s.key,{})]))};
   const blob=new Blob([JSON.stringify(data,null,1)],{type:"application/json"});
   const name=`selah-backup-${todayStr()}.json`;
   const file=new File([blob],name,{type:"application/json"});
@@ -152,6 +153,14 @@ function importBackup(text){
     else if(NOTES[k]!==t&&!NOTES[k].includes(t)){ NOTES[k]=NOTES[k]+"\n\n— "+t; n++; }
   }
   store.set("hl",HL); store.set("notes",NOTES);
+  // Memory verses, journal entries…: add what's missing, keep whichever copy was edited last.
+  let extra=0;
+  for(const s of SYNC_STORES){
+    const theirs=(d.stores||{})[s.key]; if(!theirs||typeof theirs!=="object") continue;
+    const mine=store.get(s.key,{}); let n2=0;
+    for(const [id,v] of Object.entries(theirs)) if(s.valid(v)&&(!mine[id]||(v.u||0)>(mine[id].u||0))){ mine[id]=v; n2++; }
+    if(n2){ store.set(s.key,mine); extra+=n2; }
+  }
   let planMsg="";
   const mine=store.get("plan",null), theirs=d.plan;
   if(theirs&&PLAN_DEFS.some(x=>x.id===theirs.id)){
@@ -162,12 +171,12 @@ function importBackup(text){
       store.set("plan",mine); planMsg=" and plan progress";
     }
   }
-  toast(`Restored ${h} highlight${h===1?"":"s"}, ${n} note${n===1?"":"s"}${planMsg}`);
+  toast(`Restored ${h} highlight${h===1?"":"s"}, ${n} note${n===1?"":"s"}${extra?`, ${extra} memory verse${extra===1?"":"s"} & journal entr${extra===1?"y":"ies"}`:""}${planMsg}`);
   showView(state.view);
 }
 function backupHTML(){
   return `<div class="backup"><div class="lbl">Backup</div>
-    <div class="section-sub" style="padding:0 0 10px">Save your highlights, notes and reading-plan progress to a file, then restore it on your other devices. Restoring adds to what’s already here — it never deletes anything.</div>
+    <div class="section-sub" style="padding:0 0 10px">Save your highlights, notes, reading-plan progress, memory verses and journal to a file, then restore it on your other devices. Restoring adds to what’s already here — it never deletes anything.</div>
     <div class="backup-row"><button class="btn-primary" id="bkExport">Save backup</button><button class="btn-ghost" id="bkImport">Restore from file</button></div>
     <input type="file" id="bkFile" accept="application/json,.json" hidden></div>`;
 }

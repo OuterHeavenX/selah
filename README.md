@@ -32,6 +32,12 @@ Protestant canon ships as readable text.
   its artwork, map place or journey. Conservative study-Bible dates (early Exodus
   c. 1446 BC); Genesis 1–11 undated; disputed dates carry a note. Events from the
   book you're reading are marked.
+- Memory verses (`memory.js`, `#/memory`): add from the verse sheet (Mark →
+  Memorize) or by reference; flash-card review with a first-letters hint and a
+  Leitner schedule (1, 2, 4, 7, 14, 30, 60 days). Journal (`journal.js`,
+  `#/journal`): entries with linked passages, autosave, a S.O.A.P. guide, search;
+  start one from any verse. Both sync and back up through `SYNC_STORES`
+  (items `mv:<id>`, `jn:<id>`); the Mark tab takes extra buttons via `MARK_ACTIONS`.
 - Hebrew / Greek tab: every verse's original words in order — original script,
   transliteration, English gloss, Strong's number. Tap a word for its lexicon
   entry (definition, parsing of that form, every verse that uses it).
