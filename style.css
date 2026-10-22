@@ -413,3 +413,11 @@ div.home-plan{cursor:default;}
 
 .trace-group{font-size:12px; text-transform:uppercase; letter-spacing:1.6px; color:var(--accent); font-weight:700; padding:18px 16px 0;}
 @media (min-width:900px){ .trace-group{padding:22px 28px 0;} }
+
+/* ---------- offline ---------- */
+.offline-badge{font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--paper); background:var(--ink-soft); border-radius:12px; padding:3px 9px;}
+.offline-badge.hidden{display:none;}
+.dl-bar{height:8px; border-radius:4px; background:var(--line); overflow:hidden; margin:0 0 12px;}
+.dl-bar.hidden{display:none;}
+.dl-bar>div{height:100%; width:0; background:var(--accent); transition:width .2s;}
+#installBtn{color:var(--accent); border-color:var(--accent); margin-top:10px;}
