@@ -8,7 +8,7 @@ const SHARE_STYLES=[["parchment","Parchment"],["ink","Ink"],["art","Artwork"]];
 
 function shareVerses(){
   const p=parseRef(SHARE.ref); if(!p) return {label:SHARE.ref,text:"",items:[]};
-  const book=BOOKS.find(b=>b.name===p.book), ch=book.chapters[p.ch-1];
+  const ch=chapterText(p.book,p.ch)||[];
   const items=[];
   for(let v=p.v; v<p.v+SHARE.count&&v<=ch.length; v++) if(ch[v-1]) items.push({v,t:ch[v-1].replace(/\[(Higgaion\. )?Selah\.?/g,"Selah").replace(/[\[\]]/g,"")});
   const last=items.length?items[items.length-1].v:p.v;
@@ -46,7 +46,7 @@ async function drawShareCard(canvas){
   const ctx=canvas.getContext("2d"), W=SHARE_W, H=SHARE_H, s=shareVerses(), rnd=seeded(SHARE.ref+SHARE.style);
   canvas.width=W; canvas.height=H;
   const dark=SHARE.style==="ink";
-  const ink=dark?"#efe4c8":"#2b2519", accent=dark?"#d3a94e":"#8a6d2f";
+  const ink=dark?"#efe4c8":"#2b2519", accent=dark?"#d3a94e":"#7a5f26";
   // background
   if(dark){
     const g=ctx.createRadialGradient(W/2,H*0.45,80,W/2,H/2,H*0.8); g.addColorStop(0,"#2a2118"); g.addColorStop(1,"#0e0b08");

@@ -58,8 +58,9 @@ async function renderMaps(){
   const v=$("#view");
   v.innerHTML=`<div class="map-screen"><div class="map-stage" id="mapStage"><div class="loading">Unrolling the map…</div></div><aside class="map-panel" id="mapPanel"></aside></div>`;
   sizeMap();
-  try{ await loadMaps(); }catch(e){ $("#mapStage").innerHTML='<div class="loading">Couldn’t load the map. Check your connection and try again.</div>'; return; }
-  if(state.view!=="maps") return;
+  const stage=$("#mapStage");                       // if Maps is reopened while loading, only the newest render carries on
+  try{ await loadMaps(); }catch(e){ if(stage.isConnected) stage.innerHTML='<div class="loading">Couldn’t load the map. Check your connection and try again.</div>'; return; }
+  if(state.view!=="maps"||!stage.isConnected) return;
   const B=MAP.base;
   $("#mapStage").innerHTML=`<svg id="mapSvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Map of the biblical world" preserveAspectRatio="xMidYMid meet">
       <rect class="m-sea" x="-4000" y="-4000" width="${B.w+8000}" height="${B.h+8000}"/>
@@ -306,7 +307,7 @@ function paintPlaceCard(box,p){
       return `<button class="occ-row" data-r="${esc(r)}"><span class="or">${esc(r)}</span><span class="ov">${verseHTML(pv||"(not in this translation)")}</span></button>`; }).join("")}</div>
     ${p.v.length>shown.length?`<div class="section-sub">First 40 of ${p.v.length}. <button class="link-btn" id="mpAll">Show all</button></div>`:""}
     <div class="orig-credit"><a href="https://www.openbible.info/geo/ancient/${esc(p.id)}/${esc(p.slug)}" target="_blank" rel="noopener">${esc(p.name)} on OpenBible.info</a> — sources, photos and the other proposed sites. Geocoding CC BY 4.0.</div>`;
-  $("#mpBack").onclick=()=>{ if((history.state||{}).selah&&location.hash.startsWith("#/maps/place/")) history.back(); else { MAP.sel=null; mapRoute(false); paintMapPanel(); drawMapMarks(); } };
+  $("#mpBack").onclick=()=>{ if(canGoBackInApp()&&location.hash.startsWith("#/maps/place/")) history.back(); else { MAP.sel=null; mapRoute(false); paintMapPanel(); drawMapMarks(); } };
   box.querySelectorAll(".occ-row").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r));
   const all=$("#mpAll"); if(all) all.onclick=()=>{ const list=box.querySelector(".lex-occ"); list.innerHTML=p.v.map(i=>{ const r=R[i]; return `<button class="occ-row" data-r="${esc(r)}"><span class="or">${esc(r)}</span></button>`; }).join(""); all.parentElement.remove(); list.querySelectorAll(".occ-row").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r)); };
   box.scrollTop=0;

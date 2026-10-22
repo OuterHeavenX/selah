@@ -40,6 +40,7 @@ async function signIn(email,password){
   setSession(sessionFrom(j)); firstSyncPrep(); await syncNow();
 }
 async function signUp(email,password){
+  markAuthPending();
   const j=await sbAuth("signup?redirect_to="+encodeURIComponent(siteURL()),{email,password});
   if(j.access_token){ setSession(sessionFrom(j)); firstSyncPrep(); await syncNow(); return "in"; }
   return "confirm";
@@ -50,18 +51,32 @@ async function signOut(){
   setSession(null); store.set("sync_last",0); SYNC.last=0; refreshSyncUI();
 }
 // After an email link (confirm sign-up or reset password), Supabase sends the user back with the session in the URL "#".
-function handleAuthRedirect(){
+// A link like that could also be crafted by someone else to sign this device into *their* account (and so receive
+// this device's notes), so the session is only taken without asking when this device asked for the email recently.
+const AUTH_PENDING_MS=7*24*3600*1000;
+const markAuthPending=()=>store.set("auth_pending",Date.now());
+async function handleAuthRedirect(){
   if(!location.hash||location.hash.length<5) return;
   const h=new URLSearchParams(location.hash.slice(1));
   if(!h.get("access_token")&&!h.get("error")) return;
   history.replaceState(null,"",location.pathname+location.search);
   if(h.get("error")){ setTimeout(()=>toast(h.get("error_description")||"That link didn’t work — it may have expired"),600); return; }
+  let user;
+  try{ user=await sbAuth("user",null,"GET",h.get("access_token")); }
+  catch(e){ setTimeout(()=>toast("That link didn’t work — it may have expired"),600); return; }
+  const email=user.email||"";
+  const asked=Date.now()-(store.get("auth_pending",0)||0)<AUTH_PENDING_MS;
+  if(!asked||signedIn()){
+    const cur=authSession();
+    if(cur&&cur.email&&cur.email===email){ /* same account: just refresh the session */ }
+    else if(!confirm(`Sign in to Selah as ${email||"this account"}?\n\nYour highlights, notes, plans, memory verses and journal on this device will sync to that account. Only continue if this is your own email.`)) return;
+  }
+  store.set("auth_pending",0);
   setSession({access_token:h.get("access_token"),refresh_token:h.get("refresh_token"),
-    expires_at:+h.get("expires_at")||Math.floor(Date.now()/1000)+(+h.get("expires_in")||3600),email:""});
-  sbAuth("user",null,"GET",h.get("access_token")).then(u=>{ const s=authSession(); if(s){ s.email=u.email||""; setSession(s); refreshSyncUI(); } }).catch(()=>{});
-  firstSyncPrep();
+    expires_at:+h.get("expires_at")||Math.floor(Date.now()/1000)+(+h.get("expires_in")||3600),email});
+  firstSyncPrep(); refreshSyncUI(); scheduleSync(800);
   if(h.get("type")==="recovery") setTimeout(promptNewPassword,700);
-  else setTimeout(()=>toast("Email confirmed — you’re signed in"),700);
+  else toast("Email confirmed — you’re signed in");
 }
 async function promptNewPassword(){
   const p=prompt("Choose a new password for Selah (at least 8 characters):");
@@ -117,7 +132,7 @@ function applyRemote(server){
     if(k.startsWith("hl:")&&/^[ygbp]$/.test(v)) hl[k.slice(3)]=v;
     else if(k.startsWith("nt:")&&typeof v==="string") notes[k.slice(3)]=v;
   }
-  if(cur.plan&&cur.plan.id){
+  if(cur.plan&&typeof cur.plan.start==="string"&&(typeof PLAN_DEFS==="undefined"||PLAN_DEFS.some(d=>d.id===cur.plan.id))){
     plan={id:cur.plan.id,start:cur.plan.start,done:{},log:{}};
     for(const [k,v] of Object.entries(cur)){
       if(k.startsWith(`pd:${plan.id}:`)&&v) plan.done[k.slice(4+plan.id.length)]=1;
@@ -127,7 +142,7 @@ function applyRemote(server){
   HL=hl; NOTES=notes; rawSet("hl",HL); rawSet("notes",NOTES); rawSet("plan",plan);
   for(const s of SYNC_STORES){
     const obj={};
-    for(const [k,v] of Object.entries(cur)) if(k.startsWith(s.prefix)&&s.valid(v)) obj[k.slice(s.prefix.length)]=v;
+    for(const [k,v] of Object.entries(cur)) if(k.startsWith(s.prefix)&&/^[A-Za-z0-9:_.-]{1,80}$/.test(k.slice(s.prefix.length))&&s.valid(v)) obj[k.slice(s.prefix.length)]=v;
     rawSet(s.key,obj);
   }
   rawSet("sync_prev",localItems());
@@ -232,7 +247,7 @@ function bindSync(){
   const busy=on=>form.querySelectorAll("button").forEach(b=>b.disabled=on);
   form.onsubmit=async e=>{
     e.preventDefault(); const {email,pass}=val(); busy(true); msg.textContent="Signing in…";
-    try{ await signIn(email,pass); toast("Signed in — syncing"); renderSaved(); }
+    try{ await signIn(email,pass); toast("Signed in — syncing"); if(state.view==="saved") renderSaved(); }
     catch(err){ msg.textContent=/confirm/i.test(err.message)?"Please confirm your email first — check your inbox for the link.":/invalid/i.test(err.message)?"Wrong email or password.":err.message; busy(false); }
   };
   document.getElementById("signUpBtn").onclick=async()=>{
@@ -241,13 +256,13 @@ function bindSync(){
     busy(true); msg.textContent="Creating your account…";
     try{
       const r=await signUp(email,pass);
-      if(r==="in"){ toast("Account created — syncing"); renderSaved(); }
+      if(r==="in"){ toast("Account created — syncing"); if(state.view==="saved") renderSaved(); }
       else{ msg.innerHTML="Check your inbox and tap the link to confirm your email. Then sign in here with the same email and password."; busy(false); }
     }catch(err){ msg.textContent=/registered|exists/i.test(err.message)?"That email already has an account — sign in instead.":err.message; busy(false); }
   };
   document.getElementById("forgotBtn").onclick=async()=>{
     const {email}=val(); if(!email){ msg.textContent="Type your email above first."; return; }
-    try{ await sbAuth("recover?redirect_to="+encodeURIComponent(siteURL()),{email}); msg.textContent="If that email has an account, a reset link is on its way."; }
+    try{ markAuthPending(); await sbAuth("recover?redirect_to="+encodeURIComponent(siteURL()),{email}); msg.textContent="If that email has an account, a reset link is on its way."; }
     catch(err){ msg.textContent=err.message; }
   };
 }

@@ -72,12 +72,19 @@ function parsePassage(s){
   if(m) return {book:m[1], ch:+m[2], v1:1, ch2:+m[2], v2:9999};
   return null;
 }
+// The verses of a chapter as shown on screen: a chapter the current translation lacks comes from the fallback.
+function chapterText(bookName,c){
+  const b=BOOKS.find(x=>x.name===bookName), ch=b&&b.chapters[c-1]; if(!ch) return null;
+  if(ch.some(Boolean)||!BIBLES[FALLBACK_TRANS]) return ch;
+  const fb=BIBLES[FALLBACK_TRANS].books.find(x=>x.name===bookName);
+  return (fb&&fb.chapters[c-1])||ch;
+}
 function passageVerses(p){
   if(!p) return [];
-  const b=BOOKS.find(b=>b.name===p.book); if(!b) return [];
+  if(!BOOKS.some(b=>b.name===p.book)) return [];
   const out=[];
   for(let c=p.ch;c<=p.ch2;c++){
-    const ch=b.chapters[c-1]; if(!ch) continue;
+    const ch=chapterText(p.book,c); if(!ch) continue;
     const from=(c===p.ch)?p.v1:1, to=(c===p.ch2)?p.v2:ch.length;
     for(let v=from;v<=to&&v<=ch.length;v++) if(ch[v-1]) out.push({ref:`${p.book} ${c}:${v}`, text:ch[v-1]});
   }
@@ -188,7 +195,9 @@ async function offlineStatus(){
     const list=await getJSON("data/files.json"), c=await caches.open("selah-data");
     const keys=new Set((await c.keys()).map(r=>r.url));
     // Commentary files count only for the work chosen in Settings (and none when commentary is off).
-    const files=list.files.filter(f=>!f.p.startsWith("data/comm/")||(commOn()&&f.p.startsWith(`data/comm/${commSrc()}/`)));
+    // Translations count only for the one being read and the side-by-side one (all of them would be ~90 MB).
+    const trFiles=new Set(Object.values(TRANSLATIONS).map(t=>t.file)), want=new Set([state.trans,compareTrans()].filter(Boolean).map(k=>TRANSLATIONS[k].file));
+    const files=list.files.filter(f=>(!f.p.startsWith("data/comm/")||(commOn()&&f.p.startsWith(`data/comm/${commSrc()}/`)))&&(!trFiles.has(f.p)||want.has(f.p)));
     const have=files.filter(f=>keys.has(new URL(f.p+"?v="+DATA_V,location.href).href));
     return {list:{files,bytes:files.reduce((a,f)=>a+f.s,0)},have:have.length,total:files.length,haveBytes:have.reduce((a,f)=>a+f.s,0)};
   }catch(e){ return null; }
@@ -199,7 +208,7 @@ function offlineHTML(){
     ?`<button class="btn-ghost" id="installBtn">Install Selah as an app</button>`
     :ios?`<div class="section-sub" style="padding:8px 0 0">To install: in Safari tap <b>Share</b> then <b>Add to Home Screen</b>. Selah then opens full-screen like an app.</div>`:"";
   return `<div class="backup" id="offlineBox"><div class="lbl">Offline</div>
-    <div class="section-sub" style="padding:0 0 10px">The ASV, study trails and artwork are kept on this device, so Selah opens without a connection. Hebrew and Greek, cross-references, commentary and the other translations are saved as you use them — or save them all now.</div>
+    <div class="section-sub" style="padding:0 0 10px">The ASV, study trails and artwork are kept on this device, so Selah opens without a connection. Hebrew and Greek, cross-references, commentary and the translation you read in are saved as you use them — or save them all now.</div>
     <div id="offStatus" class="section-sub" style="padding:0 0 10px">Checking…</div>
     <div class="dl-bar hidden" id="dlBar"><div></div></div>
     <div class="backup-row"><button class="btn-primary" id="dlAll" disabled>Download everything</button></div>${install}</div>`;
@@ -277,7 +286,7 @@ function buildIndex(){
 }
 function updateTransUI(){
   const btn=$("#transBtn");
-  if(btn) btn.textContent=TRANSLATIONS[state.trans].short;
+  if(btn){ btn.textContent=TRANSLATIONS[state.trans].short; btn.setAttribute("aria-label",`Translation: ${TRANSLATIONS[state.trans].name}. Change translation`); }
 }
 function bindTrans(){
   $("#transBtn").onclick=()=>setTrans(state.trans==="asv"?"web":"asv");
@@ -522,7 +531,7 @@ function stepChapter(d){
 }
 // Accepts a single verse ("John 3:16") or a passage ("John 2:1-11"); scrolls to it and briefly marks the range.
 function gotoVerse(ref){
-  const p=parsePassage(ref); if(!p||!BOOKS.some(b=>b.name===p.book)) return;
+  const p=parsePassage(ref), bk=p&&BOOKS.find(b=>b.name===p.book); if(!bk||!bk.chapters[p.ch-1]) return;
   state.book=p.book; state.ch=p.ch; savePos();
   if(isBookMode()){ bookReveal(p); routeVerse(p); return; }
   showView("read"); routeVerse(p);
@@ -607,7 +616,7 @@ async function paintXrefs(body,ref){
   if(!list.length){ body.innerHTML='<div class="empty">No cross-references recorded for this verse.</div><div id="xTopics"></div>'; fillVerseTopics(ref); fillVersePlaces(ref); return; }
   body.innerHTML=`<div class="lbl">${list.length} cross-reference${list.length===1?"":"s"} · ranked by relevance</div>`+list.map(e=>{
     const t=textOf(R[e[0]]); const prev=t.length>110?t.slice(0,110)+"…":t; const d=xrefLabel(e);
-    return `<button class="xref-row" data-r="${esc(d)}"><span class="xr">${esc(d)}</span><span class="xv">${verseHTML(prev)}</span><span class="xvotes">relevance ${e[1]}</span></button>`;
+    return `<button class="xref-row" data-r="${esc(d.includes(" – ")?R[e[0]]:d)}"><span class="xr">${esc(d)}</span><span class="xv">${verseHTML(prev)}</span><span class="xvotes">relevance ${e[1]}</span></button>`;
   }).join("")+`<div id="xTopics"></div><div class="orig-credit">Cross-references: OpenBible.info (CC BY), from the Treasury of Scripture Knowledge and reader votes.</div>`;
   body.querySelectorAll(".xref-row").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r));
   fillVerseTopics(ref); fillVersePlaces(ref);

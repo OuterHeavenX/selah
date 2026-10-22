@@ -1,7 +1,7 @@
 /* Selah service worker — makes the app open and read offline.
    SHELL_V: bump with any change to code/styles (it must match the ?v= on the scripts in index.html).
    DATA_V:  must equal DATA_V in app.js; bump both when anything in data/ or img/art/ changes. */
-const SHELL_V="31";
+const SHELL_V="32";
 const DATA_V="20";
 const SHELL="selah-shell-"+SHELL_V, DATA="selah-data";
 const q="?v="+SHELL_V, dq="?v="+DATA_V;
@@ -35,7 +35,13 @@ self.addEventListener("fetch",e=>{
   if(req.mode==="navigate"){
     // Page itself: network first (so updates arrive), saved copy when offline.
     e.respondWith((async()=>{
-      try{ const r=await fetch(req); const s=await caches.open(SHELL); s.put("index.html",r.clone()); return r; }
+      try{
+        const r=await fetch(req);
+        // Keep a copy of the app page only — never an error page or some other address.
+        const scope=new URL(self.registration.scope).pathname;
+        if(r.ok&&(url.pathname===scope||url.pathname===scope+"index.html")){ const s=await caches.open(SHELL); s.put("index.html",r.clone()); }
+        return r;
+      }
       catch(_){ return (await caches.match("index.html"))||(await caches.match("./"))||Response.error(); }
     })());
     return;

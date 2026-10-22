@@ -25,7 +25,9 @@ async function enableReminder(at){
   const reg=await navigator.serviceWorker.ready;
   let sub=await reg.pushManager.getSubscription();
   if(!sub){
-    const {publicKey}=await (await fetch(PUSH_FN+"?action=key",{headers:{"apikey":SB_KEY}})).json();
+    const kr=await fetch(PUSH_FN+"?action=key",{headers:{"apikey":SB_KEY}}).catch(()=>null);
+    const {publicKey}=kr&&kr.ok?await kr.json().catch(()=>({})):{};
+    if(!publicKey) throw new Error("Couldn’t reach the reminder service. Check your connection and try again.");
     sub=await reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:b64urlToBytes(publicKey)});
   }
   await pushCall({action:"subscribe", sub:sub.toJSON(), at, tz:Intl.DateTimeFormat().resolvedOptions().timeZone||"UTC"});

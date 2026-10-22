@@ -244,7 +244,7 @@ function paintTopic(name){
            <button class="link-btn tl-show" data-k="${k}">Read ${refs.length===1?"it":"these "+refs.length}</button><div class="tl-verses"></div>`:"")
         +`</div>`; }).join("")}
     <div class="orig-credit">Nave’s Topical Bible (1896), via BibleData by Brady Stephenson, CC BY 4.0.</div></div>`;
-  $("#topicBack").onclick=()=>{ if((history.state||{}).selah&&location.hash.includes("t=")) history.back(); else { SEARCH.topic=null; saveSearchRoute(); paintTopicList(); } };
+  $("#topicBack").onclick=()=>{ if(canGoBackInApp()&&location.hash.includes("t=")) history.back(); else { SEARCH.topic=null; saveSearchRoute(); paintTopicList(); } };
   box.querySelectorAll(".tl-see").forEach(b=>b.onclick=()=>openTopic(b.dataset.t));
   box.querySelectorAll("a.tref").forEach(a=>a.onclick=e=>{ e.preventDefault(); gotoVerse(a.dataset.r); });
   box.querySelectorAll(".tl-show").forEach(b=>b.onclick=()=>{

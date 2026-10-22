@@ -8,7 +8,7 @@
 
 const MEM_GAPS=[0,1,2,4,7,14,30,60];      // days until the next review, by box
 const MEM_STARTERS=["John 3:16","Psalms 23:1","Proverbs 3:5-6","Romans 8:28","Philippians 4:13","Joshua 1:9","Isaiah 40:31","Matthew 11:28","Romans 12:2","2 Timothy 3:16","Ephesians 2:8-9","Psalms 119:105"];
-SYNC_STORES.push({key:"memory", prefix:"mv:", valid:v=>!!(v&&typeof v.r==="string"&&parsePassage(v.r)), onRemote:()=>{ if(state.view==="memory") renderMemory(); }});
+SYNC_STORES.push({key:"memory", prefix:"mv:", valid:v=>!!(v&&typeof v.r==="string"&&parsePassage(v.r)&&Number.isInteger(v.b)&&v.b>=0&&v.b<MEM_GAPS.length&&typeof v.due==="string"&&/^\d{4}-\d\d-\d\d$/.test(v.due)), onRemote:()=>{ if(state.view==="memory") renderMemory(); }});
 const memAll=()=>store.get("memory",{});
 const memId=r=>r.replace(/[^A-Za-z0-9:-]+/g,"_");
 const memHas=r=>!!memAll()[memId(r)];
@@ -59,7 +59,7 @@ function renderMemory(){
     ${all.length?`<div class="lbl" style="padding:0 16px">Your verses</div><div class="mem-list">${all.map(([id,m])=>`
       <div class="mem-row" data-id="${esc(id)}">
         <button class="mem-main" data-r="${esc(m.r)}"><span class="mem-ref">${esc(m.r.replace(/-/g,"–"))}</span><span class="mem-txt">${verseHTML(memText(m.r).slice(0,110))}${memText(m.r).length>110?"…":""}</span></button>
-        <div class="mem-side"><span class="mem-boxes" aria-label="Level ${m.b} of 7">${MEM_GAPS.slice(1).map((_,i)=>`<i class="${i<m.b?"on":""}"></i>`).join("")}</span>
+        <div class="mem-side"><span class="mem-boxes" aria-label="Level ${esc(String(m.b))} of 7">${MEM_GAPS.slice(1).map((_,i)=>`<i class="${i<m.b?"on":""}"></i>`).join("")}</span>
           <small>${m.due<=today()?"due today":"next "+memWhen(m.due)}</small>
           <button class="link-btn mem-del" data-r="${esc(m.r)}" aria-label="Remove ${esc(m.r)}">Remove</button></div>
       </div>`).join("")}</div>`
@@ -71,8 +71,8 @@ function renderMemory(){
   $("#memAddForm").onsubmit=e=>{ e.preventDefault(); const raw=$("#memAddQ").value, r=memParse(raw)||(parsePassage(raw)&&passageVerses(parsePassage(raw)).length?raw.trim():null);
     if(!r){ msg("Couldn’t find that verse — try “John 3:16”."); return; }
     if(memHas(r)){ msg(r+" is already in your list."); return; }
-    memAdd(r); toast("Added "+r); renderMemory(); };
-  v.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{ memAdd(b.dataset.add); toast("Added "+b.dataset.add); renderMemory(); });
+    if(!memAdd(r)){ toast("Couldn’t find "+r); return; } toast("Added "+r); renderMemory(); };
+  v.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{ if(!memAdd(b.dataset.add)) return; toast("Added "+b.dataset.add); renderMemory(); });
   v.querySelectorAll(".mem-main").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r));
   v.querySelectorAll(".mem-del").forEach(b=>b.onclick=()=>{
     if(b.dataset.armed){ memRemove(b.dataset.r); renderMemory(); return; }
@@ -126,5 +126,5 @@ function memGrade(id,g){
 MARK_ACTIONS.push({
   html:ref=>`<button class="btn-ghost mem-toggle" id="memToggle">${memHas(ref)?"✓ In your memory verses":"Memorize this verse"}</button>`,
   bind:(body,ref)=>{ const b=body.querySelector("#memToggle"); if(!b) return;
-    b.onclick=()=>{ if(memHas(ref)){ memRemove(ref); toast("Removed from memory verses"); } else { memAdd(ref); toast("Added to memory verses"); } b.textContent=memHas(ref)?"✓ In your memory verses":"Memorize this verse"; }; }
+    b.onclick=()=>{ if(memHas(ref)){ memRemove(ref); toast("Removed from memory verses"); } else if(memAdd(ref)) toast("Added to memory verses"); b.textContent=memHas(ref)?"✓ In your memory verses":"Memorize this verse"; }; }
 });

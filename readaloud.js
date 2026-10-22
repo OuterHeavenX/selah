@@ -73,8 +73,13 @@ function speakCurrent(){
     Object.assign(SPEAK,{book:BOOKS[b2].name,ch:c2,v:1});
     if(!document.getElementById("book")){ SPEAK.internal=true; state.book=SPEAK.book; state.ch=SPEAK.ch; savePos(); renderRead(); window.scrollTo(0,0); SPEAK.internal=false; }
   }
-  const b=BOOKS.find(x=>x.name===SPEAK.book), t=b.chapters[SPEAK.ch-1][SPEAK.v-1];
-  if(!t){ SPEAK.v++; return speakCurrent(); }               // verse not in this translation
+  // A chapter this translation lacks is shown (and so read) from the fallback translation.
+  let b=BOOKS.find(x=>x.name===SPEAK.book);
+  if(!b.chapters[SPEAK.ch-1].some(Boolean)&&BIBLES[FALLBACK_TRANS]) b=BIBLES[FALLBACK_TRANS].books.find(x=>x.name===SPEAK.book)||b;
+  const src=b.chapters[SPEAK.ch-1]||[];
+  while(SPEAK.v<=src.length&&!src[SPEAK.v-1]) SPEAK.v++;      // verses not in this translation
+  if(SPEAK.v>src.length){ SPEAK.v=chap.length+1; return void setTimeout(speakCurrent,0); }
+  const t=src[SPEAK.v-1];
   const head=(b.headings||{})[`${SPEAK.ch}:${SPEAK.v}`];
   let say=speechText(t);
   if(SPEAK.v===1) say=`${SPEAK.book==="Psalms"?"Psalm":SPEAK.book+", chapter"} ${SPEAK.ch}. `+(head&&!/^[֐-׿]/.test(head)?head+" ":"")+say;
