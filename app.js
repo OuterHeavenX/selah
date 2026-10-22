@@ -19,6 +19,10 @@ const store={
   set(k,v){ try{localStorage.setItem("selah_"+k, JSON.stringify(v));}catch(e){} }
 };
 let HL=store.get("hl",{}), NOTES=store.get("notes",{});
+// Feature data that syncs and goes into backups: {key, prefix, valid(v), onRemote()} — stored as {id: value} under `key`.
+const SYNC_STORES=[];
+// Extra buttons in the verse sheet's Mark tab: {html(ref), bind(body, ref)}.
+const MARK_ACTIONS=[];
 
 /* ---------- reference parsing ---------- */
 function parseRef(s){
@@ -327,7 +331,7 @@ ${HOME_TOOLS.map(t=>`<button class="home-card" data-go="${t.go}"><div class="hc-
   </div>
   <div class="home-foot">Selah · ${esc(TRANSLATIONS[state.trans].full)}, public domain</div></div></div>`;
   const go=g=>showView(g);
-  v.querySelectorAll(".home-card").forEach(b=>b.onclick=()=>go(b.dataset.go));
+  v.querySelectorAll(".home-card").forEach(b=>b.onclick=()=>{ const t=HOME_TOOLS.find(x=>x.go===b.dataset.go); if(t&&t.open) t.open(); go(b.dataset.go); });
   const hc=v.querySelector("#hcCont"); if(hc) hc.onclick=()=>go("read");
   v.querySelector("#hcVotd").onclick=()=>gotoVerse(votd);
   const ht=v.querySelector("#hcTyp"); if(ht) ht.onclick=()=>{ gotoVerse(typFirst); setTimeout(()=>openSheet(typFirst,"typology"),80); };
@@ -618,6 +622,7 @@ function paintMark(body,ref){
     `</div><div class="lbl">Study note</div>
     <textarea id="noteArea" placeholder="What do you see in this verse?" aria-label="Study note">${esc(note)}</textarea>
     <button class="btn-primary" id="saveMark">Save</button>
+    ${MARK_ACTIONS.length?`<div class="mark-more">${MARK_ACTIONS.map(a=>a.html(ref)).join("")}</div>`:""}
     <button class="btn-ghost share-link" id="markShare">Share this verse as an image</button>
     ${(cur||note)?'<button class="btn-ghost" id="clearMark">Clear highlight & note</button>':""}`;
   let sel=cur;
@@ -634,6 +639,7 @@ function paintMark(body,ref){
     toast("Saved"); refresh();
   };
   $("#markShare").onclick=()=>{ state.sheetTab="share"; paintSheet(); };
+  MARK_ACTIONS.forEach(a=>a.bind(body,ref));
   const cm=$("#clearMark");
   if(cm) cm.onclick=()=>{ delete HL[ref]; delete NOTES[ref]; store.set("hl",HL); store.set("notes",NOTES); toast("Cleared"); refresh(); };
 }

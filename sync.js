@@ -83,6 +83,7 @@ function localItems(){
     for(const k of Object.keys(p.done||{})) it[`pd:${p.id}:${k}`]=1;
     for(const [d,n] of Object.entries(p.log||{})) it["plog:"+d]=n;
   }
+  for(const s of SYNC_STORES) for(const [id,v] of Object.entries(rawGet(s.key,{})||{})) it[s.prefix+id]=v;
   return it;
 }
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
@@ -124,6 +125,11 @@ function applyRemote(server){
     }
   }
   HL=hl; NOTES=notes; rawSet("hl",HL); rawSet("notes",NOTES); rawSet("plan",plan);
+  for(const s of SYNC_STORES){
+    const obj={};
+    for(const [k,v] of Object.entries(cur)) if(k.startsWith(s.prefix)&&s.valid(v)) obj[k.slice(s.prefix.length)]=v;
+    rawSet(s.key,obj);
+  }
   rawSet("sync_prev",localItems());
   return changed;
 }
@@ -166,11 +172,12 @@ function afterRemoteChange(changed){
   else if(state.view==="plans"){ const y=scrollY; renderPlans(); scrollTo(0,y); }
   else if(state.view==="saved"){ const y=scrollY; renderSaved(); scrollTo(0,y); }
   if(state.sheetRef&&state.sheetTab==="mark"&&refs.includes(state.sheetRef)) paintSheet();
+  for(const s of SYNC_STORES) if(s.onRemote&&[...changed].some(k=>k.startsWith(s.prefix))) s.onRemote();
 }
 function setupSync(){
   // Every save of highlights, notes or plan progress is noted for sync.
   const set=store.set.bind(store);
-  store.set=(k,v)=>{ set(k,v); if(SYNC_KEYS.includes(k)) noteLocalChange(); };
+  store.set=(k,v)=>{ set(k,v); if(SYNC_KEYS.includes(k)||SYNC_STORES.some(s=>s.key===k)) noteLocalChange(); };
   if(!rawGet("sync_prev",null)) rawSet("sync_prev",localItems());
   handleAuthRedirect();
   if(signedIn()) scheduleSync(800);
@@ -188,11 +195,11 @@ function ago(t){
 function syncHTML(){
   const s=authSession();
   if(s) return `<div class="backup sync-box" id="syncBox"><div class="lbl">Sync between devices</div>
-    <div class="section-sub" style="padding:0 0 10px">Signed in${s.email?` as <b>${esc(s.email)}</b>`:""}. Highlights, notes and reading-plan progress stay in step on every device where you sign in.</div>
+    <div class="section-sub" style="padding:0 0 10px">Signed in${s.email?` as <b>${esc(s.email)}</b>`:""}. Highlights, notes, reading plans, memory verses and your journal stay in step on every device where you sign in.</div>
     <div class="sync-status${SYNC.error?" err":""}" id="syncStatus">${syncStatusText()}</div>
     <div class="backup-row"><button class="btn-primary" id="syncNowBtn">Sync now</button><button class="btn-ghost" id="signOutBtn">Sign out</button></div></div>`;
   return `<div class="backup sync-box" id="syncBox"><div class="lbl">Sync between devices</div>
-    <div class="section-sub" style="padding:0 0 10px">Sign in on your iPhone, iPad or computer and your highlights, notes and reading plan stay in step automatically.</div>
+    <div class="section-sub" style="padding:0 0 10px">Sign in on your iPhone, iPad or computer and your highlights, notes, reading plan, memory verses and journal stay in step automatically.</div>
     <form id="authForm" autocomplete="on">
       <input type="email" id="authEmail" placeholder="Email" autocomplete="email" required>
       <input type="password" id="authPass" placeholder="Password (8+ characters)" autocomplete="current-password" minlength="8" required>
