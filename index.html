@@ -5,8 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Selah — Study Bible</title>
 <meta name="description" content="Selah — a phone-first study Bible: ASV and WEB text, cross-references, Gospel parallels and typology.">
-<meta name="theme-color" content="#faf6ec">
-<link rel="stylesheet" href="style.css?v=13">
+<meta name="theme-color" content="#faf6ec" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#171310" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="img/icons/favicon-64.png">
+<link rel="apple-touch-icon" href="img/icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Selah">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="stylesheet" href="style.css?v=14">
 </head>
 <body>
 <header id="topbar">
@@ -15,6 +23,7 @@
     <div class="brand-sub">Study Bible</div>
   </div>
   <div class="top-actions">
+    <span class="offline-badge hidden" id="offlineBadge">Offline</span>
     <button class="trans-badge" id="transBtn" aria-label="Switch translation">ASV 1901</button>
     <button id="fsDec" class="icon-btn fs-btn" aria-label="Smaller text">A−</button>
     <button id="fsInc" class="icon-btn fs-btn" aria-label="Larger text">A+</button>
@@ -61,11 +70,11 @@
 
 <div id="toast" class="hidden" role="status" aria-live="polite"></div>
 
-<script src="app.js?v=13"></script>
-<script src="book.js?v=13"></script>
-<script src="lexicon.js?v=13"></script>
-<script src="plans.js?v=13"></script>
-<script src="readaloud.js?v=13"></script>
-<script src="share.js?v=13"></script>
+<script src="app.js?v=14"></script>
+<script src="book.js?v=14"></script>
+<script src="lexicon.js?v=14"></script>
+<script src="plans.js?v=14"></script>
+<script src="readaloud.js?v=14"></script>
+<script src="share.js?v=14"></script>
 </body>
 </html>

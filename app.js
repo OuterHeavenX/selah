@@ -1,6 +1,6 @@
 "use strict";
 /* Selah — ASV Study Bible prototype */
-const DATA_V="13"; // bump when data/*.json changes so phones drop cached copies
+const DATA_V="13"; // bump when data/ or img/art/ changes (and DATA_V in sw.js) so devices drop cached copies
 let XREFS={}, STUDY=null, TYPES=[];
 const TRANSLATIONS={
   asv:{name:"ASV", full:"American Standard Version (1901)", short:"ASV 1901", file:"data/bible.json"},
@@ -122,6 +122,60 @@ async function boot(){
   bindTabs(); bindTheme(); bindFontSize(); bindSheet(); bindTrans();
   showView("home");
   ensureXrefs(state.book);
+  setupOffline();
+}
+
+/* ---------- offline + install ---------- */
+let installPrompt=null;
+function setupOffline(){
+  if("serviceWorker" in navigator&&location.protocol!=="file:"){
+    navigator.serviceWorker.register("sw.js").catch(e=>console.warn("Service worker not registered",e));
+    if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().catch(()=>{});
+  }
+  const badge=$("#offlineBadge"), upd=()=>badge.classList.toggle("hidden",navigator.onLine);
+  addEventListener("online",upd); addEventListener("offline",upd); upd();
+  addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); installPrompt=e; if(state.view==="saved") renderSaved(); });
+}
+const isStandalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+async function offlineStatus(){
+  if(!("caches" in window)) return null;
+  try{
+    const list=await getJSON("data/files.json"), c=await caches.open("selah-data");
+    const keys=new Set((await c.keys()).map(r=>r.url));
+    const have=list.files.filter(f=>keys.has(new URL(f.p+"?v="+DATA_V,location.href).href));
+    return {list,have:have.length,total:list.files.length,haveBytes:have.reduce((a,f)=>a+f.s,0)};
+  }catch(e){ return null; }
+}
+function offlineHTML(){
+  const ios=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+  const install=isStandalone()?"":installPrompt
+    ?`<button class="btn-ghost" id="installBtn">Install Selah as an app</button>`
+    :ios?`<div class="section-sub" style="padding:8px 0 0">To install: in Safari tap <b>Share</b> then <b>Add to Home Screen</b>. Selah then opens full-screen like an app.</div>`:"";
+  return `<div class="backup" id="offlineBox"><div class="lbl">Offline</div>
+    <div class="section-sub" style="padding:0 0 10px">The ASV, study trails and artwork are kept on this device, so Selah opens without a connection. Hebrew and Greek, cross-references and the WEB are saved as you use them — or save them all now.</div>
+    <div id="offStatus" class="section-sub" style="padding:0 0 10px">Checking…</div>
+    <div class="dl-bar hidden" id="dlBar"><div></div></div>
+    <div class="backup-row"><button class="btn-primary" id="dlAll" disabled>Download everything</button></div>${install}</div>`;
+}
+async function bindOffline(){
+  const ib=$("#installBtn"); if(ib) ib.onclick=async()=>{ installPrompt.prompt(); await installPrompt.userChoice.catch(()=>{}); installPrompt=null; renderSaved(); };
+  const st=await offlineStatus(), out=$("#offStatus"), btn=$("#dlAll"); if(!out) return;
+  if(!st||!("serviceWorker" in navigator)){ out.textContent="This browser can’t save Selah for offline use."; btn.remove(); return; }
+  const mb=b=>(b/1e6).toFixed(0)+" MB";
+  if(st.have>=st.total){ out.textContent=`Everything is saved on this device (${mb(st.list.bytes)}).`; btn.remove(); return; }
+  out.textContent=st.have?`${st.have} of ${st.total} study files saved (${mb(st.haveBytes)} of ${mb(st.list.bytes)}).`:`Full study library: ${mb(st.list.bytes)}.`;
+  btn.disabled=false;
+  btn.onclick=async()=>{
+    btn.disabled=true; const bar=$("#dlBar"); bar.classList.remove("hidden");
+    const todo=st.list.files; let done=0, bytes=0, failed=0;
+    const c=await caches.open("selah-data");
+    const worker=async()=>{ while(todo.length){ const f=todo.shift(); const u=f.p+"?v="+DATA_V;
+      try{ if(!(await c.match(u))){ const r=await fetch(u); if(!r.ok) throw 0; await c.put(u,r); } }catch(e){ failed++; }
+      done++; bytes+=f.s; bar.firstChild.style.width=(100*done/st.total)+"%"; out.textContent=`Saving… ${mb(bytes)} of ${mb(st.list.bytes)}`; } };
+    await Promise.all([worker(),worker(),worker(),worker()]);
+    out.textContent=failed?`Saved, but ${failed} file${failed===1?"":"s"} failed — check your connection and tap again.`:`Everything is saved on this device (${mb(st.list.bytes)}).`;
+    if(failed){ btn.disabled=false; } else { btn.remove(); bar.classList.add("hidden"); toast("Saved for offline"); }
+  };
 }
 
 /* ---------- cross-references (OpenBible.info, whole Bible, one file per book) ---------- */
@@ -679,7 +733,7 @@ function renderSaved(){
   Cross-references (whole Bible): OpenBible.info (CC BY), derived primarily from the Treasury of Scripture Knowledge.<br>
   Hebrew and Greek text, glosses and lexicons: STEPBible.org (Tyndale House, Cambridge), CC BY 4.0.<br>
   Parallel passages, Christology trails and signs curated for this edition.</div>`;
-  v.querySelector("#savedList").insertAdjacentHTML("afterend",backupHTML()); bindBackup();
+  v.querySelector("#savedList").insertAdjacentHTML("afterend",backupHTML()+offlineHTML()); bindBackup(); bindOffline();
   v.querySelectorAll(".saved-item").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r));
 }
 

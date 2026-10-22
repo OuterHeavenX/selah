@@ -69,9 +69,19 @@ logic is documented in the 2026-10-19 session; rerun pieces as needed.
 
 ## Deploy
 Static files — serve the repo root over HTTPS (GitHub Pages).
-No build step, no backend. When any file in `data/` changes, bump `DATA_V`
-in `app.js` and the `?v=` on `app.js`/`style.css` in `index.html` so phones
-don't keep stale cached copies.
+No build step, no backend.
+
+Offline + install: `manifest.webmanifest`, icons in `img/icons/`, and the
+service worker `sw.js`. The ASV, study data and artwork are cached on first
+visit; Hebrew/Greek, lexicons, cross-references and the WEB are cached as
+they're used, or all at once from Saved → Offline → Download everything
+(list in `data/files.json`, rebuilt by `tools/build_offline_list.py`).
+
+Versioning — keep these in step:
+- Code or style change: bump the `?v=` on every script/stylesheet in
+  `index.html` **and** `SHELL_V` in `sw.js` (same number).
+- Anything in `data/` or `img/art/` changed: bump `DATA_V` in **both**
+  `app.js` and `sw.js`, then rerun `tools/build_offline_list.py`.
 
 ## Art
 `img/art/*.jpg` (900px wide). Listed in the `ART` array in `app.js` in the
