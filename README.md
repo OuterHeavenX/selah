@@ -11,6 +11,15 @@ Protestant canon ships as readable text.
   **Parallels** (14 Gospel parallel sets, side-by-side),
   **Words** (tap a word → every occurrence in John or the whole Bible),
   **Mark** (4 highlight colors + study notes, saved on-device).
+- Settings (⚙, or tap the translation badge): translation (ASV, WEB, KJV),
+  side-by-side second translation (stacked on phones, two columns on wide
+  screens, inline in book view), text size, book view, theme Light/Dark/Auto,
+  read-aloud speed, commentary on/off and source (`settings.js`; other
+  features add their own section to `SETTINGS_SECTIONS`).
+- Commentary tab: Jamieson-Fausset-Brown (default) or Matthew Henry, the note
+  covering the tapped verse, plus the chapter and book introductions and every
+  note on the chapter; references inside notes are links. Switchable off in
+  Settings (`commentary.js`).
 - Hebrew / Greek tab: every verse's original words in order — original script,
   transliteration, English gloss, Strong's number. Tap a word for its lexicon
   entry (definition, parsing of that form, every verse that uses it).
@@ -70,6 +79,16 @@ Protestant canon ships as readable text.
   (CC BY), derived primarily from the Treasury of Scripture Knowledge. One file
   per book, loaded when that book is opened; negative-voted rows dropped,
   ranked by votes, capped at 50 per verse. Built by `tools/build_xrefs.py`.
+- `data/kjv.json` — King James Version (1769), public domain, from
+  scrollmapper/bible_databases; Psalm titles split into `headings`
+  (`tools/build_kjv.py`).
+- `data/comm/jfb/NN.json`, `data/comm/mh/NN.json` — Jamieson, Fausset & Brown
+  (1871) and Matthew Henry (1706–1721), public domain, via bible.helloao.org.
+  `{intro, ch:{"3":[[startVerse,endVerse,html],…]}}`; row [0,0] is the chapter
+  introduction (JFB puts its verse-1 notes there). Matthew Henry has no Song of
+  Solomon in this edition. Built by `tools/build_commentary.py`, which also turns
+  references like "Co1 13:4" into links (only when the verse exists). "Download
+  everything" saves only the commentary chosen in Settings.
 - `data/study.json` — hand-curated: 45 Gospel parallel sets and 11 study
   trails (John; Matthew, Mark & Luke; Old Testament; the letters).
 

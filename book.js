@@ -266,10 +266,11 @@ function bindBookGestures(spread){
   spread.addEventListener("click",e=>{
     if(dragged){ dragged=false; e.preventDefault(); e.stopPropagation(); return; }
     if(BOOK.flip) return;
-    const r=spread.getBoundingClientRect(), edge=BOOK.dims.padx+18;
+    // A tap on a verse (its number sits at the very edge of the text) only turns the page in the true margin.
+    const v=e.target.closest(".verse[data-ref]");
+    const r=spread.getBoundingClientRect(), edge=BOOK.dims.padx+(v?0:18);
     if(e.clientX>r.right-edge){ turnPage(1); return; }
     if(e.clientX<r.left+edge){ turnPage(-1); return; }
-    const v=e.target.closest(".verse[data-ref]");
     if(v) openSheet(v.dataset.ref,"xrefs");
   },true);
 }
