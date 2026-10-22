@@ -512,3 +512,55 @@ div.home-plan{cursor:default;}
 .comm-more-sec > .comm-text{padding:0 2px 6px;}
 .set-row.off{opacity:.45; pointer-events:none;}
 #sheetTabs button[hidden]{display:none;}
+
+/* ---------- search: modes, scope, Hebrew & Greek, topics ---------- */
+.search-bar.search-top{flex-direction:column; align-items:stretch; gap:10px;}
+.search-modes{align-self:flex-start; max-width:100%; overflow-x:auto;}
+.search-modes button{white-space:nowrap;}
+.search-row{display:flex; gap:8px;}
+.search-row input{flex:1; min-width:0; font-size:16px; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:var(--sheet); color:var(--ink);}
+.search-scope{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink-soft); font-weight:600;}
+.search-scope select{font-size:14px; padding:6px 10px; border:1px solid var(--line); border-radius:10px; background:var(--sheet); color:var(--ink); max-width:220px;}
+.search-help{padding:14px 16px; color:var(--ink-soft); font-size:15px; line-height:1.55; max-width:640px;}
+.search-help p{margin:0 0 10px;}
+.hw-list{padding:0 16px;}
+.hw{border-bottom:1px solid var(--line);}
+.hw-head{display:flex; align-items:center; gap:14px; width:100%; background:none; border:none; padding:12px 0; text-align:left; cursor:pointer; color:var(--ink);}
+.hw-l{font-size:22px; min-width:96px; font-family:"SBL Hebrew","Ezra SIL","Times New Roman",serif;}
+.hw-l[dir=rtl]{text-align:right;}
+.hw-m{flex:1; display:flex; flex-direction:column; min-width:0;}
+.hw-t{font-style:italic; color:var(--ink-soft); font-size:14px;}
+.hw-g{font-weight:600; font-size:15px;}
+.hw-n{display:flex; flex-direction:column; align-items:flex-end; gap:4px; font-size:12px; color:var(--ink-soft);}
+.hw-head[aria-expanded=true]{color:var(--accent);}
+.hw-body{padding:0 0 12px;}
+.hw-body:empty{display:none;}
+.hw-def{margin:0 0 8px;}
+.hw-def summary{cursor:pointer; font-weight:600; font-size:14px; color:var(--ink-soft); padding:4px 0;}
+.topic-intro{padding:12px 16px 4px; color:var(--ink-soft); font-size:15px; line-height:1.5;}
+.az{display:flex; flex-wrap:wrap; gap:4px; padding:10px 16px;}
+.az button{width:34px; height:34px; border:1px solid var(--line); border-radius:9px; background:none; color:var(--ink-soft); font-weight:700; cursor:pointer;}
+.az button.on{background:var(--accent); border-color:var(--accent); color:#fff;}
+.topic-list{padding:0 16px;}
+.topic-row{display:flex; justify-content:space-between; align-items:baseline; gap:12px; width:100%; background:none; border:none; border-bottom:1px solid var(--line); padding:11px 0; text-align:left; cursor:pointer; color:var(--ink); font-size:16px;}
+.topic-row small{color:var(--ink-soft); font-size:12px; white-space:nowrap;}
+.topic-page{padding:6px 16px 24px; max-width:760px;}
+.topic-title{font-family:Georgia,serif; font-size:28px; margin:6px 0 14px; color:var(--ink);}
+.tl{padding:10px 0; border-top:1px solid var(--line);}
+.tl.d1{margin-left:18px; border-top:none; padding-top:4px;}
+.tl-label{font-size:15.5px; line-height:1.45; color:var(--ink); margin-bottom:6px;}
+.tl.caps > .tl-label{font:700 12px/1.4 system-ui,sans-serif; letter-spacing:.1em; text-transform:uppercase; color:var(--accent);}
+.tl-refs{display:flex; flex-wrap:wrap; gap:4px 10px; font-size:14px;}
+.tref{color:var(--accent); text-decoration:none; white-space:nowrap;}
+.tref:hover{text-decoration:underline;}
+.tl-show{font-size:13px; margin-top:6px;}
+.tl-verses .tv{display:block; width:100%; text-align:left; cursor:pointer; margin-top:8px; background:var(--sheet); border:1px solid var(--line); border-radius:12px; padding:10px 12px; font:inherit; color:var(--ink);}
+.tl-verses .tv .pr{color:var(--accent);}
+.vtopics{display:flex; flex-wrap:wrap; gap:6px; margin:6px 0 8px;}
+@media (min-width:900px){
+  .search-scope select{max-width:280px;}
+  #results > .lbl{padding-left:max(28px,calc((100% - 760px)/2)) !important; padding-right:max(28px,calc((100% - 760px)/2)) !important;}
+  #results .hw-body .lbl{padding:0 !important;}
+  .hw-list,.topic-list,.az,.topic-intro,.search-help{padding-left:max(28px,calc((100% - 760px)/2)); padding-right:max(28px,calc((100% - 760px)/2));}
+  .topic-page{margin:0 auto;}
+}

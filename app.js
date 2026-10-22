@@ -1,6 +1,6 @@
 "use strict";
 /* Selah — ASV Study Bible prototype */
-const DATA_V="16"; // bump when data/ or img/art/ changes (and DATA_V in sw.js) so devices drop cached copies
+const DATA_V="17"; // bump when data/ or img/art/ changes (and DATA_V in sw.js) so devices drop cached copies
 let XREFS={}, STUDY=null, TYPES=[];
 const TRANSLATIONS={
   asv:{name:"ASV", full:"American Standard Version (1901)", short:"ASV 1901", file:"data/bible.json"},
@@ -534,12 +534,13 @@ async function paintXrefs(body,ref){
   }
   const R=vrefs();
   const list=(XREFS[ref]||[]).filter(e=>textOf(R[e[0]]));
-  if(!list.length){ body.innerHTML='<div class="empty">No cross-references recorded for this verse.</div>'; return; }
+  if(!list.length){ body.innerHTML='<div class="empty">No cross-references recorded for this verse.</div><div id="xTopics"></div>'; fillVerseTopics(ref); return; }
   body.innerHTML=`<div class="lbl">${list.length} cross-reference${list.length===1?"":"s"} · ranked by relevance</div>`+list.map(e=>{
     const t=textOf(R[e[0]]); const prev=t.length>110?t.slice(0,110)+"…":t; const d=xrefLabel(e);
     return `<button class="xref-row" data-r="${esc(d)}"><span class="xr">${esc(d)}</span><span class="xv">${verseHTML(prev)}</span><span class="xvotes">relevance ${e[1]}</span></button>`;
-  }).join("")+`<div class="orig-credit">Cross-references: OpenBible.info (CC BY), from the Treasury of Scripture Knowledge and reader votes.</div>`;
+  }).join("")+`<div id="xTopics"></div><div class="orig-credit">Cross-references: OpenBible.info (CC BY), from the Treasury of Scripture Knowledge and reader votes.</div>`;
   body.querySelectorAll(".xref-row").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r));
+  fillVerseTopics(ref);
 }
 function passageHTML(vs){
   return vs.map(x=>`<span class="vn">${x.ref.split(":")[1]}</span>${verseHTML(x.text)} `).join("");
@@ -643,33 +644,7 @@ function refreshVerse(ref){
 
 /* ---------- SEARCH ---------- */
 const SEARCH_CAP=300;
-function renderSearch(){
-  const v=$("#view");
-  v.innerHTML=`<div class="search-bar"><input id="q" type="search" placeholder="Search the Bible…" enterkeyhint="search" aria-label="Search the Bible"><button class="nav-btn" id="go">Go</button></div><div id="results"></div>`;
-  const run=()=>{
-    const q=foldQuotes($("#q").value.trim().toLowerCase()).replace(/\s+/g," "); const box=$("#results"); setRoute(routeFor("search"),true);
-    if(q.length<2){ box.innerHTML='<div class="empty" style="padding:14px 16px">Type at least 2 characters.</div>'; return; }
-    const out=[]; let more=false;
-    scan: for(const b of BOOKS) for(let ci=0;ci<b.chapters.length;ci++) for(let vi=0;vi<b.chapters[ci].length;vi++){
-      const t=b.chapters[ci][vi]; if(!t) continue;
-      const ix=foldQuotes(t.toLowerCase()).indexOf(q);
-      if(ix>=0){
-        if(out.length>=SEARCH_CAP){ more=true; break scan; }
-        // Trim the snippet to whole words around the match.
-        let a=Math.max(0,ix-45), z=Math.min(t.length,ix+q.length+45);
-        if(a>0){ const s=t.indexOf(" ",a); if(s>=0&&s<ix) a=s+1; }
-        if(z<t.length){ const s=t.lastIndexOf(" ",z); if(s>ix+q.length) z=s; }
-        out.push({ref:`${b.name} ${ci+1}:${vi+1}`, sn:t.slice(a,z), pre:a>0, post:z<t.length});
-      }
-    }
-    box.innerHTML=`<div class="lbl" style="padding:0 16px">${out.length}${more?"+":""} result${out.length===1?"":"s"}${more?" — showing the first "+SEARCH_CAP:""}</div><div class="sr-list">`+out.map(o=>
-      `<button class="sr" data-r="${esc(o.ref)}"><span class="srr">${esc(o.ref)}</span><span class="srv">${o.pre?"…":""}${markPhrase(o.sn,q)}${o.post?"…":""}</span></button>`
-    ).join("")+`</div>`;
-    box.querySelectorAll(".sr").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r));
-  };
-  $("#go").onclick=run;
-  $("#q").addEventListener("keydown",e=>{ if(e.key==="Enter") run(); });
-}
+// renderSearch and the rest of Search live in search.js.
 
 /* ---------- CHRIST ---------- */
 function renderChrist(){
