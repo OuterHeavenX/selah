@@ -27,6 +27,9 @@ Protestant canon ships as readable text.
 - Reading plans: John in 21 days, Gospels in 30, Psalms & Proverbs in 60,
   NT in 90, Bible in a year — today's reading on Home, checkmarks, streak.
   Days are balanced by verse count (`plans.js`).
+- Read aloud: ▶ Listen in the reader uses the device's built-in voices,
+  highlights the verse being read, follows it (scrolling or turning book
+  pages) and continues into the next chapter; 0.8–1.4× speed (`readaloud.js`).
 - Saved: highlights + notes list, plus Backup: save a file with highlights,
   notes and plan progress and restore it on another device (merges, never
   deletes). Light/dark themes.
