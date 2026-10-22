@@ -1,12 +1,12 @@
 /* Selah service worker — makes the app open and read offline.
    SHELL_V: bump with any change to code/styles (it must match the ?v= on the scripts in index.html).
    DATA_V:  must equal DATA_V in app.js; bump both when anything in data/ or img/art/ changes. */
-const SHELL_V="24";
+const SHELL_V="25";
 const DATA_V="19";
 const SHELL="selah-shell-"+SHELL_V, DATA="selah-data";
 const q="?v="+SHELL_V, dq="?v="+DATA_V;
 const SHELL_FILES=["./","index.html","manifest.webmanifest",
-  "style.css"+q,"app.js"+q,"book.js"+q,"lexicon.js"+q,"plans.js"+q,"readaloud.js"+q,"share.js"+q,"sync.js"+q,"pictures.js"+q,"router.js"+q,"settings.js"+q,"commentary.js"+q,"search.js"+q,"maps.js"+q,"timeline.js"+q,"memory.js"+q,"journal.js"+q,
+  "style.css"+q,"app.js"+q,"book.js"+q,"lexicon.js"+q,"plans.js"+q,"readaloud.js"+q,"share.js"+q,"sync.js"+q,"pictures.js"+q,"router.js"+q,"settings.js"+q,"commentary.js"+q,"search.js"+q,"maps.js"+q,"timeline.js"+q,"memory.js"+q,"journal.js"+q,"trivia.js"+q,
   "img/icons/icon-192.png","img/icons/icon-512.png","img/icons/icon-180.png","img/icons/favicon-64.png"];
 // The core of the app works offline from the first visit: ASV text, study trails, typology, artwork.
 const CORE_DATA=["data/bible.json","data/study.json","data/typology.json","data/files.json",

@@ -38,6 +38,10 @@ Protestant canon ships as readable text.
   `#/journal`): entries with linked passages, autosave, a S.O.A.P. guide, search;
   start one from any verse. Both sync and back up through `SYNC_STORES`
   (items `mv:<id>`, `jn:<id>`); the Mark tab takes extra buttons via `MARK_ACTIONS`.
+- Bible trivia (`trivia.js`, `#/trivia`): rounds of 10 — Mixed, Old Testament,
+  New Testament, Finish the verse, Which book? Each answer shows the verse that
+  settles it. 128 hand-written questions, each with a key word that
+  `node tools/check_trivia.js` verifies is in its passage.
 - Hebrew / Greek tab: every verse's original words in order — original script,
   transliteration, English gloss, Strong's number. Tap a word for its lexicon
   entry (definition, parsing of that form, every verse that uses it).
