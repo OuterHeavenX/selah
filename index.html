@@ -14,7 +14,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Selah">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="style.css?v=17">
+<link rel="stylesheet" href="style.css?v=18">
 </head>
 <body>
 <header id="topbar">
@@ -28,6 +28,7 @@
     <button id="fsDec" class="icon-btn fs-btn" aria-label="Smaller text">A−</button>
     <button id="fsInc" class="icon-btn fs-btn" aria-label="Larger text">A+</button>
     <button id="themeBtn" class="icon-btn" aria-label="Toggle theme">◐</button>
+    <button id="settingsBtn" class="icon-btn" aria-label="Settings">⚙</button>
   </div>
 </header>
 
@@ -68,16 +69,26 @@
   <div class="lb-bar"><button class="lb-prev" aria-label="Previous picture">‹</button><div class="lb-cap"></div><button class="lb-next" aria-label="Next picture">›</button></div>
 </div>
 
+<div id="settingsWrap" class="hidden">
+  <div id="settingsScrim"></div>
+  <div id="settingsPanel" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div id="settingsTitle" class="sheet-ref">Settings</div><button id="settingsClose" class="icon-btn" aria-label="Close">✕</button></div>
+    <div id="settingsBody" class="sheet-body"></div>
+  </div>
+</div>
+
 <div id="toast" class="hidden" role="status" aria-live="polite"></div>
 
-<script src="app.js?v=17"></script>
-<script src="pictures.js?v=17"></script>
-<script src="book.js?v=17"></script>
-<script src="lexicon.js?v=17"></script>
-<script src="plans.js?v=17"></script>
-<script src="readaloud.js?v=17"></script>
-<script src="share.js?v=17"></script>
-<script src="sync.js?v=17"></script>
-<script src="router.js?v=17"></script>
+<script src="app.js?v=18"></script>
+<script src="pictures.js?v=18"></script>
+<script src="book.js?v=18"></script>
+<script src="lexicon.js?v=18"></script>
+<script src="plans.js?v=18"></script>
+<script src="readaloud.js?v=18"></script>
+<script src="share.js?v=18"></script>
+<script src="sync.js?v=18"></script>
+<script src="router.js?v=18"></script>
+<script src="settings.js?v=18"></script>
 </body>
 </html>
