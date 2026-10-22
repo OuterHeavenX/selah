@@ -307,6 +307,6 @@ window.addEventListener("resize",()=>{
    sheet and the image viewer, which still need to scroll. */
 document.addEventListener("touchmove",e=>{
   if(!document.documentElement.classList.contains("book-on")) return;
-  if(e.target.closest&&e.target.closest("#sheet, #lightbox")) return;
+  if(e.target.closest&&e.target.closest("#sheet, #settingsPanel, #lightbox")) return;
   if(e.cancelable) e.preventDefault();
 },{passive:false});

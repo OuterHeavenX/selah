@@ -550,6 +550,44 @@ function gotoVerse(ref){
   });
 }
 
+/* ---------- swipe down to close a bottom sheet ----------
+   Drag from the handle or title bar anytime; from the content only when it's scrolled to the top.
+   A long enough or quick enough pull closes it, otherwise it springs back. */
+function swipeToClose(panel,body,dismiss){
+  let y0=null, x0=0, dy=0, t0=0, drag=false, fromBody=false;
+  panel.addEventListener("touchstart",e=>{
+    if(e.touches.length!==1||e.target.closest("input,textarea,select,.seg,.tabs,.sheet-tabs")) { y0=null; return; }
+    fromBody=body.contains(e.target);
+    if(fromBody&&body.scrollTop>0){ y0=null; return; }
+    y0=e.touches[0].clientY; x0=e.touches[0].clientX; dy=0; t0=performance.now(); drag=false;
+  },{passive:true});
+  panel.addEventListener("touchmove",e=>{
+    if(y0===null) return;
+    const d=e.touches[0].clientY-y0, dx=Math.abs(e.touches[0].clientX-x0);
+    if(!drag){
+      if(d<-4||dx>Math.abs(d)||(fromBody&&body.scrollTop>0)){ y0=null; return; }   // scrolling or sideways
+      if(d<8){ if(d>0&&e.cancelable) e.preventDefault(); return; }    // stop the page's own pull-to-bounce
+      drag=true; panel.style.transition="none"; panel.style.animation="none";
+    }
+    dy=Math.max(0,d); panel.style.transform=`translateY(${dy}px)`;
+    if(e.cancelable) e.preventDefault();
+  },{passive:false});
+  const end=()=>{
+    if(y0===null) return; y0=null;
+    if(!drag) return; drag=false;
+    const fast=dy/Math.max(1,performance.now()-t0)>0.6;
+    panel.style.transition="transform .2s ease-out";
+    if(dy>Math.min(140,panel.offsetHeight*0.25)||(fast&&dy>40)){
+      panel.style.transform="translateY(100%)";
+      setTimeout(()=>{ dismiss(); panel.style.transition=""; panel.style.transform=""; panel.style.animation=""; },190);
+    } else {
+      panel.style.transform="";
+      setTimeout(()=>{ panel.style.transition=""; panel.style.animation=""; },210);
+    }
+  };
+  panel.addEventListener("touchend",end); panel.addEventListener("touchcancel",end);
+}
+
 /* ---------- SHEET ---------- */
 let sheetReturnFocus=null;
 function bindSheet(){
@@ -557,6 +595,7 @@ function bindSheet(){
   $("#sheetClose").onclick=dismiss;
   $("#sheetShare").onclick=()=>{ state.sheetTab="share"; paintSheet(); };
   $("#sheetScrim").onclick=dismiss;
+  swipeToClose($("#sheet"),$("#sheetBody"),dismiss);
   document.addEventListener("keydown",e=>{
     const lbOpen=!$("#lightbox").classList.contains("hidden");
     if(e.key==="Escape"){ if(lbOpen) dismissOverlay("lightbox",closeLightbox); else if(state.sheetRef) dismiss(); }

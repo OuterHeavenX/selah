@@ -104,6 +104,7 @@ function bindSettings(){
   $("#transBtn").onclick=openLibrary;
   const dismiss=()=>dismissOverlay("settings",closeSettings);
   $("#settingsClose").onclick=dismiss; $("#settingsScrim").onclick=dismiss;
+  swipeToClose($("#settingsPanel"),$("#settingsBody"),dismiss);
   document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&!$("#settingsWrap").classList.contains("hidden")) dismiss(); });
   // "Auto" theme follows the device when it switches between light and dark.
   if(window.matchMedia) matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change",()=>{ if(themePref()==="auto") applyThemePref("auto"); });
