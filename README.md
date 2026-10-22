@@ -34,6 +34,10 @@ Protestant canon ships as readable text.
 - Share as image: ⇪ in the verse sheet (or "Share this verse" in Mark) makes
   a 4:5 card — Parchment, Ink or Artwork style, 1–6 verses — and opens the
   share sheet or downloads a PNG (`share.js`).
+- Sync: Saved → Sync between devices. Email + password sign-in (Supabase
+  project "Selah"); highlights, notes and plan progress sync automatically,
+  newest change per item wins, deletions sync too, works offline and catches
+  up later (`sync.js`, table `public.user_data`, function `selah_sync`).
 - Saved: highlights + notes list, plus Backup: save a file with highlights,
   notes and plan progress and restore it on another device (merges, never
   deletes). Light/dark themes.
@@ -82,6 +86,18 @@ Versioning — keep these in step:
   `index.html` **and** `SHELL_V` in `sw.js` (same number).
 - Anything in `data/` or `img/art/` changed: bump `DATA_V` in **both**
   `app.js` and `sw.js`, then rerun `tools/build_offline_list.py`.
+
+## Sync backend (Supabase)
+Project `Selah` (ref `vxhoiyjodwzjzvfrbqvv`, free plan, us-east-2).
+- `public.user_data(user_id, items jsonb, updated_at)` with row-level security:
+  each signed-in user can only read and write their own row.
+- `public.selah_sync(changes jsonb)` merges changed items (newest `t` wins per
+  item) and returns the user's full item map; callable by signed-in users only.
+- The page uses the project's publishable key (safe to ship); there is no
+  server code. Auth settings → URL Configuration must list the site URL so
+  confirmation and password-reset emails link back here.
+- Free projects pause after about a week without use; restore from the
+  dashboard and sync resumes (the app keeps working locally meanwhile).
 
 ## Art
 `img/art/*.jpg` (900px wide). Listed in the `ART` array in `app.js` in the
