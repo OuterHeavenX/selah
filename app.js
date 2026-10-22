@@ -1,6 +1,6 @@
 "use strict";
 /* Selah — ASV Study Bible prototype */
-const DATA_V="12"; // bump when data/*.json changes so phones drop cached copies
+const DATA_V="13"; // bump when data/*.json changes so phones drop cached copies
 let XREFS={}, STUDY=null, TYPES=[];
 const TRANSLATIONS={
   asv:{name:"ASV", full:"American Standard Version (1901)", short:"ASV 1901", file:"data/bible.json"},
@@ -104,7 +104,7 @@ async function boot(){
   let want=store.get("trans","asv"); if(!TRANSLATIONS[want]) want="asv";
   try{
     const [s,m]=await Promise.all([
-      getJSON("data/study_john.json"), getJSON("data/typology.json"),
+      getJSON("data/study.json"), getJSON("data/typology.json"),
       loadTranslation(want)
     ]);
     STUDY=s; TYPES=(m.types||[]).map(t=>({...t, _nt:parsePassage(t.nt), _ot:parsePassage(t.ot)}));
@@ -273,7 +273,7 @@ function renderHome(){
   +`<div class="home-grid">
     <button class="home-card" data-go="read"><div class="hc-t">Read</div><div class="hc-s">The Bible · ${esc(TRANSLATIONS[state.trans].short)}</div></button>
     <button class="home-card" data-go="search"><div class="hc-t">Search</div><div class="hc-s">Any word or phrase</div></button>
-    <button class="home-card" data-go="christ"><div class="hc-t">Trace Christ</div><div class="hc-s">Study trails in John</div></button>
+    <button class="home-card" data-go="christ"><div class="hc-t">Trace Christ</div><div class="hc-s">Study trails, Genesis to Revelation</div></button>
     <button class="home-card" data-go="images"><div class="hc-t">Images</div><div class="hc-s">${ART.length} pieces of art</div></button>
     <button class="home-card" data-go="plans"><div class="hc-t">Reading plans</div><div class="hc-s">${getPlan()?"Your plan and progress":"Year, Gospels, NT…"}</div></button>
     <button class="home-card" data-go="saved"><div class="hc-t">Saved</div><div class="hc-s">${hlN} highlight${hlN===1?"":"s"} · ${noteN} note${noteN===1?"":"s"}</div></button>
@@ -512,7 +512,7 @@ function passageHTML(vs){
 function paintParallels(body,ref){
   const p=parseRef(ref); if(!p){body.innerHTML='<div class="empty">—</div>';return;}
   const sets=STUDY.parallels.filter(s=>s.verses.some(v=>{const pp=parsePassage(v);return pp&&verseInPassage(p.book,p.ch,p.v,pp);}));
-  if(!sets.length){ body.innerHTML='<div class="empty">No parallel passages recorded for this verse. Parallel sets currently cover the Gospels material in John.</div>'; return; }
+  if(!sets.length){ body.innerHTML='<div class="empty">No parallel passages recorded for this verse. Parallels cover the major events and teaching shared by the Gospels.</div>'; return; }
   body.innerHTML=sets.map(s=>`<div class="par-card"><h4>${esc(s.title)}</h4>`+s.verses.map(v=>{
     const pp=parsePassage(v);
     const cur=pp&&verseInPassage(p.book,p.ch,p.v,pp);
@@ -639,9 +639,8 @@ function renderSearch(){
 /* ---------- CHRIST ---------- */
 function renderChrist(){
   const v=$("#view");
-  v.innerHTML=`<h2 class="section-title">Trace Christ through John</h2>
-  <div class="section-sub">Curated study trails: every item jumps straight to the verse in the ${esc(TRANSLATIONS[state.trans].name)}.</div>
-  <div id="traces">`+STUDY.traces.map(t=>`
+  const groups=[...new Set(STUDY.traces.map(t=>t.group||"John"))];
+  const card=t=>`
     <div class="trace-card" data-id="${esc(t.id)}">
       <button class="trace-head" aria-expanded="false"><h3>${esc(t.title)}</h3><span class="cnt">${t.items.length} ▾</span></button>
       <div class="trace-intro">${esc(t.intro)}</div>
@@ -650,7 +649,10 @@ function renderChrist(){
           <span class="tr">${esc(it.ref)}</span><div class="tl">${esc(it.label)}</div>
           ${it.note?`<div class="tn">${esc(it.note)}</div>`:""}
         </button>`).join("")}</div>
-    </div>`).join("")+`</div>`;
+    </div>`;
+  v.innerHTML=`<h2 class="section-title">Trace Christ</h2>
+  <div class="section-sub">Curated study trails from Genesis to Revelation: every item jumps straight to the passage in the ${esc(TRANSLATIONS[state.trans].name)}. Tap a trail to open it.</div>`
+  +groups.map(g=>`<div class="trace-group">${esc(g==="John"?"The Gospel of John":g)}</div><div class="traces">`+STUDY.traces.filter(t=>(t.group||"John")===g).map(card).join("")+`</div>`).join("");
   v.querySelectorAll(".trace-card").forEach(c=>{
     const head=c.querySelector(".trace-head");
     head.onclick=()=>{ const open=c.classList.toggle("open"); head.setAttribute("aria-expanded",open); };

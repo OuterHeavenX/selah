@@ -288,7 +288,7 @@ html.book-on .book-toggle{margin-left:12px;}
 
   /* Christ: trail cards side by side */
   /* masonry-style columns, so opening one trail doesn't leave a gap beside it */
-  #traces{columns:2; column-gap:16px; padding:4px 28px 16px;}
+  #traces,.traces{columns:2; column-gap:16px; padding:4px 28px 16px;}
   .trace-card{margin:0 0 16px; break-inside:avoid;}
 
   /* Saved: card grid */
@@ -310,7 +310,7 @@ html.book-on .book-toggle{margin-left:12px;}
   html:not(.book-on) .reader-nav select{max-width:260px;}
 }
 @media (min-width:1200px){
-  #traces{columns:3;}
+  #traces,.traces{columns:3;}
   .sr-list{grid-template-columns:repeat(3,minmax(0,1fr));}
 }
 
@@ -410,3 +410,6 @@ div.home-plan{cursor:default;}
 .share-lbl{font-size:12px; text-transform:uppercase; letter-spacing:1.5px; color:var(--ink-soft); margin-right:4px;}
 .share-n{min-width:20px; text-align:center; font-weight:700;}
 .share-link{color:var(--accent); border-color:var(--line);}
+
+.trace-group{font-size:12px; text-transform:uppercase; letter-spacing:1.6px; color:var(--accent); font-weight:700; padding:18px 16px 0;}
+@media (min-width:900px){ .trace-group{padding:22px 28px 0;} }

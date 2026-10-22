@@ -15,9 +15,10 @@ Protestant canon ships as readable text.
   transliteration, English gloss, Strong's number. Tap a word for its lexicon
   entry (definition, parsing of that form, every verse that uses it).
 - Search: whole-Bible text search with highlighted snippets.
-- Christ: curated trails through John — the seven "I AM" sayings,
-  titles of Christ, prophecies fulfilled, the seven signs,
-  and a 12-verse "spine of John".
+- Christ: curated trails — John (I AM sayings, titles, prophecies, signs,
+  the spine of John), Matthew's fulfilment quotations, the parables, the
+  mighty works in Mark, Old Testament promises of the Messiah, Psalms read
+  of Christ, and the early church's hymns in the letters.
 - Images: artwork in Bible order, full-screen viewer, links to the passage;
   the same pieces rotate on the Home screen.
 - Book view (iPad landscape / wide screens ≥900px): two pages side by side
@@ -59,7 +60,8 @@ Protestant canon ships as readable text.
   (CC BY), derived primarily from the Treasury of Scripture Knowledge. One file
   per book, loaded when that book is opened; negative-voted rows dropped,
   ranked by votes, capped at 50 per verse. Built by `tools/build_xrefs.py`.
-- `data/study_john.json` — hand-curated: parallels + Christology trails.
+- `data/study.json` — hand-curated: 45 Gospel parallel sets and 11 study
+  trails (John; Matthew, Mark & Luke; Old Testament; the letters).
 
 ## Regenerate data
 Raw downloads live in `data/raw/` (kept out of the app). The build script
