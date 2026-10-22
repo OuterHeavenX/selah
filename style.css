@@ -122,6 +122,13 @@ body{
 .trace-item .tr{font-weight:700; color:var(--accent); font-size:14px;}
 .trace-item .tl{font-size:14.5px; margin-top:1px;}
 .trace-item .tn{font-size:13px; color:var(--ink-soft); margin-top:3px; line-height:1.55;}
+/* An open trail takes a warm gold tint so its verses read as one group */
+.trace-card{transition:background .2s, border-color .2s, box-shadow .2s;}
+.trace-card.open{background:var(--accent-soft); border-color:color-mix(in srgb, var(--accent) 55%, transparent); border-left:4px solid var(--accent); box-shadow:0 2px 10px rgba(80,60,20,.08);}
+.trace-card.open .trace-head h3{color:var(--accent);}
+.trace-card.open .trace-items{border-top-color:color-mix(in srgb, var(--accent) 35%, transparent); background:color-mix(in srgb, var(--accent-soft) 55%, var(--sheet));}
+.trace-card.open .trace-item{border-bottom-color:color-mix(in srgb, var(--accent) 22%, transparent);}
+.trace-card.open .trace-item:active{background:var(--accent-soft);}
 .section-title{font-family:Georgia,serif; font-size:20px; padding:14px 16px 4px; margin:0;}
 .section-sub{padding:0 16px 8px; color:var(--ink-soft); font-size:13.5px; line-height:1.6;}
 /* saved */
@@ -814,3 +821,5 @@ div.home-plan{cursor:default;}
 .lib-cur{font-size:13px; font-weight:700; color:var(--accent);}
 .trans-gap{margin:10px 16px 14px; padding:10px 14px; border-radius:10px; background:var(--accent-soft); color:var(--ink); font-size:14px; line-height:1.45;}
 #bookSpread .trans-gap{margin:0 0 12px;}
+.trace-head .chev{display:inline-block; transition:transform .2s;}
+.trace-card.open .trace-head .chev{transform:rotate(180deg); color:var(--accent);}

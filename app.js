@@ -719,7 +719,7 @@ function renderChrist(){
   const groups=[...new Set(STUDY.traces.map(t=>t.group||"John"))];
   const card=t=>`
     <div class="trace-card" data-id="${esc(t.id)}">
-      <button class="trace-head" aria-expanded="false"><h3>${esc(t.title)}</h3><span class="cnt">${t.items.length} ▾</span></button>
+      <button class="trace-head" aria-expanded="false"><h3>${esc(t.title)}</h3><span class="cnt">${t.items.length} <span class="chev">▾</span></span></button>
       <div class="trace-intro">${esc(t.intro)}</div>
       <div class="trace-items">${t.items.map(it=>`
         <button class="trace-item" data-r="${esc(it.ref)}">
