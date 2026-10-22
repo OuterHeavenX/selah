@@ -1,6 +1,6 @@
 "use strict";
 /* Selah — ASV Study Bible prototype */
-const DATA_V="15"; // bump when data/ or img/art/ changes (and DATA_V in sw.js) so devices drop cached copies
+const DATA_V="16"; // bump when data/ or img/art/ changes (and DATA_V in sw.js) so devices drop cached copies
 let XREFS={}, STUDY=null, TYPES=[];
 const TRANSLATIONS={
   asv:{name:"ASV", full:"American Standard Version (1901)", short:"ASV 1901", file:"data/bible.json"},
@@ -120,7 +120,7 @@ async function boot(){
   updateTransUI();
   const pos=store.get("pos",null);
   if(pos&&BOOKS.some(b=>b.name===pos.book)){ state.book=pos.book; state.ch=pos.ch; }
-  bindTabs(); bindTheme(); bindFontSize(); bindSheet(); bindTrans(); bindSettings();
+  bindTabs(); bindTheme(); bindFontSize(); bindSheet(); bindTrans(); bindSettings(); syncCommTab();
   setupSync();
   if("scrollRestoration" in history) history.scrollRestoration="manual";
   startRouter();
@@ -145,8 +145,10 @@ async function offlineStatus(){
   try{
     const list=await getJSON("data/files.json"), c=await caches.open("selah-data");
     const keys=new Set((await c.keys()).map(r=>r.url));
-    const have=list.files.filter(f=>keys.has(new URL(f.p+"?v="+DATA_V,location.href).href));
-    return {list,have:have.length,total:list.files.length,haveBytes:have.reduce((a,f)=>a+f.s,0)};
+    // Commentary files count only for the work chosen in Settings (and none when commentary is off).
+    const files=list.files.filter(f=>!f.p.startsWith("data/comm/")||(commOn()&&f.p.startsWith(`data/comm/${commSrc()}/`)));
+    const have=files.filter(f=>keys.has(new URL(f.p+"?v="+DATA_V,location.href).href));
+    return {list:{files,bytes:files.reduce((a,f)=>a+f.s,0)},have:have.length,total:files.length,haveBytes:have.reduce((a,f)=>a+f.s,0)};
   }catch(e){ return null; }
 }
 function offlineHTML(){
@@ -155,7 +157,7 @@ function offlineHTML(){
     ?`<button class="btn-ghost" id="installBtn">Install Selah as an app</button>`
     :ios?`<div class="section-sub" style="padding:8px 0 0">To install: in Safari tap <b>Share</b> then <b>Add to Home Screen</b>. Selah then opens full-screen like an app.</div>`:"";
   return `<div class="backup" id="offlineBox"><div class="lbl">Offline</div>
-    <div class="section-sub" style="padding:0 0 10px">The ASV, study trails and artwork are kept on this device, so Selah opens without a connection. Hebrew and Greek, cross-references and the WEB are saved as you use them — or save them all now.</div>
+    <div class="section-sub" style="padding:0 0 10px">The ASV, study trails and artwork are kept on this device, so Selah opens without a connection. Hebrew and Greek, cross-references, commentary and the other translations are saved as you use them — or save them all now.</div>
     <div id="offStatus" class="section-sub" style="padding:0 0 10px">Checking…</div>
     <div class="dl-bar hidden" id="dlBar"><div></div></div>
     <div class="backup-row"><button class="btn-primary" id="dlAll" disabled>Download everything</button></div>${install}</div>`;
@@ -170,7 +172,7 @@ async function bindOffline(){
   btn.disabled=false;
   btn.onclick=async()=>{
     btn.disabled=true; const bar=$("#dlBar"); bar.classList.remove("hidden");
-    const todo=st.list.files; let done=0, bytes=0, failed=0;
+    const todo=[...st.list.files]; let done=0, bytes=0, failed=0;
     const c=await caches.open("selah-data");
     const worker=async()=>{ while(todo.length){ const f=todo.shift(); const u=f.p+"?v="+DATA_V;
       try{ if(!(await c.match(u))){ const r=await fetch(u); if(!r.ok) throw 0; await c.put(u,r); } }catch(e){ failed++; }
@@ -492,7 +494,7 @@ function bindSheet(){
 }
 function openSheet(ref,tab){
   sheetReturnFocus=document.activeElement;
-  state.sheetRef=ref; state.sheetTab=tab||"xrefs";
+  state.sheetRef=ref; state.sheetTab=tab==="comment"&&!commOn()?"xrefs":(tab||"xrefs");
   if(typeof lexState!=="undefined"){ lexState.ref=null; lexState.strong=null; }
   const wasOpen=!$("#sheetWrap").classList.contains("hidden");
   $("#sheetWrap").classList.remove("hidden");
@@ -521,7 +523,7 @@ function paintSheet(){
       if(l<tabs.scrollLeft) tabs.scrollLeft=l; else if(r>tabs.scrollLeft+tabs.clientWidth) tabs.scrollLeft=r-tabs.clientWidth; }
   });
   const body=$("#sheetBody"); body.scrollTop=0;
-  ({xrefs:paintXrefs,original:paintOriginal,parallels:paintParallels,typology:paintTypes,words:paintWords,mark:paintMark,share:paintShare})[state.sheetTab](body,ref);
+  ({xrefs:paintXrefs,comment:paintComment,original:paintOriginal,parallels:paintParallels,typology:paintTypes,words:paintWords,mark:paintMark,share:paintShare})[state.sheetTab](body,ref);
 }
 async function paintXrefs(body,ref){
   const p=parseRef(ref);
