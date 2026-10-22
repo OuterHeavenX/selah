@@ -31,7 +31,7 @@ const TL_EVENTS=[
   ["call","patriarchs",-2091,"c. 2091 BC","The call of Abram","Genesis 12:1-9","At 75, Abram leaves Haran for a land God will show him, with a promise to bless all nations.",{art:"genesis-abraham",place:"a6d9af3",journey:"abraham"}],
   ["covenant","patriarchs",-2081,"c. 2081 BC","God’s covenant with Abram","Genesis 15:1-21","Abram believes the LORD, and it is counted to him as righteousness.",{}],
   ["sodom","patriarchs",-2067,"c. 2067 BC","Sodom and Gomorrah destroyed","Genesis 19:1-29","Fire falls on the cities of the plain; Lot is rescued.",{}],
-  ["isaac","patriarchs",-2066,"c. 2066 BC","Isaac born","Genesis 21:1-7","The promised son is born to Abraham at 100 and Sarah at 90.",{}],
+  ["isaac","patriarchs",-2066,"c. 2066 BC","Isaac born","Genesis 21:1-7","The promised son is born to Abraham at 100 and Sarah at 90.",{art:"genesis-isaac"}],
   ["moriah","patriarchs",-2050,"","Abraham offers Isaac","Genesis 22:1-19","On Mount Moriah God provides a ram in Isaac’s place: “The LORD will provide.”",{}],
   ["twins","patriarchs",-2006,"c. 2006 BC","Jacob and Esau born","Genesis 25:19-26","Rebekah’s twins struggle even before birth; the older will serve the younger.",{}],
   ["ladder","patriarchs",-1929,"c. 1929 BC","Jacob’s ladder","Genesis 28:10-22","Fleeing Esau, Jacob dreams of a stairway to heaven and God renews the promise.",{place:"a64f355"}],
