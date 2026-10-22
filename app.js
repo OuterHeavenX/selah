@@ -121,7 +121,8 @@ async function boot(){
   if(pos&&BOOKS.some(b=>b.name===pos.book)){ state.book=pos.book; state.ch=pos.ch; }
   bindTabs(); bindTheme(); bindFontSize(); bindSheet(); bindTrans();
   setupSync();
-  showView("home");
+  if("scrollRestoration" in history) history.scrollRestoration="manual";
+  startRouter();
   ensureXrefs(state.book);
   setupOffline();
 }
@@ -283,6 +284,7 @@ function showView(v){
   if(v!=="read"){ document.documentElement.classList.remove("book-on"); stopReading(); }
   ({home:renderHome,read:renderRead,search:renderSearch,christ:renderChrist,images:renderImages,saved:renderSaved,plans:renderPlans})[v]();
   window.scrollTo(0,0);
+  routeView(v);
 }
 
 /* Artwork and the picture timeline live in pictures.js (ART, HOME_ART, PICTURE_BOOKS, renderImages). */
@@ -356,8 +358,9 @@ function openLightbox(i,list=HOME_ART){
   lb.querySelector(".lb-prev").onclick=e=>{ e.stopPropagation(); lbIdx=(lbIdx-1+L.length)%L.length; paint(); };
   lb.querySelector(".lb-next").onclick=e=>{ e.stopPropagation(); lbIdx=(lbIdx+1)%L.length; paint(); };
   lb.querySelector(".lb-prev").hidden=lb.querySelector(".lb-next").hidden=L.length<2;
-  lb.querySelector(".lb-close").onclick=closeLightbox;
-  lb.onclick=e=>{ if(e.target===lb) closeLightbox(); };
+  lb.querySelector(".lb-close").onclick=()=>dismissOverlay("lightbox",closeLightbox);
+  lb.onclick=e=>{ if(e.target===lb) dismissOverlay("lightbox",closeLightbox); };
+  pushOverlay("lightbox");
   let x0=null;
   lb.ontouchstart=e=>{ x0=e.touches[0].clientX; };
   lb.ontouchend=e=>{ if(x0==null) return; const dx=e.changedTouches[0].clientX-x0; x0=null;
@@ -435,7 +438,7 @@ function renderRead(){
   bindVerseOpen(list);
   bindReaderNav();
 }
-function savePos(){ store.set("pos",{book:state.book,ch:state.ch}); }
+function savePos(){ store.set("pos",{book:state.book,ch:state.ch}); routeChapter(); }
 function stepChapter(d){
   const bi=BOOKS.findIndex(b=>b.name===state.book);
   let nb=bi, nc=state.ch+d;
@@ -447,8 +450,8 @@ function stepChapter(d){
 function gotoVerse(ref){
   const p=parsePassage(ref); if(!p||!BOOKS.some(b=>b.name===p.book)) return;
   state.book=p.book; state.ch=p.ch; savePos();
-  if(isBookMode()){ bookReveal(p); return; }
-  showView("read");
+  if(isBookMode()){ bookReveal(p); routeVerse(p); return; }
+  showView("read"); routeVerse(p);
   requestAnimationFrame(()=>{
     const els=[...document.querySelectorAll(".verse[data-ref]")].filter(el=>{
       const r=parseRef(el.dataset.ref); return r&&verseInPassage(r.book,r.ch,r.v,p);
@@ -467,12 +470,13 @@ function gotoVerse(ref){
 /* ---------- SHEET ---------- */
 let sheetReturnFocus=null;
 function bindSheet(){
-  $("#sheetClose").onclick=closeSheet;
+  const dismiss=()=>dismissOverlay("sheet",closeSheet);
+  $("#sheetClose").onclick=dismiss;
   $("#sheetShare").onclick=()=>{ state.sheetTab="share"; paintSheet(); };
-  $("#sheetScrim").onclick=closeSheet;
+  $("#sheetScrim").onclick=dismiss;
   document.addEventListener("keydown",e=>{
     const lbOpen=!$("#lightbox").classList.contains("hidden");
-    if(e.key==="Escape"){ if(lbOpen) closeLightbox(); else if(state.sheetRef) closeSheet(); }
+    if(e.key==="Escape"){ if(lbOpen) dismissOverlay("lightbox",closeLightbox); else if(state.sheetRef) dismiss(); }
     else if(lbOpen&&(e.key==="ArrowRight"||e.key==="ArrowLeft")) $(e.key==="ArrowRight"?".lb-next":".lb-prev").click();
   });
   document.querySelectorAll("#sheetTabs button").forEach(b=>{
@@ -483,8 +487,10 @@ function openSheet(ref,tab){
   sheetReturnFocus=document.activeElement;
   state.sheetRef=ref; state.sheetTab=tab||"xrefs";
   if(typeof lexState!=="undefined"){ lexState.ref=null; lexState.strong=null; }
+  const wasOpen=!$("#sheetWrap").classList.contains("hidden");
   $("#sheetWrap").classList.remove("hidden");
   document.body.classList.add("sheet-open");
+  if(!wasOpen) pushOverlay("sheet");
   paintSheet();
   $("#sheetClose").focus({preventScroll:true});
 }
@@ -632,7 +638,7 @@ function renderSearch(){
   const v=$("#view");
   v.innerHTML=`<div class="search-bar"><input id="q" type="search" placeholder="Search the Bible…" enterkeyhint="search" aria-label="Search the Bible"><button class="nav-btn" id="go">Go</button></div><div id="results"></div>`;
   const run=()=>{
-    const q=foldQuotes($("#q").value.trim().toLowerCase()).replace(/\s+/g," "); const box=$("#results");
+    const q=foldQuotes($("#q").value.trim().toLowerCase()).replace(/\s+/g," "); const box=$("#results"); setRoute(routeFor("search"),true);
     if(q.length<2){ box.innerHTML='<div class="empty" style="padding:14px 16px">Type at least 2 characters.</div>'; return; }
     const out=[]; let more=false;
     scan: for(const b of BOOKS) for(let ci=0;ci<b.chapters.length;ci++) for(let vi=0;vi<b.chapters[ci].length;vi++){

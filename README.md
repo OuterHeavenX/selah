@@ -40,6 +40,10 @@ Protestant canon ships as readable text.
   project "Selah"); highlights, notes and plan progress sync automatically,
   newest change per item wins, deletions sync too, works offline and catches
   up later (`sync.js`, table `public.user_data`, function `selah_sync`).
+- Links and back button: every screen has an address (`#/read/John/3/16`,
+  `#/images/Genesis`, `#/search?q=grace` …); shared verse links open straight
+  to the passage; the phone's back button closes the verse sheet / picture
+  viewer first, then steps back through screens (`router.js`).
 - Saved: highlights + notes list, plus Backup: save a file with highlights,
   notes and plan progress and restore it on another device (merges, never
   deletes). Light/dark themes.

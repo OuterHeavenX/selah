@@ -121,7 +121,7 @@ function renderImages(){
           ${a.also?`<button class="typ-link pb-read" data-r="${esc(a.also)}">Fulfilled in ${esc(a.also)} →</button>`:""}
         </figcaption></figure></div></li>`;
   }).join("")+`</ol>`;
-  v.querySelectorAll(".pb-books .chip").forEach(b=>b.onclick=()=>{ store.set("picBook",b.dataset.b); renderImages(); });
+  v.querySelectorAll(".pb-books .chip").forEach(b=>b.onclick=()=>{ store.set("picBook",b.dataset.b); renderImages(); setRoute(routeFor("images"),true); });
   v.querySelectorAll(".art-img").forEach(b=>b.onclick=()=>openLightbox(+b.dataset.i,seq));
   v.querySelectorAll(".pb-read,.pb-panel").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r));
 }

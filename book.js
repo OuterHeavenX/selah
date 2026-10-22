@@ -102,6 +102,11 @@ function paintSpread(){
   const prev=prevSpread(BOOK.sp), next=nextSpread(BOOK.sp);
   $("#bookPrev").disabled=!prev; $("#bookNext").disabled=!next;
   if(typeof markSpeaking==="function") markSpeaking();
+  // Keep a just-opened passage flashing even if the page is redrawn (e.g. when cross-reference counts arrive).
+  if(BOOK.flash&&Date.now()<BOOK.flash.until){
+    const fp=BOOK.flash.p;
+    spread.querySelectorAll(".verse[data-ref]").forEach(el=>{ const q=parseRef(el.dataset.ref); if(q&&verseInPassage(q.book,q.ch,q.v,fp)) el.classList.add("flash"); });
+  }
   // Moving into another chapter keeps the chapter picker and "continue reading" in step.
   const L=BOOK.sp.L;
   if(state.book!==L.b||state.ch!==L.c){
@@ -163,11 +168,9 @@ function bookReveal(p){
   const onScreen=BOOK.sp&&(samePage(BOOK.sp.L,{b:p.book,c:p.ch,i})||samePage(BOOK.sp.R,{b:p.book,c:p.ch,i}));
   if(!onScreen) BOOK.sp=spreadAt({b:p.book,c:p.ch,i});
   paintSpread();
-  const els=[...document.querySelectorAll("#bookSpread .verse[data-ref]")].filter(el=>{
-    const q=parseRef(el.dataset.ref); return q&&verseInPassage(q.book,q.ch,q.v,p);
-  });
-  els.forEach(el=>el.classList.add("flash"));
-  setTimeout(()=>els.forEach(el=>el.classList.remove("flash")),1800);
+  BOOK.flash={p,until:Date.now()+1800};
+  paintSpread();
+  setTimeout(()=>document.querySelectorAll("#bookSpread .verse.flash").forEach(el=>el.classList.remove("flash")),1800);
 }
 
 /* ---------- the page turn ---------- */
