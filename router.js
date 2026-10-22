@@ -11,7 +11,10 @@ const unslugBook=s=>decodeURIComponent(s).replace(/_/g," ");
 function readHash(book,ch,v,v2){
   return `#/read/${slugBook(book)}/${ch}`+(v?`/${v}`+(v2&&v2!==v?`-${v2}`:""):"");
 }
+// Feature screens can own their address: EXTRA_ROUTES[view]={hash:()=>"#/maps/…", apply:(parts,query)=>{…}}.
+const EXTRA_ROUTES={};
 function routeFor(v){
+  if(EXTRA_ROUTES[v]) return EXTRA_ROUTES[v].hash();
   if(v==="read") return readHash(state.book,state.ch);
   if(v==="images") return "#/images/"+slugBook(store.get("picBook","Genesis"));
   if(v==="search") return searchHash();
@@ -60,7 +63,8 @@ function applyRoute(hash){
     }
     if(view==="images"&&parts[0]) store.set("picBook",unslugBook(parts[0]));
     if(view==="search") setSearchFromQuery(query);
-    const views=["home","read","search","christ","images","saved","plans"];
+    if(EXTRA_ROUTES[view]) EXTRA_ROUTES[view].apply(parts,query);
+    const views=["home","read","search","christ","images","saved","plans",...Object.keys(EXTRA_VIEWS)];
     showView(views.includes(view)?view:"home");
   }finally{ ROUTER.applying=false; }
 }

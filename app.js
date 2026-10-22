@@ -1,6 +1,6 @@
 "use strict";
 /* Selah — ASV Study Bible prototype */
-const DATA_V="17"; // bump when data/ or img/art/ changes (and DATA_V in sw.js) so devices drop cached copies
+const DATA_V="18"; // bump when data/ or img/art/ changes (and DATA_V in sw.js) so devices drop cached copies
 let XREFS={}, STUDY=null, TYPES=[];
 const TRANSLATIONS={
   asv:{name:"ASV", full:"American Standard Version (1901)", short:"ASV 1901", file:"data/bible.json"},
@@ -285,10 +285,13 @@ function showView(v){
   });
   closeSheet(); closeLightbox(); stopHeroRotation();
   if(v!=="read"){ document.documentElement.classList.remove("book-on"); stopReading(); }
-  ({home:renderHome,read:renderRead,search:renderSearch,christ:renderChrist,images:renderImages,saved:renderSaved,plans:renderPlans})[v]();
+  ({home:renderHome,read:renderRead,search:renderSearch,christ:renderChrist,images:renderImages,saved:renderSaved,plans:renderPlans,...EXTRA_VIEWS})[v]();
   window.scrollTo(0,0);
   routeView(v);
 }
+
+// Screens added by feature files (maps.js, …): EXTRA_VIEWS[name]=render; HOME_TOOLS adds their card on Home.
+const EXTRA_VIEWS={}, HOME_TOOLS=[];   // HOME_TOOLS: [{go, title, sub()}]
 
 /* Artwork and the picture timeline live in pictures.js (ART, HOME_ART, PICTURE_BOOKS, renderImages). */
 
@@ -319,6 +322,7 @@ function renderHome(){
     <button class="home-card" data-go="christ"><div class="hc-t">Trace Christ</div><div class="hc-s">Study trails, Genesis to Revelation</div></button>
     <button class="home-card" data-go="images"><div class="hc-t">Images</div><div class="hc-s">Picture Bible · ${ART.length} pieces</div></button>
     <button class="home-card" data-go="plans"><div class="hc-t">Reading plans</div><div class="hc-s">${getPlan()?"Your plan and progress":"Year, Gospels, NT…"}</div></button>
+${HOME_TOOLS.map(t=>`<button class="home-card" data-go="${t.go}"><div class="hc-t">${esc(t.title)}</div><div class="hc-s">${esc(t.sub())}</div></button>`).join("")}
     <button class="home-card" data-go="saved"><div class="hc-t">Saved</div><div class="hc-s">${hlN} highlight${hlN===1?"":"s"} · ${noteN} note${noteN===1?"":"s"}</div></button>
   </div>
   <div class="home-foot">Selah · ${esc(TRANSLATIONS[state.trans].full)}, public domain</div></div></div>`;
@@ -534,13 +538,13 @@ async function paintXrefs(body,ref){
   }
   const R=vrefs();
   const list=(XREFS[ref]||[]).filter(e=>textOf(R[e[0]]));
-  if(!list.length){ body.innerHTML='<div class="empty">No cross-references recorded for this verse.</div><div id="xTopics"></div>'; fillVerseTopics(ref); return; }
+  if(!list.length){ body.innerHTML='<div class="empty">No cross-references recorded for this verse.</div><div id="xTopics"></div>'; fillVerseTopics(ref); fillVersePlaces(ref); return; }
   body.innerHTML=`<div class="lbl">${list.length} cross-reference${list.length===1?"":"s"} · ranked by relevance</div>`+list.map(e=>{
     const t=textOf(R[e[0]]); const prev=t.length>110?t.slice(0,110)+"…":t; const d=xrefLabel(e);
     return `<button class="xref-row" data-r="${esc(d)}"><span class="xr">${esc(d)}</span><span class="xv">${verseHTML(prev)}</span><span class="xvotes">relevance ${e[1]}</span></button>`;
   }).join("")+`<div id="xTopics"></div><div class="orig-credit">Cross-references: OpenBible.info (CC BY), from the Treasury of Scripture Knowledge and reader votes.</div>`;
   body.querySelectorAll(".xref-row").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r));
-  fillVerseTopics(ref);
+  fillVerseTopics(ref); fillVersePlaces(ref);
 }
 function passageHTML(vs){
   return vs.map(x=>`<span class="vn">${x.ref.split(":")[1]}</span>${verseHTML(x.text)} `).join("");
