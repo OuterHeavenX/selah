@@ -120,6 +120,7 @@ async function boot(){
   const pos=store.get("pos",null);
   if(pos&&BOOKS.some(b=>b.name===pos.book)){ state.book=pos.book; state.ch=pos.ch; }
   bindTabs(); bindTheme(); bindFontSize(); bindSheet(); bindTrans();
+  setupSync();
   showView("home");
   ensureXrefs(state.book);
   setupOffline();
@@ -722,7 +723,7 @@ function renderSaved(){
     const pa=order(a),pb=order(b); return pa[0]-pb[0]||pa[1]-pb[1]||pa[2]-pb[2];
   });
   v.innerHTML=`<h2 class="section-title">Saved</h2>
-  <div class="section-sub">Your highlights and study notes live on this device — use Backup below to carry them to your other devices.</div>
+  <div class="section-sub">Your highlights and study notes. Sign in below to keep them in step across your devices.</div>
   <div id="savedList">`+(keys.length?keys.map(k=>`
     <button class="saved-item${HL[k]?" hl-"+HL[k]:""}" data-r="${esc(k)}">
       <span class="sr2">${esc(k)}</span><div class="sv2">${verseHTML(textOf(k))}</div>
@@ -733,7 +734,7 @@ function renderSaved(){
   Cross-references (whole Bible): OpenBible.info (CC BY), derived primarily from the Treasury of Scripture Knowledge.<br>
   Hebrew and Greek text, glosses and lexicons: STEPBible.org (Tyndale House, Cambridge), CC BY 4.0.<br>
   Parallel passages, Christology trails and signs curated for this edition.</div>`;
-  v.querySelector("#savedList").insertAdjacentHTML("afterend",backupHTML()+offlineHTML()); bindBackup(); bindOffline();
+  v.querySelector("#savedList").insertAdjacentHTML("afterend",syncHTML()+backupHTML()+offlineHTML()); bindSync(); bindBackup(); bindOffline();
   v.querySelectorAll(".saved-item").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r));
 }
 

@@ -421,3 +421,13 @@ div.home-plan{cursor:default;}
 .dl-bar.hidden{display:none;}
 .dl-bar>div{height:100%; width:0; background:var(--accent); transition:width .2s;}
 #installBtn{color:var(--accent); border-color:var(--accent); margin-top:10px;}
+
+/* ---------- sync ---------- */
+.sync-box{border-top:none; margin-top:14px; padding:14px 16px; border:1px solid var(--accent); border-radius:14px; background:var(--sheet);}
+.sync-box input{width:100%; font-size:16px; padding:11px 12px; margin:0 0 10px; border:1px solid var(--line); border-radius:10px; background:var(--paper); color:var(--ink); font-family:inherit;}
+.sync-status{font-size:13.5px; color:var(--ink-soft); margin:0 0 12px;}
+.sync-status.err{color:var(--danger);}
+.sync-msg{font-size:13.5px; color:var(--ink); margin-top:10px; line-height:1.5;}
+.sync-msg:empty{display:none;}
+.link-btn{background:none; border:none; color:var(--accent); font-size:13.5px; padding:10px 0 0; cursor:pointer; text-decoration:underline;}
+@media (min-width:900px){ .sync-box{margin:18px 28px 0; max-width:640px;} }
