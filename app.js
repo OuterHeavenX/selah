@@ -1,6 +1,6 @@
 "use strict";
 /* Selah — ASV Study Bible prototype */
-const DATA_V="9"; // bump when data/*.json changes so phones drop cached copies
+const DATA_V="10"; // bump when data/*.json changes so phones drop cached copies
 let XREFS={}, STUDY=null, TYPES=[];
 const TRANSLATIONS={
   asv:{name:"ASV", full:"American Standard Version (1901)", short:"ASV 1901", file:"data/bible.json"},
@@ -226,7 +226,7 @@ function showView(v){
   });
   closeSheet(); closeLightbox(); stopHeroRotation();
   if(v!=="read") document.documentElement.classList.remove("book-on");
-  ({home:renderHome,read:renderRead,search:renderSearch,christ:renderChrist,images:renderImages,saved:renderSaved})[v]();
+  ({home:renderHome,read:renderRead,search:renderSearch,christ:renderChrist,images:renderImages,saved:renderSaved,plans:renderPlans})[v]();
   window.scrollTo(0,0);
 }
 
@@ -267,6 +267,7 @@ function renderHome(){
         <div class="hero-dots" role="group" aria-label="Choose picture">${ART.map((a,i)=>`<button data-i="${i}" class="${i===start?"on":""}" aria-label="${esc(a.title)}"></button>`).join("")}</div></div>
     </div></div><div class="home-main">`
   +(pos&&BOOKS.some(b=>b.name===pos.book)?`<button class="home-continue" id="hcCont"><span>Continue reading</span><b>${esc(pos.book)} ${pos.ch} →</b></button>`:"")
+  +planHomeCard()
   +`<button class="home-votd" id="hcVotd"><div class="hlab">Verse of the day</div><div class="votd-ref">${esc(votd)}</div><div class="votd-text">${verseHTML(textOf(votd))}</div></button>`
   +(typ&&typFirst?`<button class="home-typ" id="hcTyp"><div class="hlab">Typology of the day</div><div class="ty-t">${esc(typ.title)}</div><div class="ty-s">${esc(typ.nt)} &nbsp;↔&nbsp; ${esc(typ.ot)}</div></button>`:"")
   +`<div class="home-grid">
@@ -274,6 +275,7 @@ function renderHome(){
     <button class="home-card" data-go="search"><div class="hc-t">Search</div><div class="hc-s">Any word or phrase</div></button>
     <button class="home-card" data-go="christ"><div class="hc-t">Trace Christ</div><div class="hc-s">Study trails in John</div></button>
     <button class="home-card" data-go="images"><div class="hc-t">Images</div><div class="hc-s">${ART.length} pieces of art</div></button>
+    <button class="home-card" data-go="plans"><div class="hc-t">Reading plans</div><div class="hc-s">${getPlan()?"Your plan and progress":"Year, Gospels, NT…"}</div></button>
     <button class="home-card" data-go="saved"><div class="hc-t">Saved</div><div class="hc-s">${hlN} highlight${hlN===1?"":"s"} · ${noteN} note${noteN===1?"":"s"}</div></button>
   </div>
   <div class="home-foot">Selah · ${esc(TRANSLATIONS[state.trans].full)}, public domain</div></div></div>`;
@@ -282,6 +284,7 @@ function renderHome(){
   const hc=v.querySelector("#hcCont"); if(hc) hc.onclick=()=>go("read");
   v.querySelector("#hcVotd").onclick=()=>gotoVerse(votd);
   const ht=v.querySelector("#hcTyp"); if(ht) ht.onclick=()=>{ gotoVerse(typFirst); setTimeout(()=>openSheet(typFirst,"typology"),80); };
+  bindPlanHomeCard();
   startHero(start);
 }
 /* Home slideshow: crossfades through ART; pauses when the tab is hidden or the user prefers reduced motion. */
@@ -658,7 +661,7 @@ function renderSaved(){
     const pa=order(a),pb=order(b); return pa[0]-pb[0]||pa[1]-pb[1]||pa[2]-pb[2];
   });
   v.innerHTML=`<h2 class="section-title">Saved</h2>
-  <div class="section-sub">Your highlights and study notes live on this device.</div>
+  <div class="section-sub">Your highlights and study notes live on this device — use Backup below to carry them to your other devices.</div>
   <div id="savedList">`+(keys.length?keys.map(k=>`
     <button class="saved-item${HL[k]?" hl-"+HL[k]:""}" data-r="${esc(k)}">
       <span class="sr2">${esc(k)}</span><div class="sv2">${verseHTML(textOf(k))}</div>
@@ -669,6 +672,7 @@ function renderSaved(){
   Cross-references (whole Bible): OpenBible.info (CC BY), derived primarily from the Treasury of Scripture Knowledge.<br>
   Hebrew and Greek text, glosses and lexicons: STEPBible.org (Tyndale House, Cambridge), CC BY 4.0.<br>
   Parallel passages, Christology trails and signs curated for this edition.</div>`;
+  v.querySelector("#savedList").insertAdjacentHTML("afterend",backupHTML()); bindBackup();
   v.querySelectorAll(".saved-item").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r));
 }
 

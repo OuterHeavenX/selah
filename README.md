@@ -24,7 +24,12 @@ Protestant canon ships as readable text.
   with a 3D page turn — drag, swipe, tap the page edge, or use the arrow keys.
   Chapters flow into each other; a toggle switches back to scrolling.
   Lives in `book.js`.
-- Saved: highlights + notes list. Light/dark themes.
+- Reading plans: John in 21 days, Gospels in 30, Psalms & Proverbs in 60,
+  NT in 90, Bible in a year — today's reading on Home, checkmarks, streak.
+  Days are balanced by verse count (`plans.js`).
+- Saved: highlights + notes list, plus Backup: save a file with highlights,
+  notes and plan progress and restore it on another device (merges, never
+  deletes). Light/dark themes.
 
 ## Data
 - `data/bible.json` — American Standard Version (1901), public domain.
