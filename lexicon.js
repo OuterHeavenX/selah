@@ -6,7 +6,7 @@
                       d definition (pre-sanitised: <b> <i> <br> <a data-r>), n uses, v verse ids delta-coded in base 36, a alias?}}
    Data: STEPBible.org (Tyndale House, Cambridge), CC BY 4.0. */
 
-const ORIG={}, LEXB={}, VREF=[];
+const ORIG={}, LEXB={};   // vrefs() (verse id -> ref) lives in app.js
 const LEX_PAGE=60;
 const lexState={ref:null, strong:null, word:null, shown:LEX_PAGE};
 
@@ -22,11 +22,6 @@ async function loadLex(strong){
   const b=lexBucket(strong);
   if(!LEXB[b]) LEXB[b]=getJSON(`data/lex/${b}.json`).catch(e=>{ delete LEXB[b]; throw e; });
   return (await LEXB[b])[strong]||null;
-}
-// Global verse id -> "Book C:V" (same grid for ASV and WEB).
-function vrefs(){
-  if(!VREF.length) BOOKS.forEach(b=>b.chapters.forEach((ch,ci)=>{ for(let v=1;v<=ch.length;v++) VREF.push(`${b.name} ${ci+1}:${v}`); }));
-  return VREF;
 }
 function decodeIds(s){
   if(!s) return [];

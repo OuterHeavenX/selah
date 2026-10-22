@@ -7,7 +7,7 @@ Protestant canon ships as readable text.
 - Reader: full ASV and WEB text (66 books, standard 31,102-verse
   numbering), Psalm titles and Psalm 119 letter headings, chapter
   navigation, tap any verse for the study sheet.
-- Verse sheet tabs: **Cross-refs** (11,714 ranked refs across John),
+- Verse sheet tabs: **Cross-refs** (342,694 ranked refs across the whole Bible),
   **Parallels** (14 Gospel parallel sets, side-by-side),
   **Words** (tap a word → every occurrence in John or the whole Bible),
   **Mark** (4 highlight colors + study notes, saved on-device).
@@ -44,9 +44,10 @@ Protestant canon ships as readable text.
   lexicons. Loaded only when a verse's Hebrew/Greek tab is opened.
 - Both translations share one verse grid, so highlights, notes and
   cross-refs (keyed "Book C:V") stay on the same verse when switching.
-- `data/xrefs_john.json` — OpenBible.info cross-reference data (CC-BY),
-  derived primarily from the Treasury of Scripture Knowledge. John-sourced
-  rows only, deduped, ranked by votes, capped at 50/verse.
+- `data/xrefs/NN.json` — OpenBible.info cross-references for the whole Bible
+  (CC BY), derived primarily from the Treasury of Scripture Knowledge. One file
+  per book, loaded when that book is opened; negative-voted rows dropped,
+  ranked by votes, capped at 50 per verse. Built by `tools/build_xrefs.py`.
 - `data/study_john.json` — hand-curated: parallels + Christology trails.
 
 ## Regenerate data
@@ -66,7 +67,6 @@ both read from it. To add a piece, drop the JPEG in `img/art/` and insert an
 entry (title, passage, caption, alt text) at its place in the story.
 
 ## Roadmap
-- Cross-refs for the whole canon (currently John only).
 - "Mirroring verses": parallel view is built; chiasmus marking is open.
 - NASB text: copyrighted by the Lockman Foundation — needs a license;
   the app is translation-agnostic, so licensed text drops into bible.json.

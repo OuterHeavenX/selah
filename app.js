@@ -1,6 +1,6 @@
 "use strict";
 /* Selah — ASV Study Bible prototype */
-const DATA_V="8"; // bump when data/*.json changes so phones drop cached copies
+const DATA_V="9"; // bump when data/*.json changes so phones drop cached copies
 let XREFS={}, STUDY=null, TYPES=[];
 const TRANSLATIONS={
   asv:{name:"ASV", full:"American Standard Version (1901)", short:"ASV 1901", file:"data/bible.json"},
@@ -103,11 +103,11 @@ async function boot(){
   $("#view").innerHTML='<div class="loading">Loading the Scriptures…</div>';
   let want=store.get("trans","asv"); if(!TRANSLATIONS[want]) want="asv";
   try{
-    const [x,s,m]=await Promise.all([
-      getJSON("data/xrefs_john.json"), getJSON("data/study_john.json"), getJSON("data/typology.json"),
+    const [s,m]=await Promise.all([
+      getJSON("data/study_john.json"), getJSON("data/typology.json"),
       loadTranslation(want)
     ]);
-    XREFS=x; STUDY=s; TYPES=(m.types||[]).map(t=>({...t, _nt:parsePassage(t.nt), _ot:parsePassage(t.ot)}));
+    STUDY=s; TYPES=(m.types||[]).map(t=>({...t, _nt:parsePassage(t.nt), _ot:parsePassage(t.ot)}));
   }catch(e){
     console.error(e);
     $("#view").innerHTML=`<div class="loading">Couldn’t load the Scriptures.<br><small>${esc(e.message)}</small><br><button class="btn-primary" id="retry" style="width:auto;margin-top:16px">Try again</button></div>`;
@@ -121,6 +121,51 @@ async function boot(){
   if(pos&&BOOKS.some(b=>b.name===pos.book)){ state.book=pos.book; state.ch=pos.ch; }
   bindTabs(); bindTheme(); bindFontSize(); bindSheet(); bindTrans();
   showView("home");
+  ensureXrefs(state.book);
+}
+
+/* ---------- cross-references (OpenBible.info, whole Bible, one file per book) ---------- */
+// XREFS["John 3:16"] = [[toVerseId, votes, rangeEndId?], ...], best first.
+const XLOADED={};
+const VREF=[];
+function vrefs(){
+  if(!VREF.length) BOOKS.forEach(b=>b.chapters.forEach((ch,ci)=>{ for(let v=1;v<=ch.length;v++) VREF.push(`${b.name} ${ci+1}:${v}`); }));
+  return VREF;
+}
+function ensureXrefs(bookName){
+  const n=BOOKS.findIndex(b=>b.name===bookName)+1; if(!n) return Promise.resolve();
+  if(!XLOADED[bookName]){
+    XLOADED[bookName]=getJSON(`data/xrefs/${String(n).padStart(2,"0")}.json`).then(d=>{
+      for(const k in d) XREFS[`${bookName} ${k}`]=d[k];
+      XLOADED[bookName]=true;
+      onXrefsLoaded(bookName);
+    }).catch(e=>{ console.error(e); delete XLOADED[bookName]; });
+  }
+  return XLOADED[bookName]===true?Promise.resolve():XLOADED[bookName];
+}
+// Counts arrive after the page is drawn; add the "↔ n" badges in place.
+function onXrefsLoaded(bookName){
+  if(state.view!=="read") return;
+  if(document.getElementById("book")){
+    if(typeof BOOK!=="undefined"){
+      for(const k of [...BOOK.cache.keys()]) if(k.startsWith(bookName+"|")) BOOK.cache.delete(k);
+      if(!BOOK.flip&&BOOK.sp) paintSpread();
+    }
+    return;
+  }
+  document.querySelectorAll(".verses .verse[data-ref]").forEach(el=>{
+    const n=(XREFS[el.dataset.ref]||[]).length; if(!n||el.querySelector(".xcount")) return;
+    const span=document.createElement("span"); span.className="xcount"; span.textContent="↔ "+n;
+    const t=el.querySelector(".tcount"); el.insertBefore(span,t||null);
+  });
+}
+// Display label for a cross-reference target: "Proverbs 8:22-30", "John 18:28-19:16".
+function xrefLabel(e){
+  const R=vrefs(), a=R[e[0]]; if(e.length<3) return a;
+  const z=R[e[2]], pa=parseRef(a), pz=parseRef(z);
+  if(!pa||!pz) return a;
+  if(pa.book!==pz.book) return `${a} – ${z}`;
+  return pa.ch===pz.ch?`${a}-${pz.v}`:`${a}-${pz.ch}:${pz.v}`;
 }
 function buildIndex(){
   BOOKS.length=0;
@@ -321,6 +366,7 @@ function chapterVersesHTML(bookName,chNum){
       h+=`<div class="verse omitted"><span class="vn">${i+1}</span>Not in the ${esc(TRANSLATIONS[state.trans].name)} text — this verse is absent from the oldest manuscripts.</div>`;
       return;
     }
+    if(!XLOADED[bookName]) ensureXrefs(bookName);
     const xc=(XREFS[ref]||[]).length;
     const tc=typesFor(bookName,chNum,i+1).length;
     const hl=HL[ref]?` hl-${HL[ref]}`:"";
@@ -355,6 +401,7 @@ function renderRead(){
   const book=BOOKS.find(b=>b.name===state.book);
   if(!book.chapters[state.ch-1]) state.ch=1;
   const v=$("#view");
+  ensureXrefs(state.book);
   if(isBookMode()){ document.documentElement.classList.add("book-on"); v.innerHTML=readerNavHTML()+`<div id="book"></div>`; bindReaderNav(); renderBook(); return; }
   document.documentElement.classList.remove("book-on");
   v.innerHTML=readerNavHTML()+`<div class="verses">${chapterVersesHTML(state.book,state.ch)}</div>`;
@@ -437,13 +484,20 @@ function paintSheet(){
   const body=$("#sheetBody"); body.scrollTop=0;
   ({xrefs:paintXrefs,original:paintOriginal,parallels:paintParallels,typology:paintTypes,words:paintWords,mark:paintMark})[state.sheetTab](body,ref);
 }
-function paintXrefs(body,ref){
-  const list=(XREFS[ref]||[]).filter(e=>textOf(e.r));
-  if(!list.length){ body.innerHTML='<div class="empty">No cross-references recorded for this verse yet. The curated cross-reference set covers the Gospel of John; the rest of the canon is coming.</div>'; return; }
-  body.innerHTML=`<div class="lbl">${list.length} cross-references · ranked by relevance</div>`+list.map(e=>{
-    const t=textOf(e.r); const prev=t.length>110?t.slice(0,110)+"…":t;
-    return `<button class="xref-row" data-r="${esc(e.r)}"><span class="xr">${esc(e.d)}</span><span class="xv">${verseHTML(prev)}</span><span class="xvotes">relevance ${e.v}</span></button>`;
-  }).join("");
+async function paintXrefs(body,ref){
+  const p=parseRef(ref);
+  if(p&&XLOADED[p.book]!==true){
+    body.innerHTML='<div class="empty">Loading cross-references…</div>';
+    await ensureXrefs(p.book);
+    if(state.sheetRef!==ref||state.sheetTab!=="xrefs") return;
+  }
+  const R=vrefs();
+  const list=(XREFS[ref]||[]).filter(e=>textOf(R[e[0]]));
+  if(!list.length){ body.innerHTML='<div class="empty">No cross-references recorded for this verse.</div>'; return; }
+  body.innerHTML=`<div class="lbl">${list.length} cross-reference${list.length===1?"":"s"} · ranked by relevance</div>`+list.map(e=>{
+    const t=textOf(R[e[0]]); const prev=t.length>110?t.slice(0,110)+"…":t; const d=xrefLabel(e);
+    return `<button class="xref-row" data-r="${esc(d)}"><span class="xr">${esc(d)}</span><span class="xv">${verseHTML(prev)}</span><span class="xvotes">relevance ${e[1]}</span></button>`;
+  }).join("")+`<div class="orig-credit">Cross-references: OpenBible.info (CC BY), from the Treasury of Scripture Knowledge and reader votes.</div>`;
   body.querySelectorAll(".xref-row").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r));
 }
 function passageHTML(vs){
@@ -612,7 +666,7 @@ function renderSaved(){
     </button>`).join(""):'<div class="empty" style="padding:6px 16px">Nothing saved yet. Tap any verse while reading, then use the Mark tab to highlight it or add a note.</div>')+`</div>
   <div class="about"><b>Selah</b> prototype · Gospel of John study edition<br>
   Text: ${esc(TRANSLATIONS[state.trans].full)} — public domain.<br>
-  Cross-references: OpenBible.info (CC-BY), derived primarily from the Treasury of Scripture Knowledge.<br>
+  Cross-references (whole Bible): OpenBible.info (CC BY), derived primarily from the Treasury of Scripture Knowledge.<br>
   Hebrew and Greek text, glosses and lexicons: STEPBible.org (Tyndale House, Cambridge), CC BY 4.0.<br>
   Parallel passages, Christology trails and signs curated for this edition.</div>`;
   v.querySelectorAll(".saved-item").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r));
