@@ -790,3 +790,6 @@ div.home-plan{cursor:default;}
 .trv-m-q{font-size:15px;} .trv-m-a{font-size:13.5px; color:var(--accent);}
 :root[data-theme="dark"] .trv-answer.ok b{color:#9fd18a;}
 .trv-next .btn-ghost,.mem-actions .btn-ghost,.jn-tools .btn-ghost,.mark-more .btn-ghost{color:var(--accent); border-color:var(--accent);}
+.set-row input[type=time]{font-size:16px; padding:7px 10px; border:1px solid var(--line); border-radius:10px; background:var(--sheet); color:var(--ink);}
+.set-test{width:auto; margin:0; color:var(--accent); border-color:var(--accent); padding:8px 14px;}
+.set-note{font-size:13.5px; line-height:1.5; color:var(--ink-soft); background:var(--accent-soft); border-radius:10px; padding:10px 12px; margin:6px 0 4px;}

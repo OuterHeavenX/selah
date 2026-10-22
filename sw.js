@@ -1,12 +1,12 @@
 /* Selah service worker — makes the app open and read offline.
    SHELL_V: bump with any change to code/styles (it must match the ?v= on the scripts in index.html).
    DATA_V:  must equal DATA_V in app.js; bump both when anything in data/ or img/art/ changes. */
-const SHELL_V="25";
+const SHELL_V="26";
 const DATA_V="19";
 const SHELL="selah-shell-"+SHELL_V, DATA="selah-data";
 const q="?v="+SHELL_V, dq="?v="+DATA_V;
 const SHELL_FILES=["./","index.html","manifest.webmanifest",
-  "style.css"+q,"app.js"+q,"book.js"+q,"lexicon.js"+q,"plans.js"+q,"readaloud.js"+q,"share.js"+q,"sync.js"+q,"pictures.js"+q,"router.js"+q,"settings.js"+q,"commentary.js"+q,"search.js"+q,"maps.js"+q,"timeline.js"+q,"memory.js"+q,"journal.js"+q,"trivia.js"+q,
+  "style.css"+q,"app.js"+q,"book.js"+q,"lexicon.js"+q,"plans.js"+q,"readaloud.js"+q,"share.js"+q,"sync.js"+q,"pictures.js"+q,"router.js"+q,"settings.js"+q,"commentary.js"+q,"search.js"+q,"maps.js"+q,"timeline.js"+q,"memory.js"+q,"journal.js"+q,"trivia.js"+q,"reminder.js"+q,
   "img/icons/icon-192.png","img/icons/icon-512.png","img/icons/icon-180.png","img/icons/favicon-64.png"];
 // The core of the app works offline from the first visit: ASV text, study trails, typology, artwork.
 const CORE_DATA=["data/bible.json","data/study.json","data/typology.json","data/files.json",
@@ -47,5 +47,23 @@ self.addEventListener("fetch",e=>{
     const r=await fetch(req);
     if(r.ok&&(isData||url.search)) cache.put(req,r.clone());      // versioned files are safe to keep
     return r;
+  })());
+});
+
+// Daily reminder (see reminder.js and supabase/functions/selah-push).
+self.addEventListener("push",e=>{
+  let d={}; try{ d=e.data?e.data.json():{}; }catch(_){ d={body:e.data?e.data.text():""}; }
+  e.waitUntil(self.registration.showNotification(d.title||"Selah",{
+    body:d.body||"Time to read.", icon:"img/icons/icon-192.png", tag:d.tag||"selah-daily", renotify:false,
+    data:{url:d.url||"#/home"}}));
+});
+self.addEventListener("notificationclick",e=>{
+  e.notification.close();
+  const hash=(e.notification.data&&e.notification.data.url)||"#/home";
+  e.waitUntil((async()=>{
+    const wins=await clients.matchAll({type:"window",includeUncontrolled:true});
+    const w=wins.find(c=>c.url.startsWith(self.registration.scope));
+    if(w){ await w.focus(); w.postMessage({selahGoto:hash}); return; }
+    await clients.openWindow(self.registration.scope+hash);
   })());
 });
