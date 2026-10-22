@@ -14,7 +14,7 @@ function readHash(book,ch,v,v2){
 function routeFor(v){
   if(v==="read") return readHash(state.book,state.ch);
   if(v==="images") return "#/images/"+slugBook(store.get("picBook","Genesis"));
-  if(v==="search"){ const q=(document.getElementById("q")||{}).value; return "#/search"+(q?"?q="+encodeURIComponent(q):""); }
+  if(v==="search") return searchHash();
   return "#/"+v;
 }
 // Record a new address. replace=true updates the current entry (used for chapter turns inside the reader).
@@ -59,12 +59,9 @@ function applyRoute(hash){
       return;
     }
     if(view==="images"&&parts[0]) store.set("picBook",unslugBook(parts[0]));
+    if(view==="search") setSearchFromQuery(query);
     const views=["home","read","search","christ","images","saved","plans"];
     showView(views.includes(view)?view:"home");
-    if(view==="search"&&query){
-      const q=new URLSearchParams(query).get("q");
-      if(q){ $("#q").value=q; $("#go").click(); }
-    }
   }finally{ ROUTER.applying=false; }
 }
 addEventListener("popstate",()=>{

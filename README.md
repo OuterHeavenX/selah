@@ -23,7 +23,13 @@ Protestant canon ships as readable text.
 - Hebrew / Greek tab: every verse's original words in order — original script,
   transliteration, English gloss, Strong's number. Tap a word for its lexicon
   entry (definition, parsing of that form, every verse that uses it).
-- Search: whole-Bible text search with highlighted snippets.
+- Search (`search.js`): three modes, each with its own address (`#/search?q=…&m=heb&in=nt`).
+  **Words** — phrase search in the current translation, falling back to verses
+  with all the words; **Hebrew & Greek** — find a word by Strong's number (G26,
+  H430), the word, its transliteration (agape, chesed) or meaning (love) and list
+  every verse using it; **Topics** — Nave's Topical Bible, 5,319 topics A–Z, with
+  passages readable in place. Words and Hebrew & Greek narrow to a testament or
+  a book. The Cross-refs tab also lists the Nave's topics that cite the verse.
 - Christ: curated trails — John (I AM sayings, titles, prophecies, signs,
   the spine of John), Matthew's fulfilment quotations, the parables, the
   mighty works in Mark, Old Testament promises of the Messiah, Psalms read
@@ -89,6 +95,11 @@ Protestant canon ships as readable text.
   Solomon in this edition. Built by `tools/build_commentary.py`, which also turns
   references like "Co1 13:4" into links (only when the verse exists). "Download
   everything" saves only the commentary chosen in Settings.
+- `data/topics.json` — Nave's Topical Bible (1896) from BibleData by Brady
+  Stephenson (CC BY 4.0, `NavesTopicalDictionary.csv`): `{t:[[name,[[depth,label,refs,see?]…]]…]}`,
+  refs as verse ids (ranges as `[first,last]`). `data/lexindex.json` — every
+  Hebrew/Greek word `[strong, lemma, translit, gloss, uses]`. Both built by
+  `tools/build_topics.py`.
 - `data/study.json` — hand-curated: 45 Gospel parallel sets and 11 study
   trails (John; Matthew, Mark & Luke; Old Testament; the letters).
 
