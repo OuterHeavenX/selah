@@ -1,6 +1,6 @@
 "use strict";
 /* Selah — ASV Study Bible prototype */
-const DATA_V="19"; // bump when data/ or img/art/ changes (and DATA_V in sw.js) so devices drop cached copies
+const DATA_V="20"; // bump when data/ or img/art/ changes (and DATA_V in sw.js) so devices drop cached copies
 let XREFS={}, STUDY=null, TYPES=[];
 const TRANSLATIONS={
   asv:{name:"ASV", full:"American Standard Version (1901)", short:"ASV 1901", file:"data/bible.json"},
