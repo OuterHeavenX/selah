@@ -1,10 +1,11 @@
 "use strict";
 /* Selah — ASV Study Bible prototype */
-const DATA_V="14"; // bump when data/ or img/art/ changes (and DATA_V in sw.js) so devices drop cached copies
+const DATA_V="15"; // bump when data/ or img/art/ changes (and DATA_V in sw.js) so devices drop cached copies
 let XREFS={}, STUDY=null, TYPES=[];
 const TRANSLATIONS={
   asv:{name:"ASV", full:"American Standard Version (1901)", short:"ASV 1901", file:"data/bible.json"},
-  web:{name:"WEB", full:"World English Bible", short:"WEB", file:"data/web.json"}
+  web:{name:"WEB", full:"World English Bible", short:"WEB", file:"data/web.json"},
+  kjv:{name:"KJV", full:"King James Version (1769)", short:"KJV", file:"data/kjv.json"}
 };
 const BIBLES={}; // id -> parsed translation json (loaded on demand)
 const VINDEX={}; // "Book C:V" -> text
@@ -119,7 +120,7 @@ async function boot(){
   updateTransUI();
   const pos=store.get("pos",null);
   if(pos&&BOOKS.some(b=>b.name===pos.book)){ state.book=pos.book; state.ch=pos.ch; }
-  bindTabs(); bindTheme(); bindFontSize(); bindSheet(); bindTrans();
+  bindTabs(); bindTheme(); bindFontSize(); bindSheet(); bindTrans(); bindSettings();
   setupSync();
   if("scrollRestoration" in history) history.scrollRestoration="manual";
   startRouter();
@@ -212,7 +213,7 @@ function onXrefsLoaded(bookName){
   document.querySelectorAll(".verses .verse[data-ref]").forEach(el=>{
     const n=(XREFS[el.dataset.ref]||[]).length; if(!n||el.querySelector(".xcount")) return;
     const span=document.createElement("span"); span.className="xcount"; span.textContent="↔ "+n;
-    const t=el.querySelector(".tcount"); el.insertBefore(span,t||null);
+    const host=el.querySelector(".vp")||el, t=host.querySelector(":scope > .tcount"); host.insertBefore(span,t||null);
   });
 }
 // Display label for a cross-reference target: "Proverbs 8:22-30", "John 18:28-19:16".
@@ -252,7 +253,7 @@ async function setTrans(id){
   toast("Switched to "+TRANSLATIONS[id].short);
 }
 function applyTheme(t){ document.documentElement.setAttribute("data-theme",t); store.set("theme",t); }
-function bindTheme(){ $("#themeBtn").onclick=()=>applyTheme(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark"); }
+function bindTheme(){ $("#themeBtn").onclick=()=>applyThemePref(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark"); }
 function applyFontSize(px){
   document.documentElement.style.setProperty("--fs-verse",px+"px"); store.set("fs",px);
   if(state.view==="read"&&document.getElementById("book")) bookRelayout();
@@ -383,13 +384,16 @@ function typesFor(book,ch,v){
 function chapterVersesHTML(bookName,chNum){
   const book=BOOKS.find(b=>b.name===bookName); const heads=book.headings||{};
   let h="";
+  const cmp=compareTrans(), cbook=cmp&&BIBLES[cmp]?BIBLES[cmp].books.find(b=>b.name===bookName):null;
+  const cmpHTML=i=>{ if(!cbook) return ""; const ct=(cbook.chapters[chNum-1]||[])[i];
+    return `<span class="vcmp"><span class="vtag">${TRANSLATIONS[cmp].name}</span>${ct?verseHTML(ct):"<i>not in this translation</i>"}</span>`; };
   book.chapters[chNum-1].forEach((t,i)=>{
     const ref=`${bookName} ${chNum}:${i+1}`;
     const hd=heads[`${chNum}:${i+1}`];
     if(hd) h+=`<div class="vhead">${esc(hd)}</div>`;
     if(!t){
       // Verse number kept for standard versification; the translation leaves it out.
-      h+=`<div class="verse omitted"><span class="vn">${i+1}</span>Not in the ${esc(TRANSLATIONS[state.trans].name)} text — this verse is absent from the oldest manuscripts.</div>`;
+      h+=`<div class="verse omitted${cbook?" cmp":""}"><span class="vp"><span class="vn">${i+1}</span>Not in the ${esc(TRANSLATIONS[state.trans].name)} text — this verse is absent from the oldest manuscripts.</span>${cmpHTML(i)}</div>`;
       return;
     }
     if(!XLOADED[bookName]) ensureXrefs(bookName);
@@ -397,7 +401,9 @@ function chapterVersesHTML(bookName,chNum){
     const tc=typesFor(bookName,chNum,i+1).length;
     const hl=HL[ref]?` hl-${HL[ref]}`:"";
     const nn=NOTES[ref]?" has-note":"";
-    h+=`<div class="verse${hl}${nn}" data-ref="${esc(ref)}" role="button" tabindex="0"><span class="vn">${i+1}</span>${verseHTML(t)}${xc?`<span class="xcount">↔ ${xc}</span>`:""}${tc?`<span class="tcount">◈ type</span>`:""}</div>`;
+    const main=`<span class="vn">${i+1}</span>${verseHTML(t)}${xc?`<span class="xcount">↔ ${xc}</span>`:""}${tc?`<span class="tcount">◈ type</span>`:""}`;
+    h+=cbook?`<div class="verse cmp${hl}${nn}" data-ref="${esc(ref)}" role="button" tabindex="0"><span class="vp">${main}</span>${cmpHTML(i)}</div>`
+            :`<div class="verse${hl}${nn}" data-ref="${esc(ref)}" role="button" tabindex="0">${main}</div>`;
   });
   return h;
 }
@@ -432,7 +438,8 @@ function renderRead(){
   ensureXrefs(state.book);
   if(isBookMode()){ document.documentElement.classList.add("book-on"); v.innerHTML=readerNavHTML()+`<div id="book"></div>`; bindReaderNav(); renderBook(); return; }
   document.documentElement.classList.remove("book-on");
-  v.innerHTML=readerNavHTML()+`<div class="verses">${chapterVersesHTML(state.book,state.ch)}</div>`;
+  const cmp=compareTrans();
+  v.innerHTML=readerNavHTML()+`<div class="verses${cmp?" cmp-on":""}">${cmp?`<div class="cmp-head"><span>${esc(TRANSLATIONS[state.trans].short)}</span><span>${esc(TRANSLATIONS[cmp].short)}</span></div>`:""}${chapterVersesHTML(state.book,state.ch)}</div>`;
   const list=v.querySelector(".verses");
   list.onclick=e=>{ const el=e.target.closest(".verse[data-ref]"); if(el) openSheet(el.dataset.ref,"xrefs"); };
   bindVerseOpen(list);

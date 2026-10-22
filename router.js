@@ -70,6 +70,7 @@ function applyRoute(hash){
 addEventListener("popstate",()=>{
   // Back closes an open overlay first.
   if(!$("#lightbox").classList.contains("hidden")){ ROUTER.applying=true; closeLightbox(); ROUTER.applying=false; return; }
+  if(!$("#settingsWrap").classList.contains("hidden")){ ROUTER.applying=true; closeSettings(); ROUTER.applying=false; return; }
   if(state.sheetRef){ ROUTER.applying=true; closeSheet(); ROUTER.applying=false; return; }
   if(location.hash.startsWith("#/")) applyRoute(location.hash);
 });

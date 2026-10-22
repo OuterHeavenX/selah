@@ -24,7 +24,7 @@ function bookMeasureDims(host){
   const padt=40, padb=50, G=60;
   const fw=pw-2*padx, fh=ph-padt-padb;
   const fs=store.get("fs",18);
-  return {pw,ph,padx,padt,padb,G,fw,fh,step:fw+G,sig:`${fw}x${fh}|${fs}|${state.trans}`};
+  return {pw,ph,padx,padt,padb,G,fw,fh,step:fw+G,sig:`${fw}x${fh}|${fs}|${state.trans}|${compareTrans()||""}`};
 }
 function applyDims(host,d){
   const st=host.style;
