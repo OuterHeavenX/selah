@@ -21,17 +21,16 @@ const seg=(name,opts,cur)=>`<div class="seg" role="radiogroup" aria-label="${esc
 const toggle=(id,on,label)=>`<button class="tgl${on?" on":""}" id="${id}" role="switch" aria-checked="${on}" aria-label="${esc(label)}"><span></span></button>`;
 
 SETTINGS_SECTIONS.push({id:"reading", title:"Reading", html:()=>{
-  const tr=Object.entries(TRANSLATIONS).map(([k,t])=>[k,t.name]);
-  const cmp=store.get("compare",null);
-  return `<div class="set-row"><div class="set-l">Translation<small>${esc(TRANSLATIONS[state.trans].full)}</small></div>${seg("Translation",tr,state.trans)}</div>
-    <div class="set-row"><div class="set-l">Side by side<small>Show a second translation with every verse</small></div>${seg("Side by side",[["","Off"],...tr.filter(([k])=>k!==state.trans)],cmp&&cmp!==state.trans?cmp:"")}</div>
+  const cmp=compareTrans()||"";
+  const opts=TRANS_GROUPS.map(g=>`<optgroup label="${esc(g)}">${Object.entries(TRANSLATIONS).filter(([k,t])=>t.group===g&&k!==state.trans).map(([k,t])=>`<option value="${k}"${k===cmp?" selected":""}>${esc(t.full)}</option>`).join("")}</optgroup>`).join("");
+  return `<div class="set-row"><div class="set-l">Translation<small>${esc(TRANSLATIONS[state.trans].full)}</small></div><button class="btn-ghost set-pick" id="setTransPick">Change…</button></div>
+    <div class="set-row"><div class="set-l">Side by side<small>Show a second translation with every verse</small></div><select id="setCmp" class="set-select" aria-label="Side by side"><option value="">Off</option>${opts}</select></div>
     <div class="set-row"><div class="set-l">Text size<small style="font-size:${store.get("fs",18)}px;font-family:Georgia,serif">In the beginning God created…</small></div>
       <div class="set-fs"><button class="nav-btn" id="setFsDec" aria-label="Smaller text">A−</button><span>${store.get("fs",18)}</span><button class="nav-btn" id="setFsInc" aria-label="Larger text">A+</button></div></div>
     <div class="set-row"><div class="set-l">Book view on wide screens<small>Two pages with page turns on iPad (landscape) and computers</small></div>${toggle("setBook",store.get("bookMode",true),"Book view")}</div>`;
 }, bind:root=>{
-  const [trSeg,cmpSeg]=root.querySelectorAll(".seg");
-  trSeg.querySelectorAll("button").forEach(b=>b.onclick=async()=>{ await setTrans(b.dataset.v); if(store.get("compare",null)===b.dataset.v) store.set("compare",null); if(typeof BOOK!=="undefined") BOOK.cache.clear(); paintSettings(); });
-  cmpSeg.querySelectorAll("button").forEach(b=>b.onclick=async()=>{ await setCompare(b.dataset.v||null); paintSettings(); });
+  root.querySelector("#setTransPick").onclick=()=>{ SETTINGS_PAGE="library"; paintSettings(); };
+  root.querySelector("#setCmp").onchange=async e=>{ await setCompare(e.target.value||null); paintSettings(); };
   root.querySelector("#setFsDec").onclick=()=>{ applyFontSize(Math.max(14,store.get("fs",18)-2)); paintSettings(); };
   root.querySelector("#setFsInc").onclick=()=>{ applyFontSize(Math.min(26,store.get("fs",18)+2)); paintSettings(); };
   root.querySelector("#setBook").onclick=()=>{ store.set("bookMode",!store.get("bookMode",true)); if(state.view==="read") renderRead(); paintSettings(); };
@@ -45,8 +44,42 @@ SETTINGS_SECTIONS.push({id:"look", title:"Appearance & audio", html:()=>`
     rt.querySelectorAll("button").forEach(b=>b.onclick=()=>{ SPEAK.rate=+b.dataset.v; store.set("rate",SPEAK.rate); paintSettings(); });
   }});
 
+/* ---------- translation library (a page inside Settings) ---------- */
+let SETTINGS_PAGE=null;
+function libraryHTML(){
+  const cmp=compareTrans();
+  return `<button class="lex-back" id="libBack">‹ Settings</button>
+    <div class="lib-intro">${Object.keys(TRANSLATIONS).length} translations, all free to read. Each downloads the first time you open it (about 1–4 MB) and then works offline. <b>Read</b> switches the text; <b>Side by side</b> adds it next to every verse.</div>`
+  +TRANS_GROUPS.map(g=>`<section class="lib-group"><div class="lbl">${esc(g)}</div>${Object.entries(TRANSLATIONS).filter(([,t])=>t.group===g).map(([k,t])=>`
+    <div class="lib-card${k===state.trans?" on":""}">
+      <div class="lib-top"><b>${esc(t.full)}</b><span class="lib-scope ${t.scope}">${esc(SCOPE_LABEL[t.scope])}</span></div>
+      <div class="lib-about">${esc(t.about)}</div>
+      <div class="lib-lic">${esc(t.license)}</div>
+      <div class="lib-acts">${k===state.trans?'<span class="lib-cur">Reading now</span>':`<button class="btn-primary lib-read" data-k="${k}">Read</button>`}
+        ${k===state.trans?"":`<button class="btn-ghost lib-cmp${k===cmp?" on":""}" data-k="${k}" aria-pressed="${k===cmp}">${k===cmp?"✓ Side by side":"Side by side"}</button>`}</div>
+    </div>`).join("")}</section>`).join("");
+}
+function bindLibrary(box){
+  box.querySelector("#libBack").onclick=()=>{ SETTINGS_PAGE=null; paintSettings(); box.scrollTop=0; };
+  box.querySelectorAll(".lib-read").forEach(b=>b.onclick=async()=>{
+    b.disabled=true; b.textContent="Loading…";
+    await setTrans(b.dataset.k);
+    if(store.get("compare",null)===b.dataset.k) store.set("compare",null);
+    if(typeof BOOK!=="undefined") BOOK.cache.clear();
+    const y=box.scrollTop; paintSettings(); box.scrollTop=y;
+  });
+  box.querySelectorAll(".lib-cmp").forEach(b=>b.onclick=async()=>{
+    const k=b.dataset.k; b.disabled=true;
+    await setCompare(compareTrans()===k?null:k);
+    const y=box.scrollTop; paintSettings(); box.scrollTop=y;
+  });
+}
+function openLibrary(){ SETTINGS_PAGE="library"; openSettings(); }
+
 function paintSettings(){
   const box=$("#settingsBody"); if(!box) return;
+  if(SETTINGS_PAGE==="library"){ box.innerHTML=libraryHTML(); bindLibrary(box); $("#settingsTitle").textContent="Translations"; return; }
+  $("#settingsTitle").textContent="Settings";
   const y=box.scrollTop;
   box.innerHTML=SETTINGS_SECTIONS.map(s=>`<section class="set-sec" data-id="${s.id}"><div class="lbl">${esc(s.title)}</div>${s.html()}</section>`).join("")
     +`<div class="set-foot">Sync, backup and offline downloads are on the <button class="link-btn" id="setToSaved">Saved</button> screen.</div>`;
@@ -67,8 +100,8 @@ function closeSettings(){
   if(settingsReturn&&document.contains(settingsReturn)) settingsReturn.focus({preventScroll:true});
 }
 function bindSettings(){
-  $("#settingsBtn").onclick=openSettings;
-  $("#transBtn").onclick=openSettings;
+  $("#settingsBtn").onclick=()=>{ SETTINGS_PAGE=null; openSettings(); };
+  $("#transBtn").onclick=openLibrary;
   const dismiss=()=>dismissOverlay("settings",closeSettings);
   $("#settingsClose").onclick=dismiss; $("#settingsScrim").onclick=dismiss;
   document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&!$("#settingsWrap").classList.contains("hidden")) dismiss(); });

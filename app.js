@@ -3,10 +3,37 @@
 const DATA_V="20"; // bump when data/ or img/art/ changes (and DATA_V in sw.js) so devices drop cached copies
 let XREFS={}, STUDY=null, TYPES=[];
 const TRANSLATIONS={
-  asv:{name:"ASV", full:"American Standard Version (1901)", short:"ASV 1901", file:"data/bible.json"},
-  web:{name:"WEB", full:"World English Bible", short:"WEB", file:"data/web.json"},
-  kjv:{name:"KJV", full:"King James Version (1769)", short:"KJV", file:"data/kjv.json"}
+  asv:{name:"ASV", full:"American Standard Version (1901)", short:"ASV 1901", group:"Classic", scope:"bible", license:"Public domain", about:"Selah’s default: a careful revision of the KJV, using the older manuscripts and “Jehovah” for God’s name.", file:"data/bible.json"},
+  kjv:{name:"KJV", full:"King James Version (1769)", short:"KJV", group:"Classic", scope:"bible", license:"Public domain", about:"The Authorized Version in its standard 1769 Oxford text.", file:"data/kjv.json"},
+  bsb:{name:"BSB", full:"Berean Standard Bible (2022)", short:"BSB", group:"Modern", scope:"bible", license:"Public domain", about:"Accurate, readable modern English; placed in the public domain in 2023.", file:"data/tr/bsb.json"},
+  web:{name:"WEB", full:"World English Bible", short:"WEB", group:"Modern", scope:"bible", license:"Public domain", about:"A modern update of the ASV that uses “Yahweh” for God’s name.", file:"data/web.json"},
+  webbe:{name:"WEB UK", full:"World English Bible, British Edition", short:"WEB UK", group:"Modern", scope:"bible", license:"Public domain", about:"The WEB with British spelling and “the LORD” for God’s name.", file:"data/tr/webbe.json"},
+  wmb:{name:"WMB", full:"World Messianic Bible", short:"WMB", group:"Modern", scope:"bible", license:"Public domain", about:"The WEB with Hebrew names: Yeshua, Kefa, Yochanan.", file:"data/tr/wmb.json"},
+  nheb:{name:"NHEB", full:"New Heart English Bible", short:"NHEB", group:"Modern", scope:"bible", license:"Public domain", about:"A modern revision of the WEB, kept in the public domain.", file:"data/tr/nheb.json"},
+  fbv:{name:"FBV", full:"Free Bible Version (2018)", short:"FBV", group:"Modern", scope:"bible", license:"CC BY-SA 4.0 · Dr. Jonathan Gallagher", about:"Plain, everyday English that reads naturally aloud.", file:"data/tr/fbv.json"},
+  bbe:{name:"BBE", full:"Bible in Basic English (1949/1964)", short:"BBE", group:"Modern", scope:"bible", license:"Public domain", about:"Written with a vocabulary of about 1,000 words — very easy to read.", file:"data/tr/bbe.json"},
+  acv:{name:"ACV", full:"A Conservative Version (2005)", short:"ACV", group:"Modern", scope:"bible", license:"Public domain", about:"A literal update of the KJV’s language.", file:"data/tr/acv.json"},
+  oeb:{name:"OEB", full:"Open English Bible", short:"OEB", group:"Modern", scope:"partial", license:"Public domain", about:"A fresh modern translation still in progress: the New Testament, the Psalms and several shorter Old Testament books.", file:"data/tr/oeb.json"},
+  lsv:{name:"LSV", full:"Literal Standard Version (2020)", short:"LSV", group:"Literal", scope:"bible", license:"CC BY-SA 4.0 · Covenant Press", about:"Word-for-word modern English, based on Young’s Literal Translation.", file:"data/tr/lsv.json"},
+  ylt:{name:"YLT", full:"Young’s Literal Translation (1898)", short:"YLT", group:"Literal", scope:"bible", license:"Public domain", about:"Extremely literal, keeping Hebrew and Greek tenses and word order.", file:"data/tr/ylt.json"},
+  darby:{name:"Darby", full:"Darby Translation (1890)", short:"Darby", group:"Literal", scope:"bible", license:"Public domain", about:"J. N. Darby’s careful, literal translation.", file:"data/tr/darby.json"},
+  rotherham:{name:"Rotherham", full:"Rotherham’s Emphasized Bible (1902)", short:"Rotherham", group:"Literal", scope:"bible", license:"Public domain", about:"Marks emphasis from the original word order; uses “Yahweh”.", file:"data/tr/rotherham.json"},
+  rv:{name:"RV", full:"Revised Version (1885)", short:"RV", group:"Classic", scope:"bible", license:"Public domain", about:"The British revision of the KJV, the forerunner of the ASV.", file:"data/tr/rv.json"},
+  webster:{name:"Webster", full:"Webster Bible (1833)", short:"Webster", group:"Classic", scope:"bible", license:"Public domain", about:"Noah Webster’s light update of the KJV’s wording.", file:"data/tr/webster.json"},
+  geneva:{name:"Geneva", full:"Geneva Bible (1599)", short:"Geneva", group:"Classic", scope:"bible", license:"Public domain", about:"The Bible of Shakespeare and the Pilgrims, in its original spelling.", file:"data/tr/geneva.json"},
+  tyndale:{name:"Tyndale", full:"Tyndale Bible (1530/1534)", short:"Tyndale", group:"Classic", scope:"partial", license:"Public domain", about:"William Tyndale’s Genesis and New Testament — the first English Bible translated from Hebrew and Greek, in its original spelling.", file:"data/tr/tyndale.json"},
+  wycliffe:{name:"Wycliffe", full:"Wycliffe Bible (c. 1395)", short:"Wycliffe", group:"Classic", scope:"bible", license:"Public domain", about:"The first complete English Bible, in Middle English — a window into the 1300s.", file:"data/tr/wycliffe.json"},
+  dra:{name:"Douay-Rheims", full:"Douay-Rheims Bible (Challoner)", short:"Douay-Rheims", group:"Catholic", scope:"bible", license:"Public domain", about:"The classic Catholic English Bible, translated from the Latin Vulgate.", file:"data/tr/dra.json"},
+  cpdv:{name:"CPDV", full:"Catholic Public Domain Version (2009)", short:"CPDV", group:"Catholic", scope:"bible", license:"Public domain", about:"A modern Catholic translation from the Vulgate.", file:"data/tr/cpdv.json"},
+  jps:{name:"JPS 1917", full:"JPS Tanakh (1917)", short:"JPS 1917", group:"Jewish", scope:"ot", license:"Public domain", about:"The Jewish Publication Society’s Hebrew Bible — the Old Testament only.", file:"data/tr/jps.json"},
+  noyes:{name:"Noyes", full:"Noyes Translation (1869)", short:"Noyes", group:"Historic New Testaments", scope:"partial", license:"Public domain", about:"George Noyes’s New Testament, with Job to the Song of Solomon and all the Prophets.", file:"data/tr/noyes.json"},
+  twenty:{name:"20th C. NT", full:"Twentieth Century New Testament (1904)", short:"20th C. NT", group:"Historic New Testaments", scope:"nt", license:"Public domain", about:"One of the first modern-English New Testaments.", file:"data/tr/twenty.json"},
+  anderson:{name:"Anderson", full:"Anderson New Testament (1864)", short:"Anderson", group:"Historic New Testaments", scope:"nt", license:"Public domain", about:"Henry Tompkins Anderson’s New Testament.", file:"data/tr/anderson.json"},
+  haweis:{name:"Haweis", full:"Haweis New Testament (1795)", short:"Haweis", group:"Historic New Testaments", scope:"nt", license:"Public domain", about:"Thomas Haweis’s 18th-century New Testament.", file:"data/tr/haweis.json"}
 };
+const TRANS_GROUPS=["Modern","Literal","Classic","Catholic","Jewish","Historic New Testaments"];
+const SCOPE_LABEL={bible:"Whole Bible", nt:"New Testament", ot:"Old Testament", partial:"Parts of the Bible"};
+const FALLBACK_TRANS="asv";   // shown for chapters a partial translation doesn’t have
 const BIBLES={}; // id -> parsed translation json (loaded on demand)
 const VINDEX={}; // "Book C:V" -> text
 const BOOKS=[];  // {name, chapters, headings?}
@@ -61,7 +88,16 @@ function verseInPassage(book,ch,v,p){
     (ch>p.ch||(ch===p.ch&&v>=p.v1)) &&
     (ch<p.ch2||(ch===p.ch2&&v<=p.v2));
 }
-function textOf(ref){ return VINDEX[ref]||""; }
+function textOf(ref){
+  const t=VINDEX[ref]; if(t) return t;
+  // A partial translation (e.g. New Testament only): quote the fallback for the parts it doesn’t have.
+  if(state.trans!==FALLBACK_TRANS&&TRANSLATIONS[state.trans].scope!=="bible"&&BIBLES[FALLBACK_TRANS]){
+    const p=parseRef(ref), b=p&&BIBLES[FALLBACK_TRANS].books.find(x=>x.name===p.book);
+    const own=p&&BOOKS.find(x=>x.name===p.book);
+    if(b&&own&&!(own.chapters[p.ch-1]||[]).some(Boolean)) return (b.chapters[p.ch-1]||[])[p.v-1]||"";
+  }
+  return "";
+}
 
 /* ---------- text helpers ---------- */
 // Letters in any script (æ, accented, Hebrew, Greek) plus inner apostrophes: "doesn’t", "Judæa".
@@ -100,6 +136,8 @@ async function getJSON(url){
 }
 async function loadTranslation(id){
   if(!BIBLES[id]) BIBLES[id]=await getJSON(TRANSLATIONS[id].file);
+  // Partial translations borrow the fallback for the chapters they don’t have.
+  if(TRANSLATIONS[id].scope!=="bible"&&!BIBLES[FALLBACK_TRANS]) BIBLES[FALLBACK_TRANS]=await getJSON(TRANSLATIONS[FALLBACK_TRANS].file);
   return BIBLES[id];
 }
 async function boot(){
@@ -329,7 +367,7 @@ function renderHome(){
 ${HOME_TOOLS.map(t=>`<button class="home-card" data-go="${t.go}"><div class="hc-t">${esc(t.title)}</div><div class="hc-s">${esc(t.sub())}</div></button>`).join("")}
     <button class="home-card" data-go="saved"><div class="hc-t">Saved</div><div class="hc-s">${hlN} highlight${hlN===1?"":"s"} · ${noteN} note${noteN===1?"":"s"}</div></button>
   </div>
-  <div class="home-foot">Selah · ${esc(TRANSLATIONS[state.trans].full)}, public domain</div></div></div>`;
+  <div class="home-foot">Selah · ${esc(TRANSLATIONS[state.trans].full)} · ${esc(TRANSLATIONS[state.trans].license)}</div></div></div>`;
   const go=g=>showView(g);
   v.querySelectorAll(".home-card").forEach(b=>b.onclick=()=>{ const t=HOME_TOOLS.find(x=>x.go===b.dataset.go); if(t&&t.open) t.open(); go(b.dataset.go); });
   const hc=v.querySelector("#hcCont"); if(hc) hc.onclick=()=>go("read");
@@ -391,19 +429,38 @@ function typesFor(book,ch,v){
   return TYPES.filter(s=>(s._nt&&verseInPassage(book,ch,v,s._nt))||(s._ot&&verseInPassage(book,ch,v,s._ot)));
 }
 // Verses (and any headings) of one chapter as HTML — shared by the scrolling reader and the book view.
+const NT_VARIANTS=new Set(["Matthew 17:21","Matthew 18:11","Matthew 23:14","Mark 7:16","Mark 9:44","Mark 9:46","Mark 11:26","Mark 15:28",
+  "Luke 17:36","Luke 23:17","John 5:4","Acts 8:37","Acts 15:34","Acts 24:7","Acts 28:29","Romans 16:24"]);
+function gapNote(bookName,ch){
+  const T=TRANSLATIONS[state.trans];
+  return T.scope==="nt"?`The ${T.full} has only the New Testament.`:T.scope==="ot"?`The ${T.full} has only the Old Testament.`:`The ${T.full} doesn’t include ${bookName} ${ch}.`;
+}
+// Why a verse slot is empty: its words are joined to another verse, it's a known manuscript variant, or the translation leaves it out.
+function emptyVerseNote(book,chNum,v,tname,ref){
+  const j=(book.joined||{})[`${chNum}:${v}`];
+  if(j){ const [jc,jv]=j.split(":"); return `Included with ${+jc===chNum?"verse "+jv:jc+":"+jv} in the ${tname}.`; }
+  return NT_VARIANTS.has(ref)?`Not in the ${tname} text — this verse is absent from the oldest manuscripts.`:`Not in the ${tname} text.`;
+}
 function chapterVersesHTML(bookName,chNum){
-  const book=BOOKS.find(b=>b.name===bookName); const heads=book.headings||{};
+  let book=BOOKS.find(b=>b.name===bookName), src=state.trans;
   let h="";
+  if(!book.chapters[chNum-1].some(Boolean)){
+    const fb=state.trans!==FALLBACK_TRANS&&BIBLES[FALLBACK_TRANS]?BIBLES[FALLBACK_TRANS].books.find(b=>b.name===bookName):null;
+    h+=`<div class="trans-gap">${esc(gapNote(bookName,chNum))}${fb?` Showing ${esc(bookName)} ${chNum} in the ${esc(TRANSLATIONS[FALLBACK_TRANS].full)}.`:""}</div>`;
+    if(fb){ book=fb; src=FALLBACK_TRANS; }
+  }
+  const heads=book.headings||{};
   const cmp=compareTrans(), cbook=cmp&&BIBLES[cmp]?BIBLES[cmp].books.find(b=>b.name===bookName):null;
   const cmpHTML=i=>{ if(!cbook) return ""; const ct=(cbook.chapters[chNum-1]||[])[i];
-    return `<span class="vcmp"><span class="vtag">${TRANSLATIONS[cmp].name}</span>${ct?verseHTML(ct):"<i>not in this translation</i>"}</span>`; };
+    const none=!(cbook.chapters[chNum-1]||[]).some(Boolean);
+    return `<span class="vcmp"><span class="vtag">${TRANSLATIONS[cmp].name}</span>${ct?verseHTML(ct):`<i>${none?"Not in this translation":esc(emptyVerseNote(cbook,chNum,i+1,TRANSLATIONS[cmp].name,`${bookName} ${chNum}:${i+1}`))}</i>`}</span>`; };
   book.chapters[chNum-1].forEach((t,i)=>{
     const ref=`${bookName} ${chNum}:${i+1}`;
     const hd=heads[`${chNum}:${i+1}`];
     if(hd) h+=`<div class="vhead">${esc(hd)}</div>`;
     if(!t){
       // Verse number kept for standard versification; the translation leaves it out.
-      h+=`<div class="verse omitted${cbook?" cmp":""}"><span class="vp"><span class="vn">${i+1}</span>Not in the ${esc(TRANSLATIONS[state.trans].name)} text — this verse is absent from the oldest manuscripts.</span>${cmpHTML(i)}</div>`;
+      h+=`<div class="verse omitted${cbook?" cmp":""}"><span class="vp"><span class="vn">${i+1}</span>${esc(emptyVerseNote(book,chNum,i+1,TRANSLATIONS[src].name,ref))}</span>${cmpHTML(i)}</div>`;
       return;
     }
     if(!XLOADED[bookName]) ensureXrefs(bookName);
@@ -695,7 +752,7 @@ function renderSaved(){
       ${NOTES[k]?`<div class="sn">“${esc(NOTES[k])}”</div>`:""}
     </button>`).join(""):'<div class="empty" style="padding:6px 16px">Nothing saved yet. Tap any verse while reading, then use the Mark tab to highlight it or add a note.</div>')+`</div>
   <div class="about"><b>Selah</b> prototype · Gospel of John study edition<br>
-  Text: ${esc(TRANSLATIONS[state.trans].full)} — public domain.<br>
+  Text: ${esc(TRANSLATIONS[state.trans].full)} — ${esc(TRANSLATIONS[state.trans].license)}.<br>
   Cross-references (whole Bible): OpenBible.info (CC BY), derived primarily from the Treasury of Scripture Knowledge.<br>
   Hebrew and Greek text, glosses and lexicons: STEPBible.org (Tyndale House, Cambridge), CC BY 4.0.<br>
   Parallel passages, Christology trails and signs curated for this edition.</div>`;

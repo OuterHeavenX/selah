@@ -793,3 +793,24 @@ div.home-plan{cursor:default;}
 .set-row input[type=time]{font-size:16px; padding:7px 10px; border:1px solid var(--line); border-radius:10px; background:var(--sheet); color:var(--ink);}
 .set-test{width:auto; margin:0; color:var(--accent); border-color:var(--accent); padding:8px 14px;}
 .set-note{font-size:13.5px; line-height:1.5; color:var(--ink-soft); background:var(--accent-soft); border-radius:10px; padding:10px 12px; margin:6px 0 4px;}
+
+/* ---------- translation library & partial translations ---------- */
+.set-pick{width:auto; margin:0; color:var(--accent); border-color:var(--accent); padding:8px 14px;}
+.set-select{font-size:14px; padding:7px 10px; border:1px solid var(--line); border-radius:10px; background:var(--sheet); color:var(--ink); max-width:190px;}
+.lib-intro{font-size:14px; line-height:1.5; color:var(--ink-soft); margin:6px 0 4px;}
+.lib-group{margin-top:10px;}
+.lib-card{border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin:8px 0; background:var(--sheet);}
+.lib-card.on{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent) inset;}
+.lib-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px;}
+.lib-top b{font-family:Georgia,serif; font-size:16.5px; font-weight:600; color:var(--ink); line-height:1.3;}
+.lib-scope{flex:none; font-size:11px; font-weight:700; letter-spacing:.04em; padding:3px 8px; border-radius:20px; background:var(--accent-soft); color:var(--accent); white-space:nowrap;}
+.lib-scope.nt,.lib-scope.ot,.lib-scope.partial{background:none; border:1px solid var(--line); color:var(--ink-soft);}
+.lib-about{font-size:14px; line-height:1.45; color:var(--ink-soft); margin:5px 0 3px;}
+.lib-lic{font-size:12px; color:var(--ink-soft); opacity:.85;}
+.lib-acts{display:flex; gap:8px; margin-top:10px; align-items:center;}
+.lib-acts .btn-primary,.lib-acts .btn-ghost{width:auto; margin:0; padding:8px 16px; font-size:14px;}
+.lib-acts .btn-ghost{color:var(--accent); border-color:var(--accent);}
+.lib-acts .btn-ghost.on{background:var(--accent-soft);}
+.lib-cur{font-size:13px; font-weight:700; color:var(--accent);}
+.trans-gap{margin:10px 16px 14px; padding:10px 14px; border-radius:10px; background:var(--accent-soft); color:var(--ink); font-size:14px; line-height:1.45;}
+#bookSpread .trans-gap{margin:0 0 12px;}
