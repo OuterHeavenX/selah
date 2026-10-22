@@ -431,3 +431,31 @@ div.home-plan{cursor:default;}
 .sync-msg:empty{display:none;}
 .link-btn{background:none; border:none; color:var(--accent); font-size:13.5px; padding:10px 0 0; cursor:pointer; text-decoration:underline;}
 @media (min-width:900px){ .sync-box{margin:18px 28px 0; max-width:640px;} }
+
+/* ---------- picture timeline ---------- */
+.pb-books{display:flex; gap:8px; overflow-x:auto; padding:2px 16px 10px; scrollbar-width:none;}
+.pb-books::-webkit-scrollbar{display:none;}
+.pb-books .chip{white-space:nowrap; flex:none;}
+.pb-count{font-weight:400; opacity:.75; margin-left:2px;}
+.pb-progress{font-size:12.5px; color:var(--ink-soft); padding:0 16px 6px;}
+.pb-timeline{list-style:none; margin:6px 0 20px; padding:0 16px 0 18px; position:relative;}
+.pb-timeline::before{content:""; position:absolute; left:26px; top:10px; bottom:10px; width:2px; background:var(--line);}
+.pb-node{position:relative; padding:10px 0 14px 34px;}
+.pb-dot{position:absolute; left:2px; top:16px; width:14px; height:14px; border-radius:50%; background:var(--accent); border:3px solid var(--paper); box-shadow:0 0 0 1px var(--accent);}
+.pb-node.todo .pb-dot{background:var(--paper); box-shadow:0 0 0 1px var(--line);}
+.pb-ref{font-size:11.5px; letter-spacing:1.4px; text-transform:uppercase; color:var(--accent); font-weight:700;}
+.pb-node h3{margin:2px 0 8px; font-family:Georgia,serif; font-size:19px;}
+.pb-node.todo h3{font-size:16px; color:var(--ink-soft); margin-bottom:4px;}
+.pb-todo{display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; font-size:12.5px; color:var(--ink-soft);}
+.pb-todo span{border:1px dashed var(--line); border-radius:12px; padding:3px 10px;}
+.pb-read{background:none; border:none; padding:0; color:var(--accent); font-weight:600; font-size:13px; cursor:pointer; text-align:left;}
+.pb-card .typ-link.pb-read{border:1px solid var(--line); padding:9px 12px; margin-top:8px;}
+.pb-panels{display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 4px;}
+.pb-panel{border:1px solid var(--line); background:var(--paper); border-radius:16px; padding:5px 10px; font-size:12.5px; cursor:pointer; color:var(--ink); text-align:left;}
+.pb-panel b{font-family:Georgia,serif; color:var(--accent); margin-right:3px;}
+@media (min-width:900px){
+  .pb-books{padding:2px 28px 12px;} .pb-progress{padding:0 28px 8px;}
+  .pb-timeline{max-width:980px; padding:0 28px 0 30px;} .pb-timeline::before{left:38px;}
+  .pb-card{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:start;}
+  .pb-card .art-img img{height:100%; object-fit:cover;}
+}

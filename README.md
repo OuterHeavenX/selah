@@ -19,8 +19,10 @@ Protestant canon ships as readable text.
   the spine of John), Matthew's fulfilment quotations, the parables, the
   mighty works in Mark, Old Testament promises of the Messiah, Psalms read
   of Christ, and the early church's hymns in the letters.
-- Images: artwork in Bible order, full-screen viewer, links to the passage;
-  the same pieces rotate on the Home screen.
+- Images: a picture Bible — a timeline per book (Genesis has all 20 major
+  stories laid out, 4 illustrated so far; Exodus, Numbers, the Prophets),
+  numbered scenes on each poster link to their verses, full-screen viewer.
+  Pieces marked `home:true` also rotate on the Home screen (`pictures.js`).
 - Book view (iPad landscape / wide screens ≥900px): two pages side by side
   with a 3D page turn — drag, swipe, tap the page edge, or use the arrow keys.
   Chapters flow into each other; a toggle switches back to scrolling.
@@ -100,10 +102,13 @@ Project `Selah` (ref `vxhoiyjodwzjzvfrbqvv`, free plan, us-east-2).
   dashboard and sync resumes (the app keeps working locally meanwhile).
 
 ## Art
-`img/art/*.jpg` (900px wide). Listed in the `ART` array in `app.js` in the
-order the scenes appear in Scripture; the Home slideshow and the Images tab
-both read from it. To add a piece, drop the JPEG in `img/art/` and insert an
-entry (title, passage, caption, alt text) at its place in the story.
+`img/art/*.jpg` (900px wide), described in `pictures.js`:
+- `ART` — each piece (title, passage, caption, alt text, numbered `panels`
+  with their verses, and `home:true` if it should rotate on Home).
+- `PICTURE_BOOKS` — each book's stories in order; set `art:"<id>"` on a story
+  to show its picture (stories without art show as "picture to come").
+After adding art: bump `DATA_V` in `app.js` and `sw.js`, and rerun
+`tools/build_offline_list.py`.
 
 ## Roadmap
 - "Mirroring verses": parallel view is built; chiasmus marking is open.
