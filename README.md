@@ -20,6 +20,13 @@ Protestant canon ships as readable text.
   covering the tapped verse, plus the chapter and book introductions and every
   note on the chapter; references inside notes are links. Switchable off in
   Settings (`commentary.js`).
+- Maps (`maps.js`, Home → Maps, `#/maps`): a parchment map of the biblical world
+  with 1,247 places. Search a place to see where it is, how certain the location
+  is and every verse that names it; follow six journeys stop by stop (Abraham,
+  the Exodus, Paul's three journeys, the voyage to Rome); or see the places in
+  the chapter you're reading. Pinch/drag/wheel to zoom; the verse sheet's
+  Cross-refs tab links the places named in a verse. Feature screens register
+  through `EXTRA_VIEWS`, `HOME_TOOLS` and `EXTRA_ROUTES`.
 - Hebrew / Greek tab: every verse's original words in order — original script,
   transliteration, English gloss, Strong's number. Tap a word for its lexicon
   entry (definition, parsing of that form, every verse that uses it).
@@ -100,6 +107,10 @@ Protestant canon ships as readable text.
   refs as verse ids (ranges as `[first,last]`). `data/lexindex.json` — every
   Hebrew/Greek word `[strong, lemma, translit, gloss, uses]`. Both built by
   `tools/build_topics.py`.
+- `data/mapbase.json`, `data/places.json` — Natural Earth 1:10m land, lakes and
+  rivers (public domain) and OpenBible.info Bible Geocoding Data (CC BY 4.0), the
+  best-scored identification per place with a 0–2 confidence, plus the journeys.
+  Built by `tools/build_maps.py` (own clipping and simplification, no GIS libraries).
 - `data/study.json` — hand-curated: 45 Gospel parallel sets and 11 study
   trails (John; Matthew, Mark & Luke; Old Testament; the letters).
 
