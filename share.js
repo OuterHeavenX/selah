@@ -116,7 +116,8 @@ function paintShare(body,ref){
       ${SHARE.style==="art"&&ART.length>1?`<div class="share-row" role="group" aria-label="Artwork">${ART.map((a,i)=>`<button class="chip${SHARE.art%ART.length===i?" on":""}" data-art="${i}">${esc(a.title.replace(/^The /,""))}</button>`).join("")}</div>`:""}
       <div class="share-row"><span class="share-lbl">Verses</span><button class="chip" id="shLess" ${SHARE.count<=1?"disabled":""}>−</button><span class="share-n">${SHARE.count}</span><button class="chip" id="shMore" ${SHARE.count>=6||p.v+SHARE.count>ch.length?"disabled":""}>+</button></div>
     </div>
-    <div class="backup-row"><button class="btn-primary" id="shareGo">Share image</button><button class="btn-ghost" id="shareCopy">Copy text</button></div>`;
+    <div class="backup-row"><button class="btn-primary" id="shareGo">Share image</button><button class="btn-ghost" id="shareCopy">Copy text</button></div>
+    <button class="btn-ghost share-link" id="shareLink">Copy link to ${esc(shareVerses().label)}</button>`;
   const repaint=()=>paintShare(body,ref);
   body.querySelectorAll("[data-st]").forEach(b=>b.onclick=()=>{ SHARE.style=b.dataset.st; repaint(); });
   body.querySelectorAll("[data-art]").forEach(b=>b.onclick=()=>{ SHARE.art=+b.dataset.art; repaint(); });
@@ -124,8 +125,14 @@ function paintShare(body,ref){
   $("#shMore").onclick=()=>{ SHARE.count=Math.min(6,SHARE.count+1); repaint(); };
   $("#shareBack").onclick=()=>{ state.sheetTab="mark"; paintSheet(); };
   $("#shareCopy").onclick=async()=>{
-    const s=shareVerses(), txt=`“${s.items.map(i=>i.t).join(" ")}” — ${s.label} (${TRANSLATIONS[state.trans].name})`;
+    const s=shareVerses(), txt=`“${s.items.map(i=>i.t).join(" ")}” — ${s.label} (${TRANSLATIONS[state.trans].name})\n${verseLink(SHARE.ref)}`;
     try{ await navigator.clipboard.writeText(txt); toast("Copied"); }catch(e){ toast("Couldn’t copy"); }
+  };
+  $("#shareLink").onclick=async()=>{
+    const s=shareVerses(), first=SHARE.ref, last=s.items.length?s.items[s.items.length-1].v:null;
+    const url=verseLink(last&&last!==parseRef(first).v?`${first}-${last}`:first);
+    try{ if(navigator.share&&/iPhone|iPad|Android/i.test(navigator.userAgent)) await navigator.share({title:s.label,url}); else { await navigator.clipboard.writeText(url); toast("Link copied"); } }
+    catch(e){ if(!(e&&e.name==="AbortError")) toast("Couldn’t copy the link"); }
   };
   const canvas=document.createElement("canvas");
   const ready=(document.fonts?document.fonts.ready:Promise.resolve()).then(()=>drawShareCard(canvas));
