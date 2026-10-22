@@ -622,3 +622,46 @@ div.home-plan{cursor:default;}
   .map-stage{flex:1 1 auto;}
   .map-panel{flex:0 0 380px; border-top:none; border-left:1px solid var(--line);}
 }
+
+/* ---------- timeline ---------- */
+.tl-screen{max-width:760px; margin:0 auto; padding-bottom:30px;}
+.tl-eras{position:sticky; top:var(--topbar-h,57px); z-index:9; display:flex; gap:6px; overflow-x:auto; padding:10px 16px; background:var(--paper); border-bottom:1px solid var(--line); scrollbar-width:none;}
+.tl-eras::-webkit-scrollbar{display:none;}
+.tl-eras button{flex:none; border:1px solid var(--line); background:none; border-radius:20px; padding:6px 12px; font-size:13px; font-weight:600; color:var(--ink-soft); cursor:pointer; white-space:nowrap;}
+.tl-eras button.on{background:var(--accent); border-color:var(--accent); color:#fff;}
+.tl-head{padding:18px 16px 4px;}
+.tl-head h2{font-family:Georgia,serif; font-size:28px; margin:0 0 6px; color:var(--ink);}
+.tl-head p{margin:0; color:var(--ink-soft); font-size:14.5px; line-height:1.5;}
+.tl-era{padding:18px 16px 4px; scroll-margin-top:120px;}
+.tl-era-head{display:flex; gap:14px; align-items:flex-start; padding:14px 16px; border-radius:14px; background:var(--accent-soft); margin-bottom:6px;}
+.tl-era-head > div{flex:1;}
+.tl-era-span{font:700 11px/1.3 system-ui,sans-serif; letter-spacing:.14em; text-transform:uppercase; color:var(--accent);}
+.tl-era-head h3{font-family:Georgia,serif; font-size:22px; margin:4px 0 4px; color:var(--ink);}
+.tl-era-head p{margin:0; font-size:14.5px; line-height:1.45; color:var(--ink-soft);}
+.tl-era-art{flex:none; width:74px; height:92px; padding:0; border:none; border-radius:8px; overflow:hidden; cursor:pointer; background:none;}
+.tl-era-art img{width:100%; height:100%; object-fit:cover;}
+.tl-list{list-style:none; margin:0; padding:4px 0 0 22px; position:relative;}
+.tl-list::before{content:""; position:absolute; left:7px; top:0; bottom:0; width:2px; background:var(--line);}
+.tl-ev{position:relative; padding:4px 0;}
+.tl-dot{position:absolute; left:-20px; top:17px; width:10px; height:10px; border-radius:50%; background:var(--paper); border:2px solid var(--accent);}
+.tl-ev.mine .tl-dot{background:var(--accent);}
+.tl-ev.has-art .tl-dot{width:12px; height:12px; left:-21px; top:16px; background:var(--accent); box-shadow:0 0 0 3px var(--accent-soft);}
+.tl-card{border-radius:12px;}
+.tl-title{display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 10px; width:100%; background:none; border:none; text-align:left; padding:10px 8px; cursor:pointer; color:var(--ink); border-radius:10px;}
+.tl-title:hover{background:var(--accent-soft);}
+.tl-date{font:600 12px/1.3 system-ui,sans-serif; color:var(--accent); min-width:86px;}
+.tl-name{font-family:Georgia,serif; font-size:17px; line-height:1.35; flex:1; min-width:0;}
+.tl-mine{font:700 10px/1 system-ui,sans-serif; letter-spacing:.1em; text-transform:uppercase; color:#fff; background:var(--accent); padding:4px 7px; border-radius:20px;}
+.tl-body{display:none; padding:2px 8px 12px;}
+.tl-ev.open .tl-card{background:var(--sheet); border:1px solid var(--line);}
+.tl-ev.open .tl-body{display:block;}
+.tl-body p{margin:0 0 8px; font-family:Georgia,serif; font-size:16px; line-height:1.55; color:var(--ink);}
+.tl-body .tl-note{font-family:inherit; font-size:13.5px; color:var(--ink-soft); border-left:3px solid var(--accent); padding-left:10px;}
+.tl-art{display:block; width:100%; max-width:340px; padding:0; border:none; border-radius:10px; overflow:hidden; margin:2px 0 10px; cursor:zoom-in; background:none;}
+.tl-art img{width:100%; display:block;}
+.tl-acts{display:flex; flex-wrap:wrap; gap:8px;}
+.tl-btn{border:1px solid var(--accent); background:var(--accent); color:#fff; border-radius:20px; padding:7px 14px; font-size:13.5px; font-weight:600; cursor:pointer;}
+.tl-btn.ghost{background:none; color:var(--accent);}
+.tl-foot{padding:20px 16px; font-size:12.5px; color:var(--ink-soft);}
+@media (min-width:900px){ .tl-date{min-width:110px;} }
+@media (max-width:599px){ .tl-date{min-width:0; width:100%;} .tl-date:empty{display:none;} .tl-title{padding:9px 8px;} }
