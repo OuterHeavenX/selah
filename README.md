@@ -30,6 +30,9 @@ Protestant canon ships as readable text.
 - Read aloud: ▶ Listen in the reader uses the device's built-in voices,
   highlights the verse being read, follows it (scrolling or turning book
   pages) and continues into the next chapter; 0.8–1.4× speed (`readaloud.js`).
+- Share as image: ⇪ in the verse sheet (or "Share this verse" in Mark) makes
+  a 4:5 card — Parchment, Ink or Artwork style, 1–6 verses — and opens the
+  share sheet or downloads a PNG (`share.js`).
 - Saved: highlights + notes list, plus Backup: save a file with highlights,
   notes and plan progress and restore it on another device (merges, never
   deletes). Light/dark themes.

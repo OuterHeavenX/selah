@@ -1,6 +1,6 @@
 "use strict";
 /* Selah — ASV Study Bible prototype */
-const DATA_V="11"; // bump when data/*.json changes so phones drop cached copies
+const DATA_V="12"; // bump when data/*.json changes so phones drop cached copies
 let XREFS={}, STUDY=null, TYPES=[];
 const TRANSLATIONS={
   asv:{name:"ASV", full:"American Standard Version (1901)", short:"ASV 1901", file:"data/bible.json"},
@@ -448,6 +448,7 @@ function gotoVerse(ref){
 let sheetReturnFocus=null;
 function bindSheet(){
   $("#sheetClose").onclick=closeSheet;
+  $("#sheetShare").onclick=()=>{ state.sheetTab="share"; paintSheet(); };
   $("#sheetScrim").onclick=closeSheet;
   document.addEventListener("keydown",e=>{
     const lbOpen=!$("#lightbox").classList.contains("hidden");
@@ -487,7 +488,7 @@ function paintSheet(){
       if(l<tabs.scrollLeft) tabs.scrollLeft=l; else if(r>tabs.scrollLeft+tabs.clientWidth) tabs.scrollLeft=r-tabs.clientWidth; }
   });
   const body=$("#sheetBody"); body.scrollTop=0;
-  ({xrefs:paintXrefs,original:paintOriginal,parallels:paintParallels,typology:paintTypes,words:paintWords,mark:paintMark})[state.sheetTab](body,ref);
+  ({xrefs:paintXrefs,original:paintOriginal,parallels:paintParallels,typology:paintTypes,words:paintWords,mark:paintMark,share:paintShare})[state.sheetTab](body,ref);
 }
 async function paintXrefs(body,ref){
   const p=parseRef(ref);
@@ -577,6 +578,7 @@ function paintMark(body,ref){
     `</div><div class="lbl">Study note</div>
     <textarea id="noteArea" placeholder="What do you see in this verse?" aria-label="Study note">${esc(note)}</textarea>
     <button class="btn-primary" id="saveMark">Save</button>
+    <button class="btn-ghost share-link" id="markShare">Share this verse as an image</button>
     ${(cur||note)?'<button class="btn-ghost" id="clearMark">Clear highlight & note</button>':""}`;
   let sel=cur;
   body.querySelectorAll(".hl-dot").forEach(d=>d.onclick=()=>{
@@ -591,6 +593,7 @@ function paintMark(body,ref){
     store.set("hl",HL); store.set("notes",NOTES);
     toast("Saved"); refresh();
   };
+  $("#markShare").onclick=()=>{ state.sheetTab="share"; paintSheet(); };
   const cm=$("#clearMark");
   if(cm) cm.onclick=()=>{ delete HL[ref]; delete NOTES[ref]; store.set("hl",HL); store.set("notes",NOTES); toast("Cleared"); refresh(); };
 }
