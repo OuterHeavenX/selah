@@ -397,3 +397,16 @@ div.home-plan{cursor:default;}
 .rate-btn{font-size:13px; font-weight:700; min-width:46px;}
 @media (max-width:480px){ .listen-btn span{display:none;} .reader-nav{gap:6px;} .reader-nav select{min-width:0;} }
 .verse.speaking{background:var(--accent-soft); box-shadow:inset 3px 0 0 var(--accent);}
+
+/* ---------- share as image ---------- */
+.sheet-actions{display:flex; gap:8px;}
+.share-preview{display:flex; justify-content:center; margin:0 0 12px;}
+.share-preview img{width:min(100%,340px); aspect-ratio:4/5; border-radius:10px; box-shadow:0 6px 20px rgba(0,0,0,.18); background:var(--paper2);}
+.share-opts{display:flex; flex-direction:column; gap:10px; margin-bottom:14px;}
+.share-row{display:flex; flex-wrap:wrap; align-items:center; gap:8px;}
+.chip{border:1px solid var(--line); background:none; border-radius:20px; padding:7px 14px; font-size:13px; font-weight:600; color:var(--ink-soft); cursor:pointer;}
+.chip.on{background:var(--accent); border-color:var(--accent); color:#fff;}
+.chip:disabled{opacity:.35; cursor:default;}
+.share-lbl{font-size:12px; text-transform:uppercase; letter-spacing:1.5px; color:var(--ink-soft); margin-right:4px;}
+.share-n{min-width:20px; text-align:center; font-weight:700;}
+.share-link{color:var(--accent); border-color:var(--line);}
