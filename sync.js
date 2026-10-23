@@ -223,12 +223,12 @@ function ago(t){
 function syncHTML(){
   const s=authSession();
   if(s) return `<div class="backup sync-box" id="syncBox"><div class="lbl">Sync between devices</div>
-    <div class="section-sub" style="padding:0 0 10px">Signed in${s.email?` as <b>${esc(s.email)}</b>`:""}. Highlights, notes, reading plans, memory verses and your journal stay in step on every device where you sign in.</div>
+    <div class="section-sub" style="padding:0 0 10px">Signed in${s.email?` as <b>${esc(s.email)}</b>`:""}. Highlights, notes, bookmarks, reading plans, memory verses, prayers and your journal stay in step on every device where you sign in.</div>
     <div class="sync-status${SYNC.error?" err":""}" id="syncStatus">${syncStatusText()}</div>
     <div class="backup-row"><button class="btn-primary" id="syncNowBtn">Sync now</button><button class="btn-ghost" id="signOutBtn">Sign out</button></div>
     <button class="link-btn danger-link" id="deleteAcctBtn">Delete my account…</button></div>`;
   return `<div class="backup sync-box" id="syncBox"><div class="lbl">Sync between devices</div>
-    <div class="section-sub" style="padding:0 0 10px">Sign in on your iPhone, iPad or computer and your highlights, notes, reading plan, memory verses and journal stay in step automatically.</div>
+    <div class="section-sub" style="padding:0 0 10px">Sign in on your iPhone, iPad or computer and your highlights, notes, bookmarks, reading plan, memory verses, prayers and journal stay in step automatically.</div>
     <form id="authForm" autocomplete="on">
       <input type="email" id="authEmail" placeholder="Email" autocomplete="email" required>
       <input type="password" id="authPass" placeholder="Password (8+ characters)" autocomplete="current-password" minlength="8" required>
