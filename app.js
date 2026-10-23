@@ -197,7 +197,9 @@ async function offlineStatus(){
     // Commentary files count only for the work chosen in Settings (and none when commentary is off).
     // Translations count only for the one being read and the side-by-side one (all of them would be ~90 MB).
     const trFiles=new Set(Object.values(TRANSLATIONS).map(t=>t.file)), want=new Set([state.trans,compareTrans()].filter(Boolean).map(k=>TRANSLATIONS[k].file));
-    const files=list.files.filter(f=>(!f.p.startsWith("data/comm/")||(commOn()&&f.p.startsWith(`data/comm/${commSrc()}/`)))&&(!trFiles.has(f.p)||want.has(f.p)));
+    const inUse=[state.trans,compareTrans()].filter(Boolean);
+    const files=list.files.filter(f=>(!f.p.startsWith("data/comm/")||(commOn()&&f.p.startsWith(`data/comm/${commSrc()}/`)))&&(!trFiles.has(f.p)||want.has(f.p))
+      &&(!f.p.startsWith("data/red/")||(redOn()&&inUse.some(k=>f.p===`data/red/${k}.json`))));
     const have=files.filter(f=>keys.has(new URL(f.p+"?v="+DATA_V,location.href).href));
     return {list:{files,bytes:files.reduce((a,f)=>a+f.s,0)},have:have.length,total:files.length,haveBytes:have.reduce((a,f)=>a+f.s,0)};
   }catch(e){ return null; }
@@ -463,6 +465,25 @@ function emptyVerseNote(book,chNum,v,tname,ref){
   if(j){ const [jc,jv]=j.split(":"); return `Included with ${+jc===chNum?"verse "+jv:jc+":"+jv} in the ${tname}.`; }
   return NT_VARIANTS.has(ref)?`Not in the ${tname} text — this verse is absent from the oldest manuscripts.`:`Not in the ${tname} text.`;
 }
+/* Red letters: data/red/<translation>.json = {"Book C:V": [[start,end],…]} — where Jesus speaks in that translation's words. */
+const RED={}, RED_BOOKS=new Set(["Matthew","Mark","Luke","John","Acts","1 Corinthians","2 Corinthians","1 Timothy","Revelation"]);
+const redOn=()=>store.get("redLetters",true);
+function ensureRed(key){
+  if(!redOn()||key in RED||!TRANSLATIONS[key]) return;
+  RED[key]=null;                                    // loading
+  getJSON(`data/red/${key}.json`).then(d=>{ RED[key]=d;
+    if(state.view==="read"&&RED_BOOKS.has(state.book)&&(key===state.trans||key===compareTrans())){
+      if(typeof BOOK!=="undefined") BOOK.cache.clear();
+      if(document.getElementById("book")) bookRelayout(); else { const y=scrollY; renderRead(); scrollTo(0,y); }
+    }
+  }).catch(()=>{ delete RED[key]; });
+}
+function redHTML(key,ref,t){
+  const sp=redOn()&&RED[key]&&RED[key][ref];
+  if(!sp) return verseHTML(t);
+  let m=t; for(const [a,b] of [...sp].sort((x,y)=>y[0]-x[0])) m=m.slice(0,a)+"\uE000"+m.slice(a,b)+"\uE001"+m.slice(b);
+  return verseHTML(m).replace(/\uE000/g,'<span class="wj">').replace(/\uE001/g,"</span>");
+}
 function chapterVersesHTML(bookName,chNum){
   let book=BOOKS.find(b=>b.name===bookName), src=state.trans;
   let h="";
@@ -473,9 +494,10 @@ function chapterVersesHTML(bookName,chNum){
   }
   const heads=book.headings||{};
   const cmp=compareTrans(), cbook=cmp&&BIBLES[cmp]?BIBLES[cmp].books.find(b=>b.name===bookName):null;
+  if(RED_BOOKS.has(bookName)){ ensureRed(src); if(cmp) ensureRed(cmp); }
   const cmpHTML=i=>{ if(!cbook) return ""; const ct=(cbook.chapters[chNum-1]||[])[i];
     const none=!(cbook.chapters[chNum-1]||[]).some(Boolean);
-    return `<span class="vcmp"><span class="vtag">${TRANSLATIONS[cmp].name}</span>${ct?verseHTML(ct):`<i>${none?"Not in this translation":esc(emptyVerseNote(cbook,chNum,i+1,TRANSLATIONS[cmp].name,`${bookName} ${chNum}:${i+1}`))}</i>`}</span>`; };
+    return `<span class="vcmp"><span class="vtag">${TRANSLATIONS[cmp].name}</span>${ct?redHTML(cmp,`${bookName} ${chNum}:${i+1}`,ct):`<i>${none?"Not in this translation":esc(emptyVerseNote(cbook,chNum,i+1,TRANSLATIONS[cmp].name,`${bookName} ${chNum}:${i+1}`))}</i>`}</span>`; };
   book.chapters[chNum-1].forEach((t,i)=>{
     const ref=`${bookName} ${chNum}:${i+1}`;
     const hd=heads[`${chNum}:${i+1}`];
@@ -490,7 +512,7 @@ function chapterVersesHTML(bookName,chNum){
     const tc=typesFor(bookName,chNum,i+1).length;
     const hl=HL[ref]?` hl-${HL[ref]}`:"";
     const nn=(NOTES[ref]?" has-note":"")+(typeof bmHas==="function"&&bmHas(ref)?" bm":"");
-    const main=`<span class="vn">${i+1}</span>${verseHTML(t)}${xc?`<span class="xcount">↔ ${xc}</span>`:""}${tc?`<span class="tcount">◈ type</span>`:""}`;
+    const main=`<span class="vn">${i+1}</span>${redHTML(src,ref,t)}${xc?`<span class="xcount">↔ ${xc}</span>`:""}${tc?`<span class="tcount">◈ type</span>`:""}`;
     h+=cbook?`<div class="verse cmp${hl}${nn}" data-ref="${esc(ref)}" role="button" tabindex="0"><span class="vp">${main}</span>${cmpHTML(i)}</div>`
             :`<div class="verse${hl}${nn}" data-ref="${esc(ref)}" role="button" tabindex="0">${main}</div>`;
   });
