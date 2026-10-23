@@ -374,6 +374,8 @@ function renderHome(){
         <div class="hero-dots" role="group" aria-label="Choose picture">${HOME_ART.map((a,i)=>`<button data-i="${i}" class="${i===start?"on":""}" aria-label="${esc(a.title)}"></button>`).join("")}</div></div>
     </div></div><div class="home-main">`
   +(pos&&BOOKS.some(b=>b.name===pos.book)?`<button class="home-continue" id="hcCont"><span>Continue reading</span><b>${esc(pos.book)} ${pos.ch} →</b></button>`:"")
+  +(()=>{ const rec=typeof historyList==="function"?historyList().filter(x=>!(pos&&x.b===pos.book&&x.c===pos.ch)).slice(0,4):[];
+      return rec.length?`<div class="home-recent"><span>Recent</span>${rec.map(x=>`<button data-b="${esc(x.b)}" data-c="${x.c}">${esc(chLabel(x.b,x.c))}</button>`).join("")}</div>`:""; })()
   +planHomeCard()
   +`<button class="home-votd" id="hcVotd"><div class="hlab">Verse of the day</div><div class="votd-ref">${esc(votd)}</div><div class="votd-text">${verseHTML(textOf(votd))}</div></button>`
   +(typ&&typFirst?`<button class="home-typ" id="hcTyp"><div class="hlab">Typology of the day</div><div class="ty-t">${esc(typ.title)}</div><div class="ty-s">${esc(typ.nt)} &nbsp;↔&nbsp; ${esc(typ.ot)}</div></button>`:"")
@@ -390,6 +392,7 @@ ${HOME_TOOLS.map(t=>`<button class="home-card" data-go="${t.go}"><div class="hc-
   const go=g=>showView(g);
   v.querySelectorAll(".home-card").forEach(b=>b.onclick=()=>{ const t=HOME_TOOLS.find(x=>x.go===b.dataset.go); if(t&&t.open) t.open(); go(b.dataset.go); });
   const hc=v.querySelector("#hcCont"); if(hc) hc.onclick=()=>go("read");
+  v.querySelectorAll(".home-recent button").forEach(b=>b.onclick=()=>{ state.book=b.dataset.b; state.ch=+b.dataset.c; savePos(); go("read"); });
   v.querySelector("#hcVotd").onclick=()=>gotoVerse(votd);
   const ht=v.querySelector("#hcTyp"); if(ht) ht.onclick=()=>{ gotoVerse(typFirst); setTimeout(()=>openSheet(typFirst,"typology"),80); };
   bindPlanHomeCard();
@@ -486,7 +489,7 @@ function chapterVersesHTML(bookName,chNum){
     const xc=(XREFS[ref]||[]).length;
     const tc=typesFor(bookName,chNum,i+1).length;
     const hl=HL[ref]?` hl-${HL[ref]}`:"";
-    const nn=NOTES[ref]?" has-note":"";
+    const nn=(NOTES[ref]?" has-note":"")+(typeof bmHas==="function"&&bmHas(ref)?" bm":"");
     const main=`<span class="vn">${i+1}</span>${verseHTML(t)}${xc?`<span class="xcount">↔ ${xc}</span>`:""}${tc?`<span class="tcount">◈ type</span>`:""}`;
     h+=cbook?`<div class="verse cmp${hl}${nn}" data-ref="${esc(ref)}" role="button" tabindex="0"><span class="vp">${main}</span>${cmpHTML(i)}</div>`
             :`<div class="verse${hl}${nn}" data-ref="${esc(ref)}" role="button" tabindex="0">${main}</div>`;
@@ -531,7 +534,7 @@ function renderRead(){
   bindVerseOpen(list);
   bindReaderNav();
 }
-function savePos(){ store.set("pos",{book:state.book,ch:state.ch}); routeChapter(); }
+function savePos(){ store.set("pos",{book:state.book,ch:state.ch}); if(typeof recordHistory==="function") recordHistory(state.book,state.ch); routeChapter(); }
 function stepChapter(d){
   const bi=BOOKS.findIndex(b=>b.name===state.book);
   let nb=bi, nc=state.ch+d;
@@ -808,7 +811,7 @@ function renderSaved(){
     const pa=order(a),pb=order(b); return pa[0]-pb[0]||pa[1]-pb[1]||pa[2]-pb[2];
   });
   v.innerHTML=`<h2 class="section-title">Saved</h2>
-  <div class="section-sub">Your highlights and study notes. Sign in below to keep them in step across your devices.</div>
+  <div class="section-sub">Your highlights and study notes (bookmarks have their own screen on Home). Sign in below to keep them in step across your devices.</div>
   <div id="savedList">`+(keys.length?keys.map(k=>`
     <button class="saved-item${HL[k]?" hl-"+HL[k]:""}" data-r="${esc(k)}">
       <span class="sr2">${esc(k)}</span><div class="sv2">${verseHTML(textOf(k))}</div>
