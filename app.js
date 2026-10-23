@@ -169,12 +169,15 @@ async function boot(){
   updateTransUI();
   const pos=store.get("pos",null);
   if(pos&&BOOKS.some(b=>b.name===pos.book)){ state.book=pos.book; state.ch=pos.ch; }
+  // A first visit (nothing read or saved yet) gets the welcome tour, unless it arrived on a shared verse link.
+  const firstRun=!pos&&!store.get("welcomed",false)&&!Object.keys(HL).length&&!Object.keys(NOTES).length&&!/^#\/read\//.test(location.hash)&&!/access_token/.test(location.hash);
   bindTabs(); bindTheme(); bindFontSize(); bindSheet(); bindTrans(); bindSettings(); syncCommTab();
   setupSync();
   if("scrollRestoration" in history) history.scrollRestoration="manual";
   startRouter();
   ensureXrefs(state.book);
   setupOffline();
+  if(firstRun&&typeof showWelcome==="function") showWelcome();
 }
 
 /* ---------- offline + install ---------- */
