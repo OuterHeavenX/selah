@@ -1,4 +1,5 @@
 :root{
+  --read-font:Georgia,"Times New Roman",serif; --read-lh:1.65; --read-pad:18px; --read-max:780px;
   --paper:#faf6ec; --paper2:#f3eddd; --ink:#2b2519; --ink-soft:#6d6350;
   --line:#e2d9c2; --accent:#7a5f26; --on-accent:#fff; --accent-soft:#f0e6cd;
   --sheet:#fffdf7; --hl-y:#fff3b0; --hl-g:#d9f2d0; --hl-b:#d4e8fb; --hl-p:#fbd9e8;
@@ -48,8 +49,8 @@ body{
   background:var(--sheet); color:var(--ink); max-width:44%;
 }
 .nav-btn{background:var(--accent-soft); border:1px solid var(--line); color:var(--ink); border-radius:10px; padding:8px 12px; font-size:15px; cursor:pointer;}
-.verses{padding:6px 18px;}
-.verse{font-family:Georgia,"Times New Roman",serif; font-size:var(--fs-verse,18px); line-height:1.65; padding:7px 8px; border-radius:8px; cursor:pointer;}
+.verses{padding:6px var(--read-pad,18px);}
+.verse{font-family:var(--read-font); font-size:var(--fs-verse,18px); line-height:var(--read-lh,1.65); padding:7px 8px; border-radius:8px; cursor:pointer;}
 /* No :active tint on verses: on phones it fired while just scrolling. The verse you
    actually tapped is marked .picked while its study sheet is open. */
 .verse.picked{box-shadow:inset 3px 0 0 var(--accent);}
@@ -314,7 +315,7 @@ html.book-on .book-toggle{margin-left:12px;}
   #results .empty{padding:14px 28px !important;}
 
   /* Scrolling reader keeps a comfortable line length */
-  html:not(.book-on) .verses{max-width:780px; margin:0 auto; padding:10px 28px;}
+  html:not(.book-on) .verses{max-width:var(--read-max,780px); margin:0 auto; padding:10px 28px;}
   html:not(.book-on) .reader-nav{justify-content:center;}
   html:not(.book-on) .reader-nav select{max-width:260px;}
 }
@@ -838,3 +839,4 @@ div.home-plan{cursor:default;}
 .about-credits{font-size:13.5px; color:var(--ink-soft);} .about-credits b{color:var(--ink);}
 .about-foot{margin-top:18px; color:var(--ink-soft); font-size:13.5px;}
 .danger-link{color:var(--danger)!important; margin-top:10px; font-size:13.5px;}
+.set-preview{font-family:var(--read-font); line-height:var(--read-lh,1.65);}
