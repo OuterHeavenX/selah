@@ -174,12 +174,12 @@ function importBackup(text){
       store.set("plan",mine); planMsg=" and plan progress";
     }
   }
-  toast(`Restored ${h} highlight${h===1?"":"s"}, ${n} note${n===1?"":"s"}${extra?`, ${extra} memory verse${extra===1?"":"s"} & journal entr${extra===1?"y":"ies"}`:""}${planMsg}`);
+  toast(`Restored ${h} highlight${h===1?"":"s"}, ${n} note${n===1?"":"s"}${extra?`, ${extra} other item${extra===1?"":"s"} (bookmarks, memory verses, prayers, journal)`:""}${planMsg}`);
   showView(state.view);
 }
 function backupHTML(){
   return `<div class="backup"><div class="lbl">Backup</div>
-    <div class="section-sub" style="padding:0 0 10px">Save your highlights, notes, reading-plan progress, memory verses and journal to a file, then restore it on your other devices. Restoring adds to what’s already here — it never deletes anything.</div>
+    <div class="section-sub" style="padding:0 0 10px">Save your highlights, notes, bookmarks, reading-plan progress, memory verses, prayers and journal to a file, then restore it on your other devices. Restoring adds to what’s already here — it never deletes anything.</div>
     <div class="backup-row"><button class="btn-primary" id="bkExport">Save backup</button><button class="btn-ghost" id="bkImport">Restore from file</button></div>
     <input type="file" id="bkFile" accept="application/json,.json" hidden></div>`;
 }
