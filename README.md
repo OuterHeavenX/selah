@@ -158,6 +158,9 @@ Protestant canon ships as readable text.
   with Scripture links (`data-r`) and see-also links (`data-t`). Built by
   `tools/build_dictionary.py`. Search → Dictionary, and the people and places in a
   verse at the bottom of its Cross-refs tab (`dictionary.js`).
+- `data/intros.json` — book introductions written for Selah: `{Book: {author, date,
+  theme, key, outline:[[chapters, title]], christ}}`, shown above chapter 1 in scroll
+  view (Settings → Reading → Book introductions).
 - `data/study.json` — hand-curated: 45 Gospel parallel sets and 11 study
   trails (John; Matthew, Mark & Luke; Old Testament; the letters).
 

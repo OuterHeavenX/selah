@@ -888,3 +888,21 @@ div.home-plan{cursor:default;}
 .dict-body{font-family:var(--read-font); font-size:16.5px; line-height:1.7;} .dict-body p{margin:0 0 12px;}
 .dict-body a{color:var(--accent); text-decoration:none; border-bottom:1px solid color-mix(in srgb, var(--accent) 40%, transparent); cursor:pointer;}
 .dict-page .link-btn{margin-top:6px;}
+/* Book introductions */
+.intro{margin:6px 0 18px; padding:18px 18px 12px; border:1px solid var(--line); border-radius:16px; background:var(--sheet); position:relative;}
+.intro::before{content:""; position:absolute; left:0; top:16px; bottom:16px; width:3px; border-radius:2px; background:var(--accent);}
+.intro-lbl{font-size:11px; letter-spacing:1.6px; text-transform:uppercase; color:var(--accent); font-weight:700;}
+.intro-t{font-family:Georgia,serif; font-size:24px; margin:2px 0 6px;}
+.intro-meta{display:flex; flex-wrap:wrap; gap:4px 14px; font-size:13px; color:var(--ink-soft);}
+.intro-meta span+span::before{content:"·"; margin-right:14px; color:var(--line);}
+.intro-theme{font-family:var(--read-font); font-size:16.5px; line-height:1.6; margin:10px 0 4px;}
+.intro-more{display:none;} .intro.open .intro-more{display:block;}
+.intro-h{font-size:11px; letter-spacing:1.4px; text-transform:uppercase; color:var(--ink-soft); font-weight:700; margin:14px 0 6px;}
+.intro-ol{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:5px;}
+.intro-ol li{display:flex; gap:12px; font-size:14.5px;} .intro-ol b{flex:none; min-width:54px; color:var(--accent); font-variant-numeric:tabular-nums;}
+.intro-key{display:block; width:100%; text-align:left; background:var(--accent-soft); border:none; border-radius:10px; padding:10px 12px; font-family:var(--read-font); font-size:15px; line-height:1.55; cursor:pointer;}
+.intro-key b{font-family:-apple-system,sans-serif; font-size:13px; color:var(--accent); margin-right:4px;}
+.intro-christ{font-size:14.5px; line-height:1.6; margin:0;}
+.intro-tg{padding-top:12px;}
+.intro-meta i{font-style:normal; font-size:10.5px; letter-spacing:1.2px; text-transform:uppercase; font-weight:700; margin-right:6px; color:var(--ink-soft); opacity:.8;}
+.intro-meta span+span::before{content:none;} .intro-meta{flex-direction:column; gap:2px;}

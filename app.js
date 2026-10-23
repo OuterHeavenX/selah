@@ -541,6 +541,39 @@ function bindVerseOpen(root){
     if(el&&(e.key==="Enter"||e.key===" ")){ e.preventDefault(); openSheet(el.dataset.ref,"xrefs"); }
   });
 }
+/* Book introductions: a card above chapter 1 of each book (data/intros.json; Settings → Reading to hide). */
+let INTROS=null, INTROS_LOADING=false;
+const introsOn=()=>store.get("intros",true);
+function introHTML(bookName){
+  if(!introsOn()) return "";
+  if(!INTROS){
+    if(!INTROS_LOADING){ INTROS_LOADING=true; getJSON("data/intros.json").then(d=>{ INTROS=d; if(state.view==="read"&&state.ch===1&&!document.getElementById("book")) renderRead(); }).catch(()=>{}).finally(()=>{ INTROS_LOADING=false; }); }
+    return "";
+  }
+  const x=INTROS[bookName]; if(!x) return "";
+  const open=store.get("introOpen",false);
+  return `<section class="intro${open?" open":""}" aria-label="Introduction to ${esc(bookName)}">
+    <div class="intro-lbl">Introduction</div>
+    <h2 class="intro-t">${esc(bookName)}</h2>
+    <div class="intro-meta"><span><i>Author</i>${esc(x.author)}</span><span><i>When</i>${esc(x.date)}</span></div>
+    <p class="intro-theme">${esc(x.theme)}</p>
+    <div class="intro-more">
+      <div class="intro-h">Outline</div>
+      <ol class="intro-ol">${x.outline.map(([r,t])=>`<li><b>${esc(r)}</b><span>${esc(t)}</span></li>`).join("")}</ol>
+      <div class="intro-h">Key verse</div>
+      <button class="intro-key" data-r="${esc(x.key)}"><b>${esc(x.key.replace(/-/g,"–"))}</b> ${verseHTML(passageVerses(parsePassage(x.key)).map(v=>v.text).join(" ").slice(0,220))}</button>
+      <div class="intro-h">Christ in ${esc(bookName)}</div>
+      <p class="intro-christ">${esc(x.christ)}</p>
+    </div>
+    <button class="link-btn intro-tg" aria-expanded="${open}">${open?"Less":"Outline, key verse & more"}</button>
+  </section>`;
+}
+function bindIntro(root){
+  const c=root.querySelector(".intro"); if(!c) return;
+  c.querySelector(".intro-tg").onclick=()=>{ const o=!c.classList.contains("open"); c.classList.toggle("open",o); store.set("introOpen",o);
+    const b=c.querySelector(".intro-tg"); b.textContent=o?"Less":"Outline, key verse & more"; b.setAttribute("aria-expanded",o); };
+  c.querySelector(".intro-key").onclick=e=>{ e.stopPropagation(); gotoVerse(e.currentTarget.dataset.r); };
+}
 function renderRead(){
   const book=BOOKS.find(b=>b.name===state.book);
   if(!book.chapters[state.ch-1]) state.ch=1;
@@ -550,8 +583,9 @@ function renderRead(){
   if(isBookMode()){ document.documentElement.classList.add("book-on"); v.innerHTML=readerNavHTML()+`<div id="book"></div>`; bindReaderNav(); renderBook(); return; }
   document.documentElement.classList.remove("book-on");
   const cmp=compareTrans();
-  v.innerHTML=readerNavHTML()+`<div class="verses${cmp?" cmp-on":""}">${cmp?`<div class="cmp-head"><span>${esc(TRANSLATIONS[state.trans].short)}</span><span>${esc(TRANSLATIONS[cmp].short)}</span></div>`:""}${chapterVersesHTML(state.book,state.ch)}</div>`;
+  v.innerHTML=readerNavHTML()+`<div class="verses${cmp?" cmp-on":""}">${cmp?`<div class="cmp-head"><span>${esc(TRANSLATIONS[state.trans].short)}</span><span>${esc(TRANSLATIONS[cmp].short)}</span></div>`:""}${state.ch===1?introHTML(state.book):""}${chapterVersesHTML(state.book,state.ch)}</div>`;
   const list=v.querySelector(".verses");
+  bindIntro(v);
   list.onclick=e=>{ const el=e.target.closest(".verse[data-ref]"); if(el) openSheet(el.dataset.ref,"xrefs"); };
   bindVerseOpen(list);
   bindReaderNav();
