@@ -1,5 +1,5 @@
 "use strict";
-/* Selah — Search: three ways in.
+/* Selah — Search: four ways in (the fourth, Dictionary, lives in dictionary.js).
      Words           text of the current translation; exact phrase first, then verses with all the words
      Hebrew & Greek  find an original word by Strong's number (G26, H430), the word itself, its
                      transliteration or its English meaning, then list every verse that uses it
@@ -10,7 +10,7 @@
    via BibleData by Brady Stephenson, CC BY 4.0). Built by tools/build_topics.py. */
 
 const SEARCH={mode:store.get("searchMode","words"), q:"", scope:store.get("searchScope","all"), topic:null, letter:"A", run:false, open:null};
-const SEARCH_MODES=[["words","Words"],["heb","Hebrew & Greek"],["topics","Topics"]];
+const SEARCH_MODES=[["words","Words"],["heb","Hebrew & Greek"],["topics","Topics"],["dict","Dictionary"]];
 let LEXIDX=null, TOPICS=null, TOPICS_DATA=null, TOPIC_BY=null, TOPIC_REV=null;   // TOPICS: the loading promise; TOPICS_DATA: the list once loaded
 const loadLexIndex=()=>LEXIDX||(LEXIDX=getJSON("data/lexindex.json").catch(e=>{ LEXIDX=null; throw e; }));
 function loadTopics(){
@@ -52,8 +52,8 @@ function searchHash(){
   const p=new URLSearchParams();
   if(SEARCH.q) p.set("q",SEARCH.q);
   if(SEARCH.mode!=="words") p.set("m",SEARCH.mode);
-  if(SEARCH.mode!=="topics"&&SEARCH.scope!=="all") p.set("in",SEARCH.scope.replace(/ /g,"_"));
-  if(SEARCH.mode==="topics"&&SEARCH.topic) p.set("t",SEARCH.topic);
+  if(SEARCH.mode!=="topics"&&SEARCH.mode!=="dict"&&SEARCH.scope!=="all") p.set("in",SEARCH.scope.replace(/ /g,"_"));
+  if((SEARCH.mode==="topics"||SEARCH.mode==="dict")&&SEARCH.topic) p.set("t",SEARCH.topic);
   const s=p.toString().replace(/\+/g,"%20"); return "#/search"+(s?"?"+s:"");
 }
 function setSearchFromQuery(query){
@@ -69,11 +69,11 @@ const saveSearchRoute=()=>setRoute(searchHash(),true);
 /* ---------- screen ---------- */
 function renderSearch(){
   const v=$("#view"), m=SEARCH.mode;
-  const ph={words:"Search the Bible…",heb:"G26, H430, agape, love…",topics:"Find a topic — faith, prayer, Aaron…"}[m];
+  const ph={words:"Search the Bible…",heb:"G26, H430, agape, love…",topics:"Find a topic — faith, prayer, Aaron…",dict:"Look up a name, place or word…"}[m];
   v.innerHTML=`<div class="search-bar search-top">
       <div class="seg search-modes" role="tablist" aria-label="Search by">${SEARCH_MODES.map(([k,l])=>`<button role="tab" data-m="${k}" aria-selected="${k===m}" class="${k===m?"on":""}">${esc(l)}</button>`).join("")}</div>
       <div class="search-row"><input id="q" type="search" placeholder="${esc(ph)}" enterkeyhint="search" aria-label="${esc(ph)}" value="${esc(SEARCH.q)}" autocomplete="off"><button class="nav-btn" id="go">Go</button></div>
-      ${m!=="topics"?`<div class="search-scope"><span>In</span>${scopeSelect()}</div>`:""}
+      ${m!=="topics"&&m!=="dict"?`<div class="search-scope"><span>In</span>${scopeSelect()}</div>`:""}
     </div><div id="results"></div>`;
   v.querySelectorAll(".search-modes button").forEach(b=>b.onclick=()=>{
     if(b.dataset.m===SEARCH.mode) return;
@@ -84,8 +84,8 @@ function renderSearch(){
   const go=()=>{ SEARCH.q=$("#q").value.trim(); SEARCH.topic=null; runSearch(); };
   $("#go").onclick=go;
   $("#q").addEventListener("keydown",e=>{ if(e.key==="Enter") go(); });
-  if(m==="topics") $("#q").addEventListener("input",()=>{ SEARCH.q=$("#q").value.trim(); if(!SEARCH.topic) paintTopicList(); });
-  if(SEARCH.run||SEARCH.q||m==="topics"){ SEARCH.run=false; runSearch(false); }
+  if(m==="topics"||m==="dict") $("#q").addEventListener("input",()=>{ SEARCH.q=$("#q").value.trim(); if(!SEARCH.topic) (m==="dict"?paintDictList:paintTopicList)(); });
+  if(SEARCH.run||SEARCH.q||m==="topics"||m==="dict"){ SEARCH.run=false; runSearch(false); }
   else $("#results").innerHTML=searchHelp();
 }
 function searchHelp(){
@@ -95,7 +95,7 @@ function searchHelp(){
 }
 function runSearch(save=true){
   if(save) saveSearchRoute();
-  ({words:searchWords,heb:searchHeb,topics:searchTopics})[SEARCH.mode]();
+  ({words:searchWords,heb:searchHeb,topics:searchTopics,dict:searchDict})[SEARCH.mode]();
 }
 
 /* ---------- Words ---------- */

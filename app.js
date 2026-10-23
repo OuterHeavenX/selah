@@ -387,12 +387,12 @@ function renderHome(){
     <button class="home-card" data-go="christ"><div class="hc-t">Trace Christ</div><div class="hc-s">Study trails, Genesis to Revelation</div></button>
     <button class="home-card" data-go="images"><div class="hc-t">Images</div><div class="hc-s">Picture Bible · ${ART.length} pieces</div></button>
     <button class="home-card" data-go="plans"><div class="hc-t">Reading plans</div><div class="hc-s">${getPlan()?"Your plan and progress":"Year, Gospels, NT…"}</div></button>
-${HOME_TOOLS.map(t=>`<button class="home-card" data-go="${t.go}"><div class="hc-t">${esc(t.title)}</div><div class="hc-s">${esc(t.sub())}</div></button>`).join("")}
+${HOME_TOOLS.map((t,i)=>`<button class="home-card" data-go="${t.go}" data-tool="${i}"><div class="hc-t">${esc(t.title)}</div><div class="hc-s">${esc(t.sub())}</div></button>`).join("")}
     <button class="home-card" data-go="saved"><div class="hc-t">Saved</div><div class="hc-s">${hlN} highlight${hlN===1?"":"s"} · ${noteN} note${noteN===1?"":"s"}</div></button>
   </div>
   <div class="home-foot">Selah · ${esc(TRANSLATIONS[state.trans].full)} · ${esc(TRANSLATIONS[state.trans].license)}</div></div></div>`;
   const go=g=>showView(g);
-  v.querySelectorAll(".home-card").forEach(b=>b.onclick=()=>{ const t=HOME_TOOLS.find(x=>x.go===b.dataset.go); if(t&&t.open) t.open(); go(b.dataset.go); });
+  v.querySelectorAll(".home-card").forEach(b=>b.onclick=()=>{ const t=b.dataset.tool!=null?HOME_TOOLS[+b.dataset.tool]:null; if(t&&t.open) t.open(); go(b.dataset.go); });
   const hc=v.querySelector("#hcCont"); if(hc) hc.onclick=()=>go("read");
   v.querySelectorAll(".home-recent button").forEach(b=>b.onclick=()=>{ state.book=b.dataset.b; state.ch=+b.dataset.c; savePos(); go("read"); });
   v.querySelector("#hcVotd").onclick=()=>gotoVerse(votd);
@@ -687,13 +687,13 @@ async function paintXrefs(body,ref){
   }
   const R=vrefs();
   const list=(XREFS[ref]||[]).filter(e=>textOf(R[e[0]]));
-  if(!list.length){ body.innerHTML='<div class="empty">No cross-references recorded for this verse.</div><div id="xTopics"></div>'; fillVerseTopics(ref); fillVersePlaces(ref); return; }
+  if(!list.length){ body.innerHTML='<div class="empty">No cross-references recorded for this verse.</div><div id="xTopics"></div><div id="xDict"></div>'; fillVerseTopics(ref); fillVersePlaces(ref); if(typeof fillVerseDict==="function") fillVerseDict(ref); return; }
   body.innerHTML=`<div class="lbl">${list.length} cross-reference${list.length===1?"":"s"} · ranked by relevance</div>`+list.map(e=>{
     const t=textOf(R[e[0]]); const prev=t.length>110?t.slice(0,110)+"…":t; const d=xrefLabel(e);
     return `<button class="xref-row" data-r="${esc(d.includes(" – ")?R[e[0]]:d)}"><span class="xr">${esc(d)}</span><span class="xv">${verseHTML(prev)}</span><span class="xvotes">relevance ${e[1]}</span></button>`;
-  }).join("")+`<div id="xTopics"></div><div class="orig-credit">Cross-references: OpenBible.info (CC BY), from the Treasury of Scripture Knowledge and reader votes.</div>`;
+  }).join("")+`<div id="xTopics"></div><div id="xDict"></div><div class="orig-credit">Cross-references: OpenBible.info (CC BY), from the Treasury of Scripture Knowledge and reader votes.</div>`;
   body.querySelectorAll(".xref-row").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r));
-  fillVerseTopics(ref); fillVersePlaces(ref);
+  fillVerseTopics(ref); fillVersePlaces(ref); if(typeof fillVerseDict==="function") fillVerseDict(ref);
 }
 function passageHTML(vs){
   return vs.map(x=>`<span class="vn">${x.ref.split(":")[1]}</span>${verseHTML(x.text)} `).join("");
