@@ -114,6 +114,7 @@ function aboutHTML(){
       <li><b>Red letters:</b> from the World English Bible’s markup of the words of Jesus (public domain).</li>
       <li><b>Maps:</b> Natural Earth (public domain) and OpenBible.info Bible Geocoding Data (CC BY 4.0).</li>
     </ul>
+    <button class="btn-ghost" id="aboutTour" style="color:var(--accent);border-color:var(--accent)">Take the welcome tour again</button>
     <p class="about-foot">Made with care for reading and reflection. <i>“Thy word is a lamp unto my feet, and light unto my path.”</i> — Psalm 119:105</p>
   </div>`;
 }
@@ -122,7 +123,8 @@ function openAbout(){ SETTINGS_PAGE="about"; openSettings(); }
 function paintSettings(){
   const box=$("#settingsBody"); if(!box) return;
   if(SETTINGS_PAGE==="library"){ box.innerHTML=libraryHTML(); bindLibrary(box); $("#settingsTitle").textContent="Translations"; return; }
-  if(SETTINGS_PAGE==="about"){ box.innerHTML=aboutHTML(); $("#settingsTitle").textContent="About Selah"; box.querySelector("#libBack").onclick=()=>{ SETTINGS_PAGE=null; paintSettings(); box.scrollTop=0; }; box.scrollTop=0; return; }
+  if(SETTINGS_PAGE==="about"){ box.innerHTML=aboutHTML(); $("#settingsTitle").textContent="About Selah"; box.querySelector("#libBack").onclick=()=>{ SETTINGS_PAGE=null; paintSettings(); box.scrollTop=0; };
+    box.querySelector("#aboutTour").onclick=()=>{ dismissOverlay("settings",closeSettings); setTimeout(showWelcome,250); }; box.scrollTop=0; return; }
   $("#settingsTitle").textContent="Settings";
   const y=box.scrollTop;
   box.innerHTML=SETTINGS_SECTIONS.map(s=>`<section class="set-sec" data-id="${s.id}"><div class="lbl">${esc(s.title)}</div>${s.html()}</section>`).join("")
