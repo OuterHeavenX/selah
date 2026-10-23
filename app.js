@@ -307,12 +307,22 @@ async function setTrans(id){
 }
 function applyTheme(t){ document.documentElement.setAttribute("data-theme",t); store.set("theme",t); }
 function bindTheme(){ $("#themeBtn").onclick=()=>applyThemePref(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark"); }
+// Reading look: font, line spacing and margins (Settings → Reading).
+const READ_FONTS={classic:'Georgia,"Times New Roman",serif', book:'"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Charter,"Bitstream Charter",serif', sans:'-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,sans-serif'};
+const READ_LH={compact:1.5, normal:1.65, roomy:1.9};
+const READ_W={wide:{pad:10,max:920}, normal:{pad:18,max:780}, narrow:{pad:28,max:640}};
+function applyReadLook(){
+  const r=document.documentElement.style, f=store.get("readFont","classic"), l=store.get("readLH","normal"), w=READ_W[store.get("readW","normal")]||READ_W.normal;
+  r.setProperty("--read-font",READ_FONTS[f]||READ_FONTS.classic); r.setProperty("--read-lh",READ_LH[l]||1.65);
+  r.setProperty("--read-pad",w.pad+"px"); r.setProperty("--read-max",w.max+"px");
+  if(state.view==="read"&&document.getElementById("book")) bookRelayout();
+}
 function applyFontSize(px){
   document.documentElement.style.setProperty("--fs-verse",px+"px"); store.set("fs",px);
   if(state.view==="read"&&document.getElementById("book")) bookRelayout();
 }
 function bindFontSize(){
-  applyFontSize(store.get("fs",18));
+  applyFontSize(store.get("fs",18)); applyReadLook();
   $("#fsDec").onclick=()=>applyFontSize(Math.max(14,store.get("fs",18)-2));
   $("#fsInc").onclick=()=>applyFontSize(Math.min(26,store.get("fs",18)+2));
 }

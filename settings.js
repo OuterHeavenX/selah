@@ -25,14 +25,19 @@ SETTINGS_SECTIONS.push({id:"reading", title:"Reading", html:()=>{
   const opts=TRANS_GROUPS.map(g=>`<optgroup label="${esc(g)}">${Object.entries(TRANSLATIONS).filter(([k,t])=>t.group===g&&k!==state.trans).map(([k,t])=>`<option value="${k}"${k===cmp?" selected":""}>${esc(t.full)}</option>`).join("")}</optgroup>`).join("");
   return `<div class="set-row"><div class="set-l">Translation<small>${esc(TRANSLATIONS[state.trans].full)}</small></div><button class="btn-ghost set-pick" id="setTransPick">Change…</button></div>
     <div class="set-row"><div class="set-l">Side by side<small>Show a second translation with every verse</small></div><select id="setCmp" class="set-select" aria-label="Side by side"><option value="">Off</option>${opts}</select></div>
-    <div class="set-row"><div class="set-l">Text size<small style="font-size:${store.get("fs",18)}px;font-family:Georgia,serif">In the beginning God created…</small></div>
+    <div class="set-row"><div class="set-l">Text size<small class="set-preview" style="font-size:${store.get("fs",18)}px">In the beginning God created…</small></div>
       <div class="set-fs"><button class="nav-btn" id="setFsDec" aria-label="Smaller text">A−</button><span>${store.get("fs",18)}</span><button class="nav-btn" id="setFsInc" aria-label="Larger text">A+</button></div></div>
+    <div class="set-row"><div class="set-l">Font</div>${seg("Font",[["classic","Classic"],["book","Book"],["sans","Modern"]],store.get("readFont","classic"))}</div>
+    <div class="set-row"><div class="set-l">Line spacing</div>${seg("Line spacing",[["compact","Snug"],["normal","Normal"],["roomy","Roomy"]],store.get("readLH","normal"))}</div>
+    <div class="set-row"><div class="set-l">Margins</div>${seg("Margins",[["wide","Slim"],["normal","Normal"],["narrow","Wide"]],store.get("readW","normal"))}</div>
     <div class="set-row"><div class="set-l">Book view on wide screens<small>Two pages with page turns on iPad (landscape) and computers</small></div>${toggle("setBook",store.get("bookMode",true),"Book view")}</div>`;
 }, bind:root=>{
   root.querySelector("#setTransPick").onclick=()=>{ SETTINGS_PAGE="library"; paintSettings(); };
   root.querySelector("#setCmp").onchange=async e=>{ await setCompare(e.target.value||null); paintSettings(); };
   root.querySelector("#setFsDec").onclick=()=>{ applyFontSize(Math.max(14,store.get("fs",18)-2)); paintSettings(); };
   root.querySelector("#setFsInc").onclick=()=>{ applyFontSize(Math.min(26,store.get("fs",18)+2)); paintSettings(); };
+  const look=(name,key)=>root.querySelectorAll(`.seg[aria-label="${name}"] button`).forEach(b=>b.onclick=()=>{ store.set(key,b.dataset.v); applyReadLook(); paintSettings(); });
+  look("Font","readFont"); look("Line spacing","readLH"); look("Margins","readW");
   root.querySelector("#setBook").onclick=()=>{ store.set("bookMode",!store.get("bookMode",true)); if(state.view==="read") renderRead(); paintSettings(); };
 }});
 SETTINGS_SECTIONS.push({id:"look", title:"Appearance & audio", html:()=>`
