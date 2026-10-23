@@ -78,6 +78,19 @@ async function handleAuthRedirect(){
   if(h.get("type")==="recovery") setTimeout(promptNewPassword,700);
   else toast("Email confirmed — you’re signed in");
 }
+// Deletes the account and everything synced with it. What's on this device stays (and can still be backed up).
+async function deleteAccount(){
+  const s=authSession(); if(!s) return;
+  if(!confirm(`Delete the Selah account ${s.email||""}?\n\nYour synced highlights, notes, plans, memory verses, prayers and journal are removed from the server for good. What’s on this device stays.`)) return;
+  if(!confirm("Are you sure? This can’t be undone.")) return;
+  try{
+    const r=await fetch(SB_URL+"/functions/v1/selah-account",{method:"POST",headers:{"apikey":SB_KEY,"Authorization":"Bearer "+await accessToken(),"Content-Type":"application/json"},body:"{}"});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok||!j.ok) throw new Error(j.error||("HTTP "+r.status));
+    setSession(null); store.set("sync_last",0); SYNC.last=0; rawSet("sync_meta",{}); refreshSyncUI();
+    toast("Your account has been deleted");
+  }catch(e){ toast("Couldn’t delete the account: "+e.message); }
+}
 async function promptNewPassword(){
   const p=prompt("Choose a new password for Selah (at least 8 characters):");
   if(!p) return;
@@ -212,7 +225,8 @@ function syncHTML(){
   if(s) return `<div class="backup sync-box" id="syncBox"><div class="lbl">Sync between devices</div>
     <div class="section-sub" style="padding:0 0 10px">Signed in${s.email?` as <b>${esc(s.email)}</b>`:""}. Highlights, notes, reading plans, memory verses and your journal stay in step on every device where you sign in.</div>
     <div class="sync-status${SYNC.error?" err":""}" id="syncStatus">${syncStatusText()}</div>
-    <div class="backup-row"><button class="btn-primary" id="syncNowBtn">Sync now</button><button class="btn-ghost" id="signOutBtn">Sign out</button></div></div>`;
+    <div class="backup-row"><button class="btn-primary" id="syncNowBtn">Sync now</button><button class="btn-ghost" id="signOutBtn">Sign out</button></div>
+    <button class="link-btn danger-link" id="deleteAcctBtn">Delete my account…</button></div>`;
   return `<div class="backup sync-box" id="syncBox"><div class="lbl">Sync between devices</div>
     <div class="section-sub" style="padding:0 0 10px">Sign in on your iPhone, iPad or computer and your highlights, notes, reading plan, memory verses and journal stay in step automatically.</div>
     <form id="authForm" autocomplete="on">
@@ -240,6 +254,7 @@ function bindSync(){
   if(nowBtn){
     nowBtn.onclick=()=>syncNow();
     document.getElementById("signOutBtn").onclick=()=>{ if(confirm("Sign out? Your notes stay on this device.")) signOut(); };
+    document.getElementById("deleteAcctBtn").onclick=deleteAccount;
     return;
   }
   const form=document.getElementById("authForm"), msg=document.getElementById("authMsg");

@@ -76,15 +76,50 @@ function bindLibrary(box){
 }
 function openLibrary(){ SETTINGS_PAGE="library"; openSettings(); }
 
+/* ---------- About & privacy (a page inside Settings) ---------- */
+const APP_VERSION="1.0";
+const SHELL_VER=((document.querySelector('script[src*="app.js?v="]')||{}).src||"").split("v=")[1]||"";
+function aboutHTML(){
+  const pd=Object.values(TRANSLATIONS).filter(t=>/public domain/i.test(t.license)).map(t=>t.full);
+  const cc=Object.values(TRANSLATIONS).filter(t=>!/public domain/i.test(t.license)).map(t=>`${t.full} — ${t.license}`);
+  return `<button class="lex-back" id="libBack">‹ Settings</button>
+  <div class="about-page">
+    <div class="about-brand"><img src="img/icons/icon-192.png?v=${SHELL_VER}" alt="" width="64" height="64"><div><b>Selah</b><span>Study Bible · version ${APP_VERSION}</span></div></div>
+    <p>Selah is a free study Bible: ${Object.keys(TRANSLATIONS).length} English translations, Hebrew and Greek, cross-references, commentaries, maps, a timeline, reading plans and a place to keep what you learn. No ads, nothing to buy.</p>
+    <h3>Your privacy</h3>
+    <ul>
+      <li><b>Everything stays on your device</b> — highlights, notes, bookmarks, prayers, plans, memory verses and journal are saved in this browser. Selah has no ads, no analytics and no tracking.</li>
+      <li><b>If you sign in to sync</b>, your email address and that study data are stored with Supabase (our database host) so your devices can share them. Each account can only read its own data. You can delete the account and everything synced with it at any time on the Saved screen.</li>
+      <li><b>If you turn on the daily reminder</b>, the reminder service keeps your browser’s notification address, the time you chose and your time zone — nothing that identifies you. Turning the reminder off deletes it.</li>
+      <li><b>Downloads</b> come only from Selah’s own site. Backups you save are files on your device that only you control.</li>
+    </ul>
+    <h3>Sources and thanks</h3>
+    <ul class="about-credits">
+      <li><b>Translations in the public domain:</b> ${esc(pd.join(" · "))}.</li>
+      ${cc.map(c=>`<li>${esc(c)} (used under that license).</li>`).join("")}
+      <li><b>Hebrew and Greek</b> text, word glosses and lexicons: STEPBible.org, Tyndale House Cambridge (CC BY 4.0).</li>
+      <li><b>Cross-references:</b> OpenBible.info (CC BY), from the Treasury of Scripture Knowledge.</li>
+      <li><b>Topics:</b> Nave’s Topical Bible (1896), via BibleData by Brady Stephenson (CC BY 4.0).</li>
+      <li><b>Commentaries:</b> Jamieson-Fausset-Brown (1871) and Matthew Henry (1706–1721), public domain.</li>
+      <li><b>Maps:</b> Natural Earth (public domain) and OpenBible.info Bible Geocoding Data (CC BY 4.0).</li>
+    </ul>
+    <p class="about-foot">Made with care for reading and reflection. <i>“Thy word is a lamp unto my feet, and light unto my path.”</i> — Psalm 119:105</p>
+  </div>`;
+}
+function openAbout(){ SETTINGS_PAGE="about"; openSettings(); }
+
 function paintSettings(){
   const box=$("#settingsBody"); if(!box) return;
   if(SETTINGS_PAGE==="library"){ box.innerHTML=libraryHTML(); bindLibrary(box); $("#settingsTitle").textContent="Translations"; return; }
+  if(SETTINGS_PAGE==="about"){ box.innerHTML=aboutHTML(); $("#settingsTitle").textContent="About Selah"; box.querySelector("#libBack").onclick=()=>{ SETTINGS_PAGE=null; paintSettings(); box.scrollTop=0; }; box.scrollTop=0; return; }
   $("#settingsTitle").textContent="Settings";
   const y=box.scrollTop;
   box.innerHTML=SETTINGS_SECTIONS.map(s=>`<section class="set-sec" data-id="${s.id}"><div class="lbl">${esc(s.title)}</div>${s.html()}</section>`).join("")
-    +`<div class="set-foot">Sync, backup and offline downloads are on the <button class="link-btn" id="setToSaved">Saved</button> screen.</div>`;
+    +`<div class="set-foot">Sync, backup and offline downloads are on the <button class="link-btn" id="setToSaved">Saved</button> screen.</div>
+      <button class="set-about" id="setAbout"><span>About Selah & privacy</span><small>Version ${APP_VERSION} ›</small></button>`;
   SETTINGS_SECTIONS.forEach(s=>s.bind(box.querySelector(`.set-sec[data-id="${s.id}"]`)));
   $("#setToSaved").onclick=()=>{ closeSettings(); showView("saved"); };
+  $("#setAbout").onclick=()=>{ SETTINGS_PAGE="about"; paintSettings(); };
   box.scrollTop=y;
 }
 let settingsReturn=null;
