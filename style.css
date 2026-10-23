@@ -825,3 +825,16 @@ div.home-plan{cursor:default;}
 #bookSpread .trans-gap{margin:0 0 12px;}
 .trace-head .chev{display:inline-block; transition:transform .2s;}
 .trace-card.open .trace-head .chev{transform:rotate(180deg); color:var(--accent);}
+/* About & privacy */
+.set-about{display:flex; justify-content:space-between; align-items:center; width:100%; margin:6px 0 4px; padding:14px 2px; background:none; border:none; border-top:1px solid var(--line); font-size:15px; cursor:pointer; text-align:left;}
+.set-about small{color:var(--ink-soft); font-size:13px;}
+.about-page{padding:4px 2px 20px; line-height:1.6; font-size:14.5px;}
+.about-brand{display:flex; gap:14px; align-items:center; margin:6px 0 14px;}
+.about-brand img{border-radius:14px; box-shadow:0 2px 8px rgba(0,0,0,.15);}
+.about-brand b{display:block; font-family:Georgia,serif; font-size:22px;}
+.about-brand span{color:var(--ink-soft); font-size:13px;}
+.about-page h3{font-family:Georgia,serif; font-size:17px; margin:20px 0 6px;}
+.about-page ul{margin:0; padding-left:18px;} .about-page li{margin:0 0 8px;}
+.about-credits{font-size:13.5px; color:var(--ink-soft);} .about-credits b{color:var(--ink);}
+.about-foot{margin-top:18px; color:var(--ink-soft); font-size:13.5px;}
+.danger-link{color:var(--danger)!important; margin-top:10px; font-size:13.5px;}

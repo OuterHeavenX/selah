@@ -804,12 +804,10 @@ function renderSaved(){
       <span class="sr2">${esc(k)}</span><div class="sv2">${verseHTML(textOf(k))}</div>
       ${NOTES[k]?`<div class="sn">“${esc(NOTES[k])}”</div>`:""}
     </button>`).join(""):'<div class="empty" style="padding:6px 16px">Nothing saved yet. Tap any verse while reading, then use the Mark tab to highlight it or add a note.</div>')+`</div>
-  <div class="about"><b>Selah</b> prototype · Gospel of John study edition<br>
-  Text: ${esc(TRANSLATIONS[state.trans].full)} — ${esc(TRANSLATIONS[state.trans].license)}.<br>
-  Cross-references (whole Bible): OpenBible.info (CC BY), derived primarily from the Treasury of Scripture Knowledge.<br>
-  Hebrew and Greek text, glosses and lexicons: STEPBible.org (Tyndale House, Cambridge), CC BY 4.0.<br>
-  Parallel passages, Christology trails and signs curated for this edition.</div>`;
+  <div class="about"><b>Selah</b> · ${esc(TRANSLATIONS[state.trans].full)} — ${esc(TRANSLATIONS[state.trans].license)}.<br>
+  <button class="link-btn" id="savedAbout">About Selah, sources & privacy</button></div>`;
   v.querySelector("#savedList").insertAdjacentHTML("afterend",syncHTML()+backupHTML()+offlineHTML()); bindSync(); bindBackup(); bindOffline();
+  v.querySelector("#savedAbout").onclick=openAbout;
   v.querySelectorAll(".saved-item").forEach(b=>b.onclick=()=>gotoVerse(b.dataset.r));
 }
 
