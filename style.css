@@ -840,3 +840,22 @@ div.home-plan{cursor:default;}
 .about-foot{margin-top:18px; color:var(--ink-soft); font-size:13.5px;}
 .danger-link{color:var(--danger)!important; margin-top:10px; font-size:13.5px;}
 .set-preview{font-family:var(--read-font); line-height:var(--read-lh,1.65);}
+/* Bookmarks & history */
+.verse.bm{position:relative; padding-right:22px;}
+.verse.bm::after{content:""; position:absolute; top:-2px; right:2px; width:12px; height:20px; background:var(--danger); clip-path:polygon(0 0,100% 0,100% 100%,50% 72%,0 100%); opacity:.9;}
+.bm-list{margin:6px 16px 0; border:1px solid var(--line); border-radius:14px; background:var(--sheet); overflow:hidden;}
+.bm-row{display:flex; align-items:stretch; border-bottom:1px solid var(--line);} .bm-row:last-child{border-bottom:none;}
+.bm-main{flex:1; display:flex; gap:12px; text-align:left; background:none; border:none; padding:12px 6px 12px 14px; cursor:pointer; min-width:0;}
+.bm-rib{flex:none; width:10px; height:18px; margin-top:3px; background:var(--danger); clip-path:polygon(0 0,100% 0,100% 100%,50% 72%,0 100%);}
+.bm-txt{display:flex; flex-direction:column; min-width:0;} .bm-txt b{font-size:15px;} .bm-txt small{color:var(--accent); font-weight:700; font-size:12.5px;}
+.bm-snip{color:var(--ink-soft); font-size:13.5px; line-height:1.5; margin-top:2px; font-family:var(--read-font);}
+.bm-x{background:none; border:none; color:var(--ink-soft); padding:0 14px; cursor:pointer; font-size:14px;}
+.hist-list{margin:6px 16px 0; display:flex; flex-direction:column; border:1px solid var(--line); border-radius:14px; overflow:hidden; background:var(--sheet);}
+.hist-row{display:flex; justify-content:space-between; align-items:center; padding:11px 14px; background:none; border:none; border-bottom:1px solid var(--line); cursor:pointer; font-size:15px; text-align:left;}
+.hist-row:last-child{border-bottom:none;} .hist-row small{color:var(--ink-soft); font-size:12.5px;}
+.home-recent{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 16px 0;}
+.home-recent span{font-size:11px; letter-spacing:1.4px; text-transform:uppercase; color:var(--ink-soft); font-weight:700; margin-right:2px;}
+.home-recent button{border:1px solid var(--line); background:var(--sheet); border-radius:20px; padding:6px 12px; font-size:13.5px; cursor:pointer;}
+.bm-mark{display:flex; flex-direction:column;}
+.bm-name{margin-top:8px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--paper); color:var(--ink); font-size:14.5px;}
+@media (min-width:900px){ .bm-list,.hist-list{margin-left:28px; margin-right:28px; max-width:720px;} .home-recent{margin-left:28px;} }
