@@ -146,6 +146,12 @@ Protestant canon ships as readable text.
   historic New Testaments) show the ASV, with a note, for chapters they lack.
   Brenton's Septuagint and the Leeser Tanakh are left out: the only copies
   reachable were incomplete or misaligned.
+- `data/red/<id>.json` — red letters: `{"Book C:V": [[start,end],…]}`, where Jesus
+  speaks in each translation's own wording. Built by `tools/build_redletter.py`
+  from the `<wj>` markup in the World English Bible British Edition USFX
+  (seven1m/open-bibles), carried onto each translation by word alignment, its
+  quotation marks, or a "said unto him," introduction; verses that can't be placed
+  confidently stay black.
 - `data/study.json` — hand-curated: 45 Gospel parallel sets and 11 study
   trails (John; Matthew, Mark & Luke; Old Testament; the letters).
 

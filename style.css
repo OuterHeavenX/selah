@@ -880,3 +880,6 @@ div.home-plan{cursor:default;}
 .pr-acts .btn-ghost{color:var(--accent); border-color:var(--accent);}
 .pr-acts .pr-del{margin-left:auto; color:var(--danger); padding:0;}
 @media (min-width:900px){ .pr-add,.pr-list{margin-left:28px; margin-right:28px; max-width:720px;} .pr-tabs{margin-left:28px;} }
+/* Red letters */
+:root{--red-letter:#a8261b;} [data-theme="dark"]{--red-letter:#f08a7c;}
+.wj{color:var(--red-letter);}

@@ -27,6 +27,7 @@ SETTINGS_SECTIONS.push({id:"reading", title:"Reading", html:()=>{
     <div class="set-row"><div class="set-l">Side by side<small>Show a second translation with every verse</small></div><select id="setCmp" class="set-select" aria-label="Side by side"><option value="">Off</option>${opts}</select></div>
     <div class="set-row"><div class="set-l">Text size<small class="set-preview" style="font-size:${store.get("fs",18)}px">In the beginning God created…</small></div>
       <div class="set-fs"><button class="nav-btn" id="setFsDec" aria-label="Smaller text">A−</button><span>${store.get("fs",18)}</span><button class="nav-btn" id="setFsInc" aria-label="Larger text">A+</button></div></div>
+    <div class="set-row"><div class="set-l">Words of Jesus in red<small>In the Gospels, Acts and Revelation</small></div>${toggle("setRed",redOn(),"Words of Jesus in red")}</div>
     <div class="set-row"><div class="set-l">Font</div>${seg("Font",[["classic","Classic"],["book","Book"],["sans","Modern"]],store.get("readFont","classic"))}</div>
     <div class="set-row"><div class="set-l">Line spacing</div>${seg("Line spacing",[["compact","Snug"],["normal","Normal"],["roomy","Roomy"]],store.get("readLH","normal"))}</div>
     <div class="set-row"><div class="set-l">Margins</div>${seg("Margins",[["wide","Slim"],["normal","Normal"],["narrow","Wide"]],store.get("readW","normal"))}</div>
@@ -38,6 +39,7 @@ SETTINGS_SECTIONS.push({id:"reading", title:"Reading", html:()=>{
   root.querySelector("#setFsInc").onclick=()=>{ applyFontSize(Math.min(26,store.get("fs",18)+2)); paintSettings(); };
   const look=(name,key)=>root.querySelectorAll(`.seg[aria-label="${name}"] button`).forEach(b=>b.onclick=()=>{ store.set(key,b.dataset.v); applyReadLook(); paintSettings(); });
   look("Font","readFont"); look("Line spacing","readLH"); look("Margins","readW");
+  root.querySelector("#setRed").onclick=()=>{ store.set("redLetters",!redOn()); if(typeof BOOK!=="undefined") BOOK.cache.clear(); if(state.view==="read") renderRead(); paintSettings(); };
   root.querySelector("#setBook").onclick=()=>{ store.set("bookMode",!store.get("bookMode",true)); if(state.view==="read") renderRead(); paintSettings(); };
 }});
 SETTINGS_SECTIONS.push({id:"look", title:"Appearance & audio", html:()=>`
