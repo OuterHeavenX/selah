@@ -108,6 +108,8 @@ function aboutHTML(){
       <li><b>Cross-references:</b> OpenBible.info (CC BY), from the Treasury of Scripture Knowledge.</li>
       <li><b>Topics:</b> Nave’s Topical Bible (1896), via BibleData by Brady Stephenson (CC BY 4.0).</li>
       <li><b>Commentaries:</b> Jamieson-Fausset-Brown (1871) and Matthew Henry (1706–1721), public domain.</li>
+      <li><b>Bible dictionary:</b> Easton’s Bible Dictionary (1897) and Hitchcock’s Bible Names, public domain, from the Christian Classics Ethereal Library.</li>
+      <li><b>Red letters:</b> from the World English Bible’s markup of the words of Jesus (public domain).</li>
       <li><b>Maps:</b> Natural Earth (public domain) and OpenBible.info Bible Geocoding Data (CC BY 4.0).</li>
     </ul>
     <p class="about-foot">Made with care for reading and reflection. <i>“Thy word is a lamp unto my feet, and light unto my path.”</i> — Psalm 119:105</p>

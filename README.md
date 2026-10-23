@@ -152,6 +152,12 @@ Protestant canon ships as readable text.
   (seven1m/open-bibles), carried onto each translation by word alignment, its
   quotation marks, or a "said unto him," introduction; verses that can't be placed
   confidently stay black.
+- `data/dict/` — Bible dictionary: Easton's Bible Dictionary (1897) and Hitchcock's
+  Bible Names, public domain (CCEL ThML via neuu-org/bible-dictionary-dataset).
+  `index.json` `{t:[[term, letter, name meaning]]}` and `<letter>.json` `{term: html}`
+  with Scripture links (`data-r`) and see-also links (`data-t`). Built by
+  `tools/build_dictionary.py`. Search → Dictionary, and the people and places in a
+  verse at the bottom of its Cross-refs tab (`dictionary.js`).
 - `data/study.json` — hand-curated: 45 Gospel parallel sets and 11 study
   trails (John; Matthew, Mark & Luke; Old Testament; the letters).
 

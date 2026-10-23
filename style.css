@@ -883,3 +883,8 @@ div.home-plan{cursor:default;}
 /* Red letters */
 :root{--red-letter:#a8261b;} [data-theme="dark"]{--red-letter:#f08a7c;}
 .wj{color:var(--red-letter);}
+/* Dictionary */
+.dict-means{margin:-4px 0 12px; color:var(--ink-soft); font-size:14.5px;} .dict-means i{color:var(--accent); font-style:italic;}
+.dict-body{font-family:var(--read-font); font-size:16.5px; line-height:1.7;} .dict-body p{margin:0 0 12px;}
+.dict-body a{color:var(--accent); text-decoration:none; border-bottom:1px solid color-mix(in srgb, var(--accent) 40%, transparent); cursor:pointer;}
+.dict-page .link-btn{margin-top:6px;}
