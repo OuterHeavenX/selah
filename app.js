@@ -350,7 +350,7 @@ function showView(v){
     if(on) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current");
   });
   closeSheet(); closeLightbox(); stopHeroRotation();
-  if(v!=="read"){ document.documentElement.classList.remove("book-on"); stopReading(); }
+  if(v!=="read"){ document.documentElement.classList.remove("book-on"); leaveBookFull(); stopReading(); }
   ({home:renderHome,read:renderRead,search:renderSearch,christ:renderChrist,images:renderImages,saved:renderSaved,plans:renderPlans,...EXTRA_VIEWS})[v]();
   window.scrollTo(0,0);
   routeView(v);
@@ -584,7 +584,7 @@ function renderRead(){
   if(SPEAK.on&&!SPEAK.internal) stopReading();
   ensureXrefs(state.book);
   if(isBookMode()){ document.documentElement.classList.add("book-on"); v.innerHTML=readerNavHTML()+`<div id="book"></div>`; bindReaderNav(); renderBook(); return; }
-  document.documentElement.classList.remove("book-on");
+  document.documentElement.classList.remove("book-on"); leaveBookFull();
   const cmp=compareTrans();
   v.innerHTML=readerNavHTML()+`<div class="verses${cmp?" cmp-on":""}">${cmp?`<div class="cmp-head"><span>${esc(TRANSLATIONS[state.trans].short)}</span><span>${esc(TRANSLATIONS[cmp].short)}</span></div>`:""}${state.ch===1?introHTML(state.book):""}${chapterVersesHTML(state.book,state.ch)}</div>`;
   const list=v.querySelector(".verses");

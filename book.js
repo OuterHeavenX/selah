@@ -14,18 +14,38 @@ function bookCapable(){
   return w>h && (w>=BOOK_MIN_W || (w>=BOOK_MIN_W_TALL && h>=BOOK_MIN_H_TALL));
 }
 function isBookMode(){ return bookCapable() && store.get("bookMode",true); }
+// Full-screen book: the spread fills the screen and the app's bars slide away until you swipe them back.
+const bookFullPref=()=>store.get("bookFull",true);
+function setBookChrome(show){
+  const html=document.documentElement;
+  if(!html.classList.contains("book-full")) return;
+  const was=!html.classList.contains("chrome-hidden");
+  html.classList.toggle("chrome-hidden",!show);
+  const tab=document.getElementById("bookChromeTab"); if(tab) tab.setAttribute("aria-expanded",String(show));
+  if(show&&!was&&document.activeElement&&document.activeElement.closest&&document.activeElement.closest("#book")) document.activeElement.blur();
+}
+const bookChromeShown=()=>!document.documentElement.classList.contains("chrome-hidden");
+function leaveBookFull(){ document.documentElement.classList.remove("book-full","chrome-hidden"); }
 const prefersReducedMotion=()=>window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* ---------- geometry ---------- */
 function bookMeasureDims(host){
-  // Everything below the book: its own padding plus the body's bottom padding (which clears the tab bar).
-  const below=24+parseFloat(getComputedStyle(document.body).paddingBottom||64)+4;
-  const avH=Math.max(380, window.innerHeight-(host.getBoundingClientRect().top+window.scrollY)-below);
-  const avW=Math.min(window.innerWidth-120, 1560);                 // room for the turn arrows
+  let avW, avH;
+  if(document.documentElement.classList.contains("book-full")){
+    // The book owns the whole screen (inside the safe areas); the bars and arrows float over it.
+    const cs=getComputedStyle(host);
+    avW=Math.min(host.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight)-8, 2000);
+    avH=Math.max(300, host.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom));
+  }else{
+    // Everything below the book: its own padding plus the body's bottom padding (which clears the tab bar).
+    const below=24+parseFloat(getComputedStyle(document.body).paddingBottom||64)+4;
+    avH=Math.max(380, window.innerHeight-(host.getBoundingClientRect().top+window.scrollY)-below);
+    avW=Math.min(window.innerWidth-120, 1560);                     // room for the turn arrows
+  }
   const ph=Math.floor(avH);
   const pw=Math.floor(Math.min(avW/2, ph*0.82));
-  const padx=Math.round(Math.max(28, Math.min(52, pw*0.085)));
-  const padt=40, padb=50, G=60;
+  const padx=Math.round(Math.max(26, Math.min(52, pw*0.075)));
+  const padt=Math.round(Math.max(28, Math.min(40, ph*0.05))), padb=Math.round(Math.max(40, Math.min(50, ph*0.065))), G=60;
   const fw=pw-2*padx, fh=ph-padt-padb;
   const fs=store.get("fs",18);
   return {pw,ph,padx,padt,padb,G,fw,fh,step:fw+G,sig:`${fw}x${fh}|${fs}|${state.trans}|${compareTrans()||""}`};
@@ -123,7 +143,11 @@ function paintSpread(){
 /* ---------- render / relayout ---------- */
 function renderBook(){
   const host=$("#book");
-  host.innerHTML=`<button class="bturn prev" id="bookPrev" aria-label="Previous page">‹</button>
+  const html=document.documentElement, wasFull=html.classList.contains("book-full");
+  if(bookFullPref()){ html.classList.add("book-full"); if(!wasFull) html.classList.add("chrome-hidden"); }
+  else leaveBookFull();
+  host.innerHTML=`<button class="bchrome-tab" id="bookChromeTab" aria-label="Show controls" aria-expanded="${bookChromeShown()}"><span></span></button>
+    <button class="bturn prev" id="bookPrev" aria-label="Previous page">‹</button>
     <div class="bspread" id="bookSpread" aria-live="polite"></div>
     <button class="bturn next" id="bookNext" aria-label="Next page">›</button>
     <div class="bmeasure" id="bookMeasure" aria-hidden="true"></div>`;
@@ -135,8 +159,15 @@ function renderBook(){
   paintSpread();
   $("#bookPrev").onclick=()=>turnPage(-1);
   $("#bookNext").onclick=()=>turnPage(1);
+  $("#bookChromeTab").onclick=()=>setBookChrome(!bookChromeShown());
+  // A tap on the empty margin around the book also shows or hides the bars.
+  host.addEventListener("click",e=>{ if(e.target===host) setBookChrome(!bookChromeShown()); });
   bindBookGestures($("#bookSpread"));
   bindVerseOpen($("#bookSpread"));
+  if(!wasFull&&bookFullPref()&&!store.get("bookFullHint",false)){
+    store.set("bookFullHint",true);
+    setTimeout(()=>toast("Swipe up or down on the page for controls"),600);
+  }
 }
 // First verse visible on the current spread — used to keep your place when the layout changes.
 function spreadAnchor(){
@@ -230,7 +261,7 @@ function beginFlip(dir){
   return BOOK.flip;
 }
 function turnPage(dir){
-  const f=beginFlip(dir); if(f) f.finish(true);
+  const f=beginFlip(dir); if(f){ setBookChrome(false); f.finish(true); }
 }
 
 /* ---------- gestures ---------- */
@@ -248,7 +279,7 @@ function bindBookGestures(spread){
       if(Math.abs(dx)<12||Math.abs(dx)<Math.abs(dy)*1.2) return;
       flip=beginFlip(dx<0?1:-1);
       if(!flip){ start=null; return; }
-      dragged=true;
+      dragged=true; setBookChrome(false);
       try{ spread.setPointerCapture(e.pointerId); }catch(_){}
     }
     const travel=BOOK.dims.pw*1.6;
@@ -256,7 +287,12 @@ function bindBookGestures(spread){
   });
   const end=e=>{
     if(!start||e.pointerId!==start.id) return;
+    const dx=e.clientX-start.x, dy=e.clientY-start.y;
     start=null;
+    // An up or down swipe on the page brings the bars in (or sends them away).
+    if(!flip&&Math.abs(dy)>40&&Math.abs(dy)>Math.abs(dx)*1.5&&document.documentElement.classList.contains("book-full")){
+      dragged=true; setBookChrome(!bookChromeShown()); return;
+    }
     if(flip){
       const fast=Math.abs(vx)>0.45&&Math.sign(vx)===-flip.dir;      // a quick flick completes the turn
       const back=Math.abs(vx)>0.45&&Math.sign(vx)===flip.dir;
