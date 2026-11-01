@@ -32,7 +32,7 @@ SETTINGS_SECTIONS.push({id:"reading", title:"Reading", html:()=>{
     <div class="set-row"><div class="set-l">Font</div>${seg("Font",[["classic","Classic"],["book","Book"],["sans","Modern"]],store.get("readFont","classic"))}</div>
     <div class="set-row"><div class="set-l">Line spacing</div>${seg("Line spacing",[["compact","Snug"],["normal","Normal"],["roomy","Roomy"]],store.get("readLH","normal"))}</div>
     <div class="set-row"><div class="set-l">Margins</div>${seg("Margins",[["wide","Slim"],["normal","Normal"],["narrow","Wide"]],store.get("readW","normal"))}</div>
-    <div class="set-row"><div class="set-l">Book view on wide screens<small>Two pages with page turns on iPad (landscape) and computers</small></div>${toggle("setBook",store.get("bookMode",true),"Book view")}</div>`;
+    <div class="set-row"><div class="set-l">Book view on wide screens<small>Two pages with page turns on iPad and iPhone Duo (landscape) and computers</small></div>${toggle("setBook",store.get("bookMode",true),"Book view")}</div>`;
 }, bind:root=>{
   root.querySelector("#setTransPick").onclick=()=>{ SETTINGS_PAGE="library"; paintSettings(); };
   root.querySelector("#setCmp").onchange=async e=>{ await setCompare(e.target.value||null); paintSettings(); };

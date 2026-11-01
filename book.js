@@ -1,14 +1,18 @@
 "use strict";
-/* Selah — book view for wide screens (iPad landscape, desktop).
+/* Selah — book view for wide screens (iPad and iPhone Duo in landscape, desktop).
    Each chapter is laid out in CSS columns sized to one page; a page is a window onto
    that column flow. Pages run on continuously from chapter to chapter (a page is
    {b,c,i}), two consecutive pages make a spread, and the leaf turns with a 3D flip that
    can be dragged by finger, swiped, tapped at the page edge, or driven by the arrow keys. */
 
 const BOOK_MIN_W=900;
+const BOOK_MIN_W_TALL=820, BOOK_MIN_H_TALL=500;   // unfolded iPhone Duo in landscape is ~890×626 pt
 const BOOK={sp:null, dims:null, cache:new Map(), flip:null};
 
-function bookCapable(){ return window.innerWidth>=BOOK_MIN_W && window.innerWidth>window.innerHeight; }
+function bookCapable(){
+  const w=window.innerWidth, h=window.innerHeight;
+  return w>h && (w>=BOOK_MIN_W || (w>=BOOK_MIN_W_TALL && h>=BOOK_MIN_H_TALL));
+}
 function isBookMode(){ return bookCapable() && store.get("bookMode",true); }
 const prefersReducedMotion=()=>window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
 

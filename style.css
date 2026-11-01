@@ -267,9 +267,11 @@ html.book-on .book-toggle{margin-left:12px;}
 .bturn{flex:none; width:44px; height:44px; border-radius:50%; border:1px solid var(--line); background:var(--sheet); color:var(--ink); font-size:24px; cursor:pointer; line-height:1;}
 .bturn:disabled{opacity:.3; cursor:default;}
 
-/* ---------- wide screens (iPad landscape, iPad Pro, desktop) ----------
-   Phones and narrow portrait screens never match this, so they keep the single column. */
-@media (min-width:900px){
+/* ---------- wide screens (iPad, iPhone Duo unfolded, desktop) ----------
+   Matches screens 900px+ wide, or any screen that is big in both directions (600×500+),
+   which covers the unfolded iPhone Duo (~626×890 pt) and iPad mini in either orientation.
+   Phones never match: in portrait they're under 600 wide, in landscape under 500 tall. */
+@media (min-width:900px), (min-width:600px) and (min-height:500px){
   body{max-width:1320px;}
   #topbar{padding:12px 28px;}
   #tabbar{padding-left:max(0px,calc((100% - 720px)/2)); padding-right:max(0px,calc((100% - 720px)/2));}
@@ -393,7 +395,7 @@ div.home-plan{cursor:default;}
 .backup-row{display:flex; gap:10px;}
 .backup-row .btn-primary,.backup-row .btn-ghost{margin:0; flex:1; color:var(--paper);}
 .backup-row .btn-ghost{color:var(--accent); border-color:var(--accent);}
-@media (min-width:900px){
+@media (min-width:900px), (min-width:600px) and (min-height:500px){
   .home-main .home-plan{width:100%; margin:0 0 14px;}
   .plan-list{grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); padding:6px 28px 10px;}
   .plan-active{margin:4px 28px 18px;}
@@ -422,7 +424,7 @@ div.home-plan{cursor:default;}
 .share-link{color:var(--accent); border-color:var(--line);}
 
 .trace-group{font-size:12px; text-transform:uppercase; letter-spacing:1.6px; color:var(--accent); font-weight:700; padding:18px 16px 0;}
-@media (min-width:900px){ .trace-group{padding:22px 28px 0;} }
+@media (min-width:900px), (min-width:600px) and (min-height:500px){ .trace-group{padding:22px 28px 0;} }
 
 /* ---------- offline ---------- */
 .offline-badge{font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--paper); background:var(--ink-soft); border-radius:12px; padding:3px 9px;}
@@ -440,7 +442,7 @@ div.home-plan{cursor:default;}
 .sync-msg{font-size:13.5px; color:var(--ink); margin-top:10px; line-height:1.5;}
 .sync-msg:empty{display:none;}
 .link-btn{background:none; border:none; color:var(--accent); font-size:13.5px; padding:10px 0 0; cursor:pointer; text-decoration:underline;}
-@media (min-width:900px){ .sync-box{margin:18px 28px 0; max-width:640px;} }
+@media (min-width:900px), (min-width:600px) and (min-height:500px){ .sync-box{margin:18px 28px 0; max-width:640px;} }
 
 /* ---------- picture timeline ---------- */
 .pb-books{display:flex; gap:8px; overflow-x:auto; padding:2px 16px 10px; scrollbar-width:none;}
@@ -463,7 +465,7 @@ div.home-plan{cursor:default;}
 .pb-panels{display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 4px;}
 .pb-panel{border:1px solid var(--line); background:var(--paper); border-radius:16px; padding:5px 10px; font-size:12.5px; cursor:pointer; color:var(--ink); text-align:left;}
 .pb-panel b{font-family:Georgia,serif; color:var(--accent); margin-right:3px;}
-@media (min-width:900px){
+@media (min-width:900px), (min-width:600px) and (min-height:500px){
   .pb-books{padding:2px 28px 12px;} .pb-progress{padding:0 28px 8px;}
   .pb-timeline{max-width:980px; padding:0 28px 0 30px;} .pb-timeline::before{left:38px;}
   .pb-card{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:start;}
@@ -494,7 +496,7 @@ div.home-plan{cursor:default;}
 .vcmp{display:block; font-size:.86em; line-height:1.55; color:var(--ink-soft); margin-top:5px; padding-left:10px; border-left:2px solid var(--line);}
 .vtag{font-family:-apple-system,sans-serif; font-size:10px; font-weight:700; letter-spacing:1px; color:var(--accent); margin-right:6px;}
 .cmp-head{display:none;}
-@media (min-width:900px){
+@media (min-width:900px), (min-width:600px) and (min-height:500px){
   html:not(.book-on) .verses.cmp-on{max-width:1180px;}
   html:not(.book-on) .cmp-head{display:grid; grid-template-columns:1fr 1fr; gap:32px; padding:4px 8px 8px; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--accent); font-weight:700; border-bottom:1px solid var(--line); margin-bottom:6px;}
   html:not(.book-on) .verse.cmp{display:grid; grid-template-columns:1fr 1fr; gap:32px;}
@@ -567,7 +569,7 @@ div.home-plan{cursor:default;}
 .tl-verses .tv{display:block; width:100%; text-align:left; cursor:pointer; margin-top:8px; background:var(--sheet); border:1px solid var(--line); border-radius:12px; padding:10px 12px; font:inherit; color:var(--ink);}
 .tl-verses .tv .pr{color:var(--accent);}
 .vtopics{display:flex; flex-wrap:wrap; gap:6px; margin:6px 0 8px;}
-@media (min-width:900px){
+@media (min-width:900px), (min-width:600px) and (min-height:500px){
   .search-scope select{max-width:280px;}
   #results > .lbl{padding-left:max(28px,calc((100% - 760px)/2)) !important; padding-right:max(28px,calc((100% - 760px)/2)) !important;}
   #results .hw-body .lbl{padding:0 !important;}
@@ -627,7 +629,7 @@ div.home-plan{cursor:default;}
 .mj-stop.on{background:var(--accent-soft);}
 .mj-n{width:22px; height:22px; border-radius:50%; background:var(--m-hot); color:#fff; font:700 11px/22px system-ui,sans-serif; text-align:center; flex:none;}
 .mj-ref{margin-left:auto; color:var(--accent); font-size:13px; text-decoration:none; white-space:nowrap;}
-@media (min-width:900px){
+@media (min-width:900px), (min-width:600px) and (min-height:500px){
   .map-screen{flex-direction:row;}
   .map-stage{flex:1 1 auto;}
   .map-panel{flex:0 0 380px; border-top:none; border-left:1px solid var(--line);}
@@ -673,7 +675,7 @@ div.home-plan{cursor:default;}
 .tl-btn{border:1px solid var(--accent); background:var(--accent); color:var(--on-accent); border-radius:20px; padding:7px 14px; font-size:13.5px; font-weight:600; cursor:pointer;}
 .tl-btn.ghost{background:none; color:var(--accent);}
 .tl-foot{padding:20px 16px; font-size:12.5px; color:var(--ink-soft);}
-@media (min-width:900px){ .tl-date{min-width:110px;} }
+@media (min-width:900px), (min-width:600px) and (min-height:500px){ .tl-date{min-width:110px;} }
 @media (max-width:599px){ .tl-date{min-width:0; width:100%;} .tl-date:empty{display:none;} .tl-title{padding:9px 8px;} }
 
 /* ---------- memory verses ---------- */
@@ -858,7 +860,7 @@ div.home-plan{cursor:default;}
 .home-recent button{border:1px solid var(--line); background:var(--sheet); border-radius:20px; padding:6px 12px; font-size:13.5px; cursor:pointer;}
 .bm-mark{display:flex; flex-direction:column;}
 .bm-name{margin-top:8px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--paper); color:var(--ink); font-size:14.5px;}
-@media (min-width:900px){ .bm-list,.hist-list{margin-left:28px; margin-right:28px; max-width:720px;} .home-recent{margin-left:28px;} }
+@media (min-width:900px), (min-width:600px) and (min-height:500px){ .bm-list,.hist-list{margin-left:28px; margin-right:28px; max-width:720px;} .home-recent{margin-left:28px;} }
 /* Prayer list */
 .pr-add{margin:8px 16px 0; display:flex; flex-direction:column; gap:8px;}
 .pr-add textarea,.pr-edit textarea,.pr-add input{width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:12px; background:var(--sheet); color:var(--ink); font:inherit; font-size:15px; resize:vertical;}
@@ -879,7 +881,7 @@ div.home-plan{cursor:default;}
 .pr-acts .btn-primary,.pr-acts .btn-ghost{width:auto; margin:0; padding:9px 16px; font-size:14px;}
 .pr-acts .btn-ghost{color:var(--accent); border-color:var(--accent);}
 .pr-acts .pr-del{margin-left:auto; color:var(--danger); padding:0;}
-@media (min-width:900px){ .pr-add,.pr-list{margin-left:28px; margin-right:28px; max-width:720px;} .pr-tabs{margin-left:28px;} }
+@media (min-width:900px), (min-width:600px) and (min-height:500px){ .pr-add,.pr-list{margin-left:28px; margin-right:28px; max-width:720px;} .pr-tabs{margin-left:28px;} }
 /* Red letters */
 :root{--red-letter:#a8261b;} [data-theme="dark"]{--red-letter:#f08a7c;}
 .wj{color:var(--red-letter);}
