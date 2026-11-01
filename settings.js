@@ -32,7 +32,8 @@ SETTINGS_SECTIONS.push({id:"reading", title:"Reading", html:()=>{
     <div class="set-row"><div class="set-l">Font</div>${seg("Font",[["classic","Classic"],["book","Book"],["sans","Modern"]],store.get("readFont","classic"))}</div>
     <div class="set-row"><div class="set-l">Line spacing</div>${seg("Line spacing",[["compact","Snug"],["normal","Normal"],["roomy","Roomy"]],store.get("readLH","normal"))}</div>
     <div class="set-row"><div class="set-l">Margins</div>${seg("Margins",[["wide","Slim"],["normal","Normal"],["narrow","Wide"]],store.get("readW","normal"))}</div>
-    <div class="set-row"><div class="set-l">Book view on wide screens<small>Two pages with page turns on iPad and iPhone Duo (landscape) and computers</small></div>${toggle("setBook",store.get("bookMode",true),"Book view")}</div>`;
+    <div class="set-row"><div class="set-l">Book view on wide screens<small>Two pages with page turns on iPad and iPhone Duo (landscape) and computers</small></div>${toggle("setBook",store.get("bookMode",true),"Book view")}</div>
+    <div class="set-row"><div class="set-l">Full-screen book<small>The book fills the screen; swipe up or down on the page for the controls</small></div>${toggle("setBookFull",store.get("bookFull",true),"Full-screen book")}</div>`;
 }, bind:root=>{
   root.querySelector("#setTransPick").onclick=()=>{ SETTINGS_PAGE="library"; paintSettings(); };
   root.querySelector("#setCmp").onchange=async e=>{ await setCompare(e.target.value||null); paintSettings(); };
@@ -42,6 +43,7 @@ SETTINGS_SECTIONS.push({id:"reading", title:"Reading", html:()=>{
   look("Font","readFont"); look("Line spacing","readLH"); look("Margins","readW");
   root.querySelector("#setIntros").onclick=()=>{ store.set("intros",!introsOn()); if(state.view==="read") renderRead(); paintSettings(); };
   root.querySelector("#setRed").onclick=()=>{ store.set("redLetters",!redOn()); if(typeof BOOK!=="undefined") BOOK.cache.clear(); if(state.view==="read") renderRead(); paintSettings(); };
+  root.querySelector("#setBookFull").onclick=()=>{ store.set("bookFull",!store.get("bookFull",true)); if(state.view==="read") renderRead(); paintSettings(); };
   root.querySelector("#setBook").onclick=()=>{ store.set("bookMode",!store.get("bookMode",true)); if(state.view==="read") renderRead(); paintSettings(); };
 }});
 SETTINGS_SECTIONS.push({id:"look", title:"Appearance & audio", html:()=>`
