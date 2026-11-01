@@ -266,6 +266,16 @@ html.book-on .book-toggle{margin-left:12px;}
 .bslot.left .bcast{background:linear-gradient(to left,rgba(0,0,0,.35),transparent 45%);}
 .bturn{flex:none; width:44px; height:44px; border-radius:50%; border:1px solid var(--line); background:var(--sheet); color:var(--ink); font-size:24px; cursor:pointer; line-height:1;}
 .bturn:disabled{opacity:.3; cursor:default;}
+/* one page at a time (phones, portrait, iPhone Duo folded) */
+.bpage.single{border-radius:8px; background:linear-gradient(to right,rgba(60,40,10,.10),rgba(60,40,10,.02) 3%,transparent 7%),var(--sheet);}
+[data-theme="dark"] .bpage.single{background:linear-gradient(to right,rgba(0,0,0,.35),transparent 7%),var(--sheet);}
+.bpage.bback{background:var(--paper2,var(--sheet)); transform:scaleX(-1);}
+.bslot.single::before{content:""; position:absolute; top:3px; bottom:3px; right:-4px; width:5px; border-radius:0 3px 3px 0; background:repeating-linear-gradient(to right,var(--line) 0 1px,var(--sheet) 1px 2px); z-index:-1;}
+.bspread.one{perspective:2000px;}
+.bleaf.one{left:0; transform-origin:left center;}
+.bslot.single .bcast{background:linear-gradient(to right,rgba(0,0,0,.30),transparent 55%);}
+.bleaf.one.fwd .bface.front .bshade{background:linear-gradient(to left,rgba(0,0,0,.04),rgba(0,0,0,.30));}
+.bleaf.one.bwd .bface.front .bshade{background:linear-gradient(to left,rgba(0,0,0,.04),rgba(0,0,0,.30));}
 /* full-screen book: the spread fills the screen; the bars float over it and slide away */
 .bchrome-tab{display:none;}
 html.book-full #book{position:fixed; inset:0; z-index:5; box-sizing:border-box; background:var(--paper); gap:0;
@@ -428,6 +438,9 @@ div.home-plan{cursor:default;}
 .listen-btn{display:inline-flex; align-items:center; gap:6px; white-space:nowrap; font-size:13px; font-weight:600;}
 .listen-btn.on{background:var(--accent); color:var(--on-accent); border-color:var(--accent);}
 .rate-btn{font-size:13px; font-weight:700; min-width:46px;}
+.bt-short{display:none;}
+@media (max-width:480px){ .bt-long{display:none;} .bt-short{display:inline;} .book-toggle{padding-left:10px; padding-right:10px;} .reader-nav #chSel{flex:none; max-width:84px;} .reader-nav #bookSel{flex:1; max-width:none;} }
+@media (max-width:400px){ html.book-on #prevCh,html.book-on #nextCh{display:none;} }
 @media (max-width:480px){ .listen-btn span{display:none;} .reader-nav{gap:6px;} .reader-nav select{min-width:0;} }
 .verse.speaking{background:var(--accent-soft); box-shadow:inset 3px 0 0 var(--accent);}
 

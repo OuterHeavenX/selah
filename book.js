@@ -1,5 +1,6 @@
 "use strict";
-/* Selah — book view for wide screens (iPad and iPhone Duo in landscape, desktop).
+/* Selah — book view. Two facing pages on wide landscape screens (iPad, iPhone Duo unfolded,
+   desktop); one full-screen page on phones and portrait screens (iPhone Duo folded).
    Each chapter is laid out in CSS columns sized to one page; a page is a window onto
    that column flow. Pages run on continuously from chapter to chapter (a page is
    {b,c,i}), two consecutive pages make a spread, and the leaf turns with a 3D flip that
@@ -9,10 +10,12 @@ const BOOK_MIN_W=900;
 const BOOK_MIN_W_TALL=820, BOOK_MIN_H_TALL=500;   // unfolded iPhone Duo in landscape is ~890×626 pt
 const BOOK={sp:null, dims:null, cache:new Map(), flip:null};
 
-function bookCapable(){
+// Room for two facing pages? Otherwise the book shows one page at a time.
+function bookTwoUp(){
   const w=window.innerWidth, h=window.innerHeight;
   return w>h && (w>=BOOK_MIN_W || (w>=BOOK_MIN_W_TALL && h>=BOOK_MIN_H_TALL));
 }
+function bookCapable(){ return true; }
 function isBookMode(){ return bookCapable() && store.get("bookMode",true); }
 // Full-screen book: the spread fills the screen and the app's bars slide away until you swipe them back.
 const bookFullPref=()=>store.get("bookFull",true);
@@ -42,13 +45,16 @@ function bookMeasureDims(host){
     avH=Math.max(380, window.innerHeight-(host.getBoundingClientRect().top+window.scrollY)-below);
     avW=Math.min(window.innerWidth-120, 1560);                     // room for the turn arrows
   }
+  const two=bookTwoUp();
+  if(!two&&!document.documentElement.classList.contains("book-full")) avW=Math.min(window.innerWidth-120, 820);
   const ph=Math.floor(avH);
-  const pw=Math.floor(Math.min(avW/2, ph*0.82));
+  // One page keeps a comfortable line length on big portrait screens; it may be taller and narrower than a book page.
+  const pw=Math.floor(two?Math.min(avW/2, ph*0.82):Math.min(avW, 820));
   const padx=Math.round(Math.max(26, Math.min(52, pw*0.075)));
   const padt=Math.round(Math.max(28, Math.min(40, ph*0.05))), padb=Math.round(Math.max(40, Math.min(50, ph*0.065))), G=60;
   const fw=pw-2*padx, fh=ph-padt-padb;
   const fs=store.get("fs",18);
-  return {pw,ph,padx,padt,padb,G,fw,fh,step:fw+G,sig:`${fw}x${fh}|${fs}|${state.trans}|${compareTrans()||""}`};
+  return {two,pw,ph,padx,padt,padb,G,fw,fh,step:fw+G,sig:`${fw}x${fh}|${fs}|${state.trans}|${compareTrans()||""}`};
 }
 function applyDims(host,d){
   const st=host.style;
@@ -94,10 +100,12 @@ function prevPage(pg){
   if(pg.i>0) return {b:pg.b,c:pg.c,i:pg.i-1};
   const pv=adjChapter(pg.b,pg.c,-1); return pv&&{b:pv.b,c:pv.c,i:measureChapter(pv.b,pv.c).n-1};
 }
-const spreadAt=L=>({L, R:nextPage(L)});
-function nextSpread(sp){ const L=nextPage(sp.R); return L&&spreadAt(L); }
+// A spread is two facing pages {L,R}; with one page on screen it is just {L, R:null}.
+const spreadAt=L=>({L, R:BOOK.dims.two?nextPage(L):null});
+function nextSpread(sp){ const L=nextPage(BOOK.dims.two?sp.R:sp.L); return L&&spreadAt(L); }
 function prevSpread(sp){
   const R=prevPage(sp.L); if(!R) return null;
+  if(!BOOK.dims.two) return {L:R, R:null};
   const L=prevPage(R); return L?{L,R}:spreadAt(R);
 }
 const samePage=(a,b)=>a&&b&&a.b===b.b&&a.c===b.c&&a.i===b.i;
@@ -112,7 +120,10 @@ function pageHTML(pg,side){
 }
 function paintSpread(){
   const spread=$("#bookSpread"); if(!spread) return;
-  spread.innerHTML=`<div class="bslot left">${pageHTML(BOOK.sp.L,"left")}</div><div class="bslot right">${pageHTML(BOOK.sp.R,"right")}</div><div class="bspine"></div>`;
+  spread.classList.toggle("one",!BOOK.dims.two);
+  spread.innerHTML=BOOK.dims.two
+    ?`<div class="bslot left">${pageHTML(BOOK.sp.L,"left")}</div><div class="bslot right">${pageHTML(BOOK.sp.R,"right")}</div><div class="bspine"></div>`
+    :`<div class="bslot single">${pageHTML(BOOK.sp.L,"single")}</div>`;
   // Each page holds the whole chapter flow; only verses inside its window may take focus or be read out.
   spread.querySelectorAll(".bclip").forEach(clip=>{
     const cr=clip.getBoundingClientRect();
@@ -214,11 +225,23 @@ function beginFlip(dir){
   if(BOOK.flip) return null;
   const from=BOOK.sp, to=dir>0?nextSpread(from):prevSpread(from);
   if(!to) return null;
-  const spread=$("#bookSpread");
+  const spread=$("#bookSpread"), one=!BOOK.dims.two;
   const slotL=spread.querySelector(".bslot.left"), slotR=spread.querySelector(".bslot.right");
   const leaf=document.createElement("div");
-  leaf.className="bleaf "+(dir>0?"fwd":"bwd");
-  if(dir>0){
+  leaf.className="bleaf "+(one?"one ":"")+(dir>0?"fwd":"bwd");
+  const backSheet=`<div class="bpage single bback"></div>`;
+  if(one){
+    // One page: turning forward lifts this page away to the left, showing the next one beneath;
+    // turning back brings the previous page in from the left over this one.
+    const slot=spread.querySelector(".bslot.single");
+    if(dir>0){
+      leaf.innerHTML=`<div class="bface front">${pageHTML(from.L,"single")}<div class="bshade"></div></div><div class="bface back">${backSheet}<div class="bshade"></div></div>`;
+      slot.innerHTML=pageHTML(to.L,"single")+`<div class="bcast"></div>`;
+    }else{
+      leaf.innerHTML=`<div class="bface front">${pageHTML(to.L,"single")}<div class="bshade"></div></div><div class="bface back">${backSheet}<div class="bshade"></div></div>`;
+      slot.insertAdjacentHTML("beforeend",`<div class="bcast"></div>`);
+    }
+  }else if(dir>0){
     // The right page lifts off the stack; the next spread's right page lies beneath it.
     leaf.innerHTML=`<div class="bface front">${pageHTML(from.R,"right")}<div class="bshade"></div></div><div class="bface back">${pageHTML(to.L,"left")}<div class="bshade"></div></div>`;
     slotR.innerHTML=pageHTML(to.R,"right")+`<div class="bcast"></div>`;
@@ -231,11 +254,13 @@ function beginFlip(dir){
   let p=0;
   const set=q=>{
     p=Math.max(0,Math.min(1,q));
-    const ang=180*p*(dir>0?-1:1);
+    // One page turns about its left edge: forward goes 0 → -180°, back comes in from -180° → 0.
+    const ang=one?(dir>0?-180*p:-180*(1-p)):180*p*(dir>0?-1:1);
     // A slight lift at mid-turn reads as the paper bending away from the spine.
     leaf.style.transform=`rotateY(${ang}deg) translateZ(${Math.sin(Math.PI*p)*18}px)`;
-    shades[0].style.opacity=Math.min(1,p*1.8)*0.55;
-    shades[1].style.opacity=Math.min(1,(1-p)*1.8)*0.55;
+    const q2=one&&dir<0?1-p:p;
+    shades[0].style.opacity=Math.min(1,q2*1.8)*0.55;
+    shades[1].style.opacity=Math.min(1,(1-q2)*1.8)*0.55;
     cast.style.opacity=Math.sin(Math.PI*p)*0.9;
     leaf.style.setProperty("--lift",Math.sin(Math.PI*p));
   };
@@ -282,7 +307,7 @@ function bindBookGestures(spread){
       dragged=true; setBookChrome(false);
       try{ spread.setPointerCapture(e.pointerId); }catch(_){}
     }
-    const travel=BOOK.dims.pw*1.6;
+    const travel=BOOK.dims.pw*(BOOK.dims.two?1.6:1.1);
     flip.set(flip.dir>0?-dx/travel:dx/travel);
   });
   const end=e=>{
@@ -336,7 +361,7 @@ window.addEventListener("resize",()=>{
     if(state.view!=="read"||!BOOKS.length) return;
     const inBook=!!document.getElementById("book");
     if(inBook!==isBookMode()){ renderRead(); window.scrollTo(0,0); }   // rotated across the threshold
-    else if(inBook) bookRelayout();
+    else if(inBook) bookRelayout();   // also switches between one page and two when the Duo folds or unfolds
     else { const nav=document.querySelector(".reader-nav"); if(nav){ nav.outerHTML=readerNavHTML(); bindReaderNav(); } }
   },180);
 });

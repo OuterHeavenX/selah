@@ -523,7 +523,7 @@ function chapterVersesHTML(bookName,chNum){
 }
 function readerNavHTML(){
   const book=BOOKS.find(b=>b.name===state.book);
-  const toggle=bookCapable()?`<button class="nav-btn book-toggle" id="bookToggle" aria-pressed="${isBookMode()}">${isBookMode()?"Scroll view":"Book view"}</button>`:"";
+  const toggle=bookCapable()?`<button class="nav-btn book-toggle" id="bookToggle" aria-pressed="${isBookMode()}">${isBookMode()?`<span class="bt-long">Scroll view</span><span class="bt-short">Scroll</span>`:`<span class="bt-long">Book view</span><span class="bt-short">Pages</span>`}</button>`:"";
   return `<div class="reader-nav">
     <button class="nav-btn" id="prevCh" aria-label="Previous chapter">‹</button>
     <select id="bookSel" aria-label="Book">${BOOKS.map(b=>`<option ${b.name===state.book?"selected":""}>${esc(b.name)}</option>`).join("")}</select>
